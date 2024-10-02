@@ -112,7 +112,7 @@ module Engine
           },
           white: {
             %w[C4 C6 C8 C10 C12 C14 C16 B9 B11 B13 D7 D9 D13 E6 E8 E10 E12 E14 E16 F3 F7 F11 F13 F15] => '',
-            %w[G2 G6 G10 G12 G16 H3 H11 H13]
+            %w[G2 G6 G10 G12 G16 H3 H11 H13] => '',
             %w[C5 D4 F4 G7] => 'upgrade=cost:120,terrain:mountain',
             %w[E2 D5 F5 H5 G8 B7 D11 G14 D16 B15 E18] => 'city=revenue:0',
             %w[C2 D3 E4 H9 F9 ] => 'town=revenue:0;upgrade=cost:120,terrain:mountain',
