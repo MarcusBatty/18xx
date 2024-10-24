@@ -148,8 +148,8 @@ module Engine
             status: %w[three_per first_rev],
           },
           {
-            name: 'B',
             on: 'B',
+            name: 'B',
             train_limit: 3, # 3 type
             tiles: %i[yellow green],
             operating_rounds: 2,
@@ -563,11 +563,11 @@ module Engine
           @double_parliament = true
 
           # randomize order of corporations, then remove some based on player count
-          @offer_order = @corporations.sort_by { rand }
+          @offer_order = @corporations.sort_by { rand } 
           num_removed = case @players.size
                         when 8
                           2
-                        when 7
+                        when 7 
                           3
                         else
                           4

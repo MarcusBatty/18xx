@@ -34,11 +34,66 @@ module Engine
 
         STARTING_CASH = { 2 => 1200, 3 => 800, 4 => 600, 5 => 480, 6 => 400 }.freeze
 
-        MARKET = [%w[0c 20 22 24 26g 28 30 32 34 36 38 40p 50 60p 67 74 80p 85 90 95 100p 104 208 112 116 120p 122 124 126 129 132 135 139 143 147],
-        %w[152 157 163 169 176 183 191 200 208 218 229 241 254 268 283 300 316 334 354 376 400],].freeze
+        MARKET = [
+          %w[0c 
+            20 
+            22 
+            24 
+            26g 
+            28 
+            30 
+            32 
+            34 
+            36 
+            38 
+            40p 
+            50 
+            60p 
+            67 
+            74 
+            80p 
+            85 
+            90 
+            95 
+            100p 
+            104 
+            112 
+            116 
+            120p 
+            122 
+            124 
+            126 
+            129 
+            132 
+            135 
+            139 
+            143 
+            147
+            152 
+            157 
+            163 
+            169 
+            176 
+            183 
+            191 
+            200 
+            208 
+            218 
+            229 
+            241 
+            254 
+            268 
+            283 
+            300 
+            316 
+            334 
+            354 
+            376 
+            400],
+          ].freeze
 
-        STOCKMARKET_COLORS = {
-            #par: :yellow,
+         STOCKMARKET_COLORS = {
+            par: :yellow,
             close: :black,
           }.freeze
 
@@ -93,7 +148,7 @@ module Engine
                     operating_rounds: 2,
                   }].freeze
 
-        TRAINS = [{ name: '2', distance: 2, price: 80, rusts_on: '4', num: 7 },
+        TRAINS = [{ name: '2', distance: 2, price: 80, rusts_on: '4', num: 99 },
                   { name: '3', distance: 3, price: 160, rusts_on: '5+1P', num: 6 },
                   { name: '4', distance: 4, price: 240, rusts_on: 'D', num: 5,
                   variants: [
@@ -155,6 +210,8 @@ module Engine
                                                     'Companies can be bought between players after first stock round'],
        ).freeze
 
+=begin
+
         def multiple_buy_only_from_market?
           !optional_rules&.include?(:multiple_brown_from_ipo)
         end
@@ -168,12 +225,25 @@ module Engine
         def optional_6_train
           @optional_rules&.include?(:optional_6_train)
         end
-=begin
+=end
+
+        def or_round_finished
+          return if @depot.upcoming.empty?
+
+          if @depot.upcoming.first.name == '2'
+            depot.export_all!('2')
+            phase.next!
+          else
+            depot.export!
+          end
+        end
+
+
         def init_stock_market
           print "Hello market"
-          StockMarket.new(self.class::MARKET, [], zigzag: true, ledge_movement: true)
+          #StockMarket.new(self.class::MARKET, [], zigzag: true, ledge_movement: true)
+          StockMarket.new(self.class::MARKET, [], zigzag: :true)
         end
-=end
       end
     end
   end
