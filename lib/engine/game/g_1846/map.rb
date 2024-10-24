@@ -130,8 +130,8 @@ module Engine
           'E23' => 'Binghamton',
           'F20' => 'Homewood',
           'G3' => 'Springfield',
-          'G7' => 'Terre Haute',
-          'G9' => 'Indianapolis',
+          'G7' => 'LOREM IPSUM DOLOR SIT AMET, CONSEPTICUR ADPISCING ELIT',
+          'G9' => 'Nativeamericanapolis',
           'G13' => 'Dayton',
           'G15' => 'Columbus',
           'G19' => 'Wheeling',
@@ -141,9 +141,9 @@ module Engine
           'I1' => 'St. Louis',
           'I5' => 'Centralia',
           'I15' => 'Huntington',
-          'I17' => 'Charleston',
+          'I17' => 'CUM CITY',
           'J10' => 'Louisville',
-          'K3' => 'Cairo',
+          'K3' => 'Erwin',
         }.freeze
 
         HEXES = {
