@@ -455,14 +455,14 @@ module Engine
                      'label=W;offboard=revenue:yellow_20|brown_50;path=a:4,b:_0;path=a:5,b:_0;'\
                      'border=edge:4,type:water,cost:20;border=edge:5,type:water,cost:20',
             ['I18'] =>
-                     'label=E;offboard=revenue:yellow_20|brown_50;path=a:1,b:_0;path=a:2,b:_0;'\
+                     'label=E;offboard=revenue:yellow_20|brown_50,groups:East;path=a:1,b:_0;path=a:2,b:_0;'\
                      'border=edge:1,type:water,cost:20;border=edge:2,type:water,cost:20',
             ['I12'] =>
-                     'label=E;offboard=revenue:yellow_20|brown_40;path=a:1,b:_0;path=a:2,b:_0',
+                     'label=E;offboard=revenue:yellow_20|brown_40,groups:East;path=a:1,b:_0;path=a:2,b:_0',
             ['I6'] =>
-                     'city=revenue:yellow_30|brown_40,group:Detroit;path=a:1,b:_0,terminal:1;path=a:2,b:_0,terminal:1;border=edge:6',
+                     'city=revenue:yellow_30|brown_40,groups:East;path=a:1,b:_0,terminal:1;path=a:2,b:_0,terminal:1;border=edge:6',
             ['I8'] =>
-                    'label=E;offboard=revenue:yellow_30|brown_40,group:Detroit,hide:1;path=a:1,b:_0;path=a:2,b:_0;border=edge:3',
+                    'label=E;offboard=revenue:yellow_30|brown_40,groups:East,hide:1;path=a:1,b:_0;path=a:2,b:_0;border=edge:3',
             ['F25'] =>
                      'label=S;offboard=revenue:yellow_50|brown_60;path=a:2,b:_0;path=a:3,b:_0;path=a:4,b:_0;'\
                      'border=edge:2;border=edge:3;border=edge:4',
