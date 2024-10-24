@@ -26,7 +26,7 @@ module Engine
         TILE_RESERVATION_BLOCKS_OTHERS = :always
         CURRENCY_FORMAT_STR = '$%s'
 
-        BANK_CASH = 98_000
+        BANK_CASH = 99_000
         
         CAPITALIZATION = :incremental
 
