@@ -42,96 +42,85 @@ module Engine
             close: :black,
           }.freeze
 
-          PHASES = [{
-            name: '2',
-            train_limit: 4,
-            tiles: [:yellow],
-            operating_rounds: 2,
-            status: ['can_buy_companies_from_other_players'],
-          },
-                    {
-                      name: '2%',
-                      on: "2'",
-                      train_limit: 4,
-                      tiles: [:yellow],
-                      operating_rounds: 2,
-                      status: %w[can_buy_companies can_buy_companies_from_other_players],
-                    },         
-                    {
-                      name: '3',
-                      on: '3',
-                      train_limit: 4,
-                      tiles: %i[yellow green],
-                      operating_rounds: 2,
-                      status: %w[can_buy_companies can_buy_companies_from_other_players],
-                    },
-                    {
-                      name: '4',
-                      on: '4',
-                      train_limit: 3,
-                      tiles: %i[yellow green],
-                      operating_rounds: 2,
-                      status: %w[can_buy_companies can_buy_companies_from_other_players],
-                    },
-                    {
-                      name: '4+2P',
-                      on: '4+2P',
-                      train_limit: 2,
-                      tiles: %i[yellow green brown],
-                      operating_rounds: 2,
-                    },
-                    {
-                      name: '5',
-                      on: '5+1P',
-                      train_limit: 2,
-                      tiles: %i[yellow green brown],
-                      operating_rounds: 2,
-                    },
-                    {
-                      name: '6',
-                      on: '6',
-                      train_limit: 2,
-                      tiles: %i[yellow green brown],
-                      operating_rounds: 2,
-                    },
-                    {
-                      name: 'D',
-                      on: 'D',
-                      train_limit: 2,
-                      tiles: %i[yellow green brown gray],
-                      operating_rounds: 2,
-                    }].freeze
-  
-          TRAINS = [{ name: '2', distance: 2, price: 80, rusts_on: '4', num: 99 },
-                    { name: '3', distance: 3, price: 160, rusts_on: '6', num: 6 },
-                    { name: '4', distance: 4, price: 240, rusts_on: 'D', num: 5,
-                    variants: [
-                        {
-                          name: '3P',
-                          price: 320,
-                          distance: [{ 'nodes' => %w[city], 'pay' => 3, 'visit' => 3, 'multiplier' => 2 },
-                                    {
-                                     'nodes' => ['town'],
-                                     'pay' => 99,
-                                     'visit' => 99,
-                                     'multiplier' => 2,
-                                   }],
-                        },
-                      ],
-                    },
-                    { name: '4+2P',
-                      distance: [{ 'nodes' => %w[city offboard], 'pay' => 4, 'visit' => 4 },
-                        { 'nodes' => %w[city], 'pay' => 2, 'visit' => 2, 'multiplier' => 2 },
-                        { 'nodes' => ['town'], 'pay' => 99, 'visit' => 99}],
-                      price: 800, num: 2 },
-                    { name: '5+1P',
-                      distance: [{ 'nodes' => %w[city offboard], 'pay' => 5, 'visit' => 5 },
-                        { 'nodes' => %w[city], 'pay' => 1, 'visit' => 1, 'multiplier' => 2 },
-                        { 'nodes' => ['town'], 'pay' => 99, 'visit' => 99}],
-                      price: 700, num: 3 },
-                    { name: '6', distance: 6, price: 600, num: 4 },
-                    { name: 'D', distance: 999, price: 1000, num: 99 },
-          ].freeze
+          PHASES = [
+                  {
+                    name: '2',
+                    train_limit: 4,
+                    tiles: [:yellow],
+                    operating_rounds: 2
+                  },
+                  {
+                    name: '3',
+                    on: '3',
+                    train_limit: 4,
+                    tiles: %i[yellow green],
+                    operating_rounds: 2
+                  },
+                  {
+                    name: '4',
+                    on: '4',
+                    train_limit: 3,
+                    tiles: %i[yellow green],
+                    operating_rounds: 2
+                    
+                  },
+                  {
+                    name: '4+2P',
+                    on: '4+2P',
+                    train_limit: 2,
+                    tiles: %i[yellow green brown],
+                    operating_rounds: 2
+                  },
+                  {
+                    name: '5',
+                    on: '5+1P',
+                    train_limit: 2,
+                    tiles: %i[yellow green brown],
+                    operating_rounds: 2
+                  },
+                  {
+                    name: '6',
+                    on: '6',
+                    train_limit: 2,
+                    tiles: %i[yellow green brown],
+                    operating_rounds: 2
+                  },
+                  {
+                    name: 'D',
+                    on: 'D',
+                    train_limit: 2,
+                    tiles: %i[yellow green brown gray],
+                    operating_rounds: 2,
+                  }].freeze
+
+        TRAINS = [{ name: '2', distance: 2, price: 80, rusts_on: '4', num: 7 },
+                  { name: '3', distance: 3, price: 160, rusts_on: '5+1P', num: 6 },
+                  { name: '4', distance: 4, price: 240, rusts_on: 'D', num: 5,
+                  variants: [
+                      {
+                        name: '3P',
+                        distance: [{ 'nodes' => ['city'], 'pay' => 3, 'visit' => 3, 'multiplier' => 2 },
+                                  {
+                                   'nodes' => ['town'],
+                                   'pay' => 99,
+                                   'visit' => 99,
+                                   'multiplier' => 2,
+                                 }], price: 320 },
+                    ],
+                  },
+                  { name: '4+2P',
+                    distance: [{ 'nodes' => %w[city offboard], 'pay' => 4, 'visit' => 4 },
+                      { 'nodes' => ['city'], 'pay' => 2, 'visit' => 2, 'multiplier' => 2 },
+                      { 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 }],
+                    price: 800, num: 2 },
+                  { name: '5+1P',
+                    distance: [{ 'nodes' => %w[city offboard], 'pay' => 5, 'visit' => 5 },
+                      { 'nodes' => ['city'], 'pay' => 1, 'visit' => 1, 'multiplier' => 2 },
+                      { 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 }],
+                    price: 700, num: 3 },
+                  { name: '6', distance: 6, price: 600, num: 4 },
+                  { name: 'D', distance: 999, price: 1000, num: 99 },
+        ].freeze
 
         def operating_round(round_num)
           Round::Operating.new(self, [
