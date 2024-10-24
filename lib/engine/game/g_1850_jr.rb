@@ -2,7 +2,7 @@
 
 module Engine
   module Game
-    module G1850Jr
+    module G1850JR
     end
   end
 end
