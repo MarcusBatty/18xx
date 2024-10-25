@@ -183,8 +183,11 @@ module Engine
             Engine::Step::Exchange,
             Engine::Step::SpecialTrack,
             Engine::Step::SpecialToken,
-            Engine::Step::BuyCompany,
+            #Engine::Step::BuyCompany,
             Engine::Step::HomeToken,
+            #trade_assets,
+            G18IL::Step::Convert,
+            Engine::Step::IssueShares,
             Engine::Step::Track,
             Engine::Step::Token,
             Engine::Step::Route,
@@ -195,6 +198,10 @@ module Engine
           ], round_num: round_num)
         end
 
+        def trade_assets
+         #@log << "#{current_entity.name} skips Trade Assets."
+        end
+        
         def stock_round
           print "hello"
           Round::Stock.new(self, [
@@ -244,6 +251,24 @@ module Engine
           #StockMarket.new(self.class::MARKET, [], zigzag: true, ledge_movement: true)
           StockMarket.new(self.class::MARKET, [], zigzag: :true)
         end
+
+        def price_movement_chart
+          [
+            ['Action', 'Share Price Change'],
+            ['Dividend = 0', '1 ←'],
+            ['Dividend < 1/2 stock price', '1 ⤪'],
+            ['Dividend ≥ 1/2 stock price but < stock price', '1 ⤨'],
+            ['Dividend ≥ stock price', '1 →'],
+            ['Dividend ≥ 2X stock price', '2 →'],
+            ['Dividend ≥ 3X stock price', '3 →'],
+            ['Voluntary Issue','Full Amount, then 1 ←'],
+            ['Emergency Issue','Half Amount, then ⤪ for each'],
+           # ['Corporation director sells any number of shares', '1 ←'],
+            ['Corporation is sold out at end of an SR', '1 ⤨ (5 share) or 1 → (10 share)'],
+            ['Corporation has any shares in the Market at end of an SR', '⤪ for each'],
+          ]
+        end
+
       end
     end
   end

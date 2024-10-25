@@ -196,19 +196,27 @@ module Engine
             'color' => 'yellow',
             'code' => 'path=a:5,b:6;path=a:3,b:6,track:future',
           },
+=begin
+          'IL50' =>
+          {
+            'count' => 1,
+            'color' => 'blue',
+            'code' => 'city=revenue:30;path=a:3,b:_0,track:thin;path=a:5,b:_0,track:thin;label=Memphis;icon=image:port',
+          },
+=end
 
           'IL50' =>
           {
             'count' => 1,
             'color' => 'blue',
-            'code' => 'city=revenue:30;path=a:3,b:_0,track:future;path=a:5,b:_0,track:future;label=Memphis;icon=image:port',
+            'code' => 'offboard=revenue:30;path=a:3,b:5,track:thin;label=Memphis;icon=image:port',
           },
-          
+
           'IL51' =>
           {
             'count' => 1,
             'color' => 'blue',
-            'code' => 'offboard=revenue:50;path=a:6,b:_0;label=StPaul;icon=image:port',
+            'code' => 'offboard=revenue:50;path=a:5,b:_0;label=StPaul;icon=image:port',
           },
 
           'IL60' => 
@@ -229,7 +237,7 @@ module Engine
           {
             'count' => 1,
             'color' => 'green',
-            'code' => 'city=revenue:40;city=revenue:40;city=revenue:40;label=Chi;path=a:0,b:_0;path=a:1,b:_1;path=a:4,b:_2,track:future',
+            'code' => 'city=revenue:40;city=revenue:40;city=revenue:40;label=Chi;path=a:6,b:_0;path=a:2,b:_1;path=a:4,b:_2',
           },
 
           'IL63' => 
@@ -355,24 +363,29 @@ module Engine
           'H3' => 'Chicago',
           'C16'=> 'St Louis',
           'H21' => 'Evansville',
-          'B3' => 'Sioux City', 
-          'A10' => 'Omaha',
+          'B3' => 'Sioux City +80 E/W', 
+          'A10' => 'Omaha +80 E/W',
           'I18' => 'Louisville',
           'I12' => 'Indianapolis',
           'I6' => 'Detroit',
           'F25' => 'New Orleans',
-          'G2' => 'Milwaukee',
+          'G2' => 'Milwaukee +100 N/S',
           'I2' => 'Lake Michigan',
           'D21' => 'to Memphis',
         }.freeze
 
         HEXES = {
           blue: {
+
+          # from PNW
+          # %w[D9] => 'junction;path=a:4,b:_0,terminal:1;path=a:0,b:4,track:thin;icon=image:anchor',
+
             ['B1'] => 'offboard=revenue:yellow_0,groups:port,route:never;path=a:5,b:_0',
-            ['H1'] => 'offboard=revenue:yellow_0,groups:port,route:never;path=a:1,b:5,track:future;border=edge:5',
-            ['I2'] => 'offboard=revenue:yellow_0,groups:port,route:never;path=a:1,b:2,track:future;icon=image:port;border=edge:6;border=edge:2',
+            ['H1'] => 'offboard=revenue:20,groups:port;path=a:1,b:5,track:thin;border=edge:5;path=a:1,b:_0',
+            ['I2'] => 'offboard=revenue:yellow_0,groups:port;path=a:1,b:2,track:thin;icon=image:port;border=edge:6;border=edge:2;'\
+                      'path=a:1,b:_0',
             ['I4'] => 'offboard=revenue:yellow_0,groups:port,route:never;border=edge:3',
-            ['D23'] => 'offboard=revenue:yellow_0,groups:port,route:never;path=a:3,b:_0',
+            ['D23'] => 'offboard=revenue:0,groups:port,route:never;path=a:3,b:_0;path=a:5,b:_0 ',
           },
           white: {
             %w[D3 D5 D7 E4 F7 H9 H13 H15 G18 C10 C12 C14 E10 D11 E18 E16 G20] => '',
@@ -416,7 +429,8 @@ module Engine
           },
           yellow: {
             ['H5'] => 'path=a:3,b:6',
-            ['H3'] => 'label=CHI;city=revenue:10;city=revenue:10;city=revenue:10;path=a:6,b:_1;path=a:4,b:_2',
+            #['H3'] => 'label=CHI;city=revenue:10;city=revenue:10;city=revenue:10;path=a:6,b:_1;path=a:4,b:_2',
+            ['H3'] => 'label=CHI;city=revenue:10;city=revenue:10;city=revenue:10;path=a:2,b:_0;path=a:6,b:_1;path=a:4,b:_2',
             ['E8'] => 'label=P;city=revenue:20;path=a:3,b:_0;upgrade=cost:20,terrain:water',
 
           },
@@ -469,7 +483,7 @@ module Engine
             ['G2'] =>
                      'label=N;offboard=revenue:yellow_20|brown_40;path=a:4,b:_0;path=a:5,b:_0',
             ['E24'] =>
-                     'path=a:3,b:5;border=edge:5;border=edge:4;path=a:2,b:5,track:future;border=edge:3,type:water,cost:20',
+                     'path=a:3,b:5;border=edge:5;border=edge:4;path=a:2,b:5,track:thin;border=edge:3,type:water,cost:20',
             ['G24'] =>
                      'path=a:3,b:1;border=edge:1;border=edge:2;border=edge:3,type:water,cost:20',
             ['F23'] =>
