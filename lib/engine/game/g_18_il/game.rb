@@ -21,18 +21,16 @@ module Engine
                         yellow: '#ffe600',
                         green: '#32763f',
                         brightGreen: '#6ec037')
+
         TRACK_RESTRICTION = :permissive
-        SELL_BUY_ORDER = :sell_buy_sell
+        SELL_BUY_ORDER = :sell_buy
         TILE_RESERVATION_BLOCKS_OTHERS = :always
         CURRENCY_FORMAT_STR = '$%s'
-
+        NEXT_SR_PLAYER_ORDER = :first_to_pass
         BANK_CASH = 99_000
-        
         CAPITALIZATION = :incremental
-
-        CERT_LIMIT = { 2 => 28, 3 => 20, 4 => 16, 5 => 13, 6 => 11 }.freeze
-
-        STARTING_CASH = { 2 => 1200, 3 => 800, 4 => 600, 5 => 480, 6 => 400 }.freeze
+        CERT_LIMIT = { 2 => 22, 3 => 18, 4 => 15, 5 => 13 }.freeze
+        STARTING_CASH = { 2 => 540, 3 => 480, 4 => 420, 5 => 360 }.freeze
 
         MARKET = [
           %w[0c 
@@ -248,7 +246,7 @@ module Engine
 
         def init_stock_market
           print "Hello market"
-          #StockMarket.new(self.class::MARKET, [], zigzag: true, ledge_movement: true)
+          #StockMarket.new(self.class::MARKET, [], zigzag: flip, ledge_movement: true)
           StockMarket.new(self.class::MARKET, [], zigzag: :true)
         end
 
