@@ -32,6 +32,70 @@ module Engine
         CERT_LIMIT = { 2 => 22, 3 => 18, 4 => 15, 5 => 13 }.freeze
         STARTING_CASH = { 2 => 540, 3 => 480, 4 => 420, 5 => 360 }.freeze
 
+        POOL_SHARE_DROP = :down_share
+        BANKRUPTCY_ALLOWED = false
+        CERT_LIMIT_INCLUDES_PRIVATES = false
+        MIN_BID_INCREMENT = 5
+        MUST_BID_INCREMENT_MULTIPLE = true
+        ONLY_HIGHEST_BID_COMMITTED = true
+
+        # From 17:
+        # Two lays with one being an upgrade, second tile costs 20
+        #TILE_COST = 0
+        TILE_LAYS = [
+          { lay: true, upgrade: true, cost:0},
+          { lay: true, upgrade: :not_if_upgraded, cost: 20, cannot_reuse_same_hex: true },
+        ].freeze
+
+        # TODO: verify
+        HOME_TOKEN_TIMING = :float
+        MUST_BUY_TRAIN = :always
+
+        # TODO:  first D only
+        GAME_END_CHECK = {
+          #bankrupt: :immediate,
+          #bank: :full_or,
+          #all_closed: :immediate,
+        }.freeze
+
+      # TODO:  two rules on selling shares
+      # when can a share holder sell shares
+      # first            -- after first stock round
+      # after_sr_floated -- after stock round in which company floated
+      # operate          -- after operation
+      # full_or_turn     -- after corp completes a full OR turn
+      # p_any_operate    -- pres any time, share holders after operation
+      # any_time         -- at any time
+      # round            -- after the stock round the share was purchased in
+      SELL_AFTER = :operate
+
+      # down_share -- down one row per share
+      # down_per_10 -- down one row per 10% sold
+      # down_block -- down one row per block
+      # left_share -- left one column per share
+      # left_share_pres -- left one column per share if president
+      # left_block -- one row per block
+      # down_block_pres -- down one row per block if president
+      # left_block_pres -- left one column per block if president
+      # left_per_10_if_pres_else_left_one -- left_share_pres + left_block
+      # none -- don't drop price
+      SELL_MOVEMENT = :none
+
+      # do shares in the pool drop the price?
+      # none, down_block, left_block, down_share
+      POOL_SHARE_DROP = :down_share
+
+      # TODO:  depends on share type 2 vs 5 vs 10
+      # do sold out shares increase the price?
+      SOLD_OUT_INCREASE = true
+
+      # :none -- No movement
+      # :down_right -- Moves down and right
+      SOLD_OUT_TOP_ROW_MOVEMENT = :down_right
+
+      # TODO: big time changes here
+      #GAME_END_CHECK = { final_phase: :one_more_full_or_set }.freeze
+
         MARKET = [
           %w[0c 
             20 
@@ -55,6 +119,7 @@ module Engine
             95 
             100p 
             104 
+            108
             112 
             116 
             120p 
@@ -90,6 +155,7 @@ module Engine
             400],
           ].freeze
 
+        # TODO: Remove empty grey legend
          STOCKMARKET_COLORS = {
             par: :yellow,
             close: :black,
@@ -238,15 +304,16 @@ module Engine
           
         def operating_round(round_num)
           Round::Operating.new(self, [
-            Engine::Step::Bankrupt,
+            #Engine::Step::Bankrupt,
             Engine::Step::Exchange,
             Engine::Step::SpecialTrack,
             Engine::Step::SpecialToken,
-            #Engine::Step::BuyCompany,
+            Engine::Step::BuyCompany,
             Engine::Step::HomeToken,
-            #trade_assets,
+            #trade_assets here,
             G18IL::Step::Convert,
             Engine::Step::IssueShares,
+            # and/or buy a share into the reserve
             Engine::Step::Track,
             Engine::Step::Token,
             Engine::Step::Route,
@@ -271,28 +338,6 @@ module Engine
           ])
         end
 
-        STATUS_TEXT = Base::STATUS_TEXT.merge(
-         'can_buy_companies_from_other_players' => ['Interplayer Company Buy',
-                                                    'Companies can be bought between players after first stock round'],
-       ).freeze
-
-=begin
-
-        def multiple_buy_only_from_market?
-          !optional_rules&.include?(:multiple_brown_from_ipo)
-        end
-
-        def num_trains(train)
-          return train[:num] unless train[:name] == '6'
-
-          optional_6_train ? 3 : 2
-        end
-
-        def optional_6_train
-          @optional_rules&.include?(:optional_6_train)
-        end
-=end
-
         def or_round_finished
           return if @depot.upcoming.empty?
 
@@ -307,8 +352,7 @@ module Engine
 
         def init_stock_market
           print "Hello market"
-          #StockMarket.new(self.class::MARKET, [], zigzag: flip, ledge_movement: true)
-          StockMarket.new(self.class::MARKET, [], zigzag: :true)
+          StockMarket.new(self.class::MARKET, [], zigzag: :flip)
         end
 
         def price_movement_chart
@@ -327,6 +371,27 @@ module Engine
             ['Corporation has any shares in the Market at end of an SR', '⤪ for each'],
           ]
         end
+
+=begin
+        STATUS_TEXT = Base::STATUS_TEXT.merge(
+         'can_buy_companies_from_other_players' => ['Interplayer Company Buy',
+                                                    'Companies can be bought between players after first stock round'],
+       ).freeze
+
+        def multiple_buy_only_from_market?
+          !optional_rules&.include?(:multiple_brown_from_ipo)
+        end
+
+        def num_trains(train)
+          return train[:num] unless train[:name] == '6'
+
+          optional_6_train ? 3 : 2
+        end
+
+        def optional_6_train
+          @optional_rules&.include?(:optional_6_train)
+        end
+=end
 
       end
     end

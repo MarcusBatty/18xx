@@ -1,0 +1,244 @@
+[33mcommit 5345dde266fcc1ed36d7be1efa03357a94579adc[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Marcus Batty <lewisthornberry@yahoo.com>
+Date:   Fri Oct 25 11:20:11 2024 -0400
+
+    mines as free stops
+
+[33mcommit 2ff788e56d5e0a4f18dc8efc006d9a111487a1cc[m
+Author: Marcus Batty <lewisthornberry@yahoo.com>
+Date:   Fri Oct 25 11:09:09 2024 -0400
+
+    some constants
+
+[33mcommit 10fa6c2f9bf125ff6b4658fe035013f8bc948124[m
+Author: Marcus Batty <lewisthornberry@yahoo.com>
+Date:   Fri Oct 25 01:04:57 2024 -0400
+
+    market chart, blue map hexes
+
+[33mcommit 1c69d78851535fc5bf27cfb5b079275f8361b071[m
+Author: Marcus Batty <lewisthornberry@yahoo.com>
+Date:   Thu Oct 24 19:33:54 2024 -0400
+
+    fixed market
+
+[33mcommit a2ff622e4631f29ba856d83ed8b401b2f5fabfff[m
+Author: Marcus Batty <lewisthornberry@yahoo.com>
+Date:   Thu Oct 24 17:46:58 2024 -0400
+
+    phases trains
+
+[33mcommit 28151c8c5654b7a215733e78e175b3310aea4513[m
+Merge: 8acb95237 7144009d4
+Author: Marcus Batty <lewisthornberry@yahoo.com>
+Date:   Thu Oct 24 17:31:52 2024 -0400
+
+    Merge branch 'master' of https://github.com/MarcusBatty/18xx
+
+[33mcommit 8acb952372c112fedb969ab5675b2a71b921aa99[m
+Author: Marcus Batty <lewisthornberry@yahoo.com>
+Date:   Thu Oct 24 17:31:33 2024 -0400
+
+    dummy
+
+[33mcommit 7144009d4955e6a12e8a744583222a3230d544a0[m
+Merge: 410bc9d93 69a64cd05
+Author: MarcusBatty <70710620+MarcusBatty@users.noreply.github.com>
+Date:   Thu Oct 24 16:56:56 2024 -0400
+
+    Merge branch 'tobymao:master' into master
+
+[33mcommit 62403485e1d0209abce3896f9f994064c9dba0ec[m
+Author: Marcus Batty <lewisthornberry@yahoo.com>
+Date:   Thu Oct 24 16:52:17 2024 -0400
+
+    inc cap, trains and phases first draft, offboard groups'
+
+[33mcommit 69a64cd05537b545b0eba9cfffbdcfbf4c95e448[m
+Merge: 137dccd6c de43a0ec3
+Author: Oliver Burnett-Hall <olly@burnett-hall.co.uk>
+Date:   Thu Oct 24 21:17:32 2024 +0100
+
+    Merge pull request #11207 from philcampeau/18ga-cotton-port
+    
+    [18GA] Implements Cotton Port variant
+
+[33mcommit 137dccd6cbe737c5154a894b917eec7992662deb[m
+Merge: bcca98a49 e1fbe0946
+Author: Oliver Burnett-Hall <olly@burnett-hall.co.uk>
+Date:   Thu Oct 24 21:10:04 2024 +0100
+
+    Merge pull request #11302 from ollybh/remove-system18-fixture
+    
+    [System18] Remove broken fixture file
+
+[33mcommit e1fbe09467504ce81d780729b211f83e3a3a93b6[m
+Author: Oliver Burnett-Hall <olly@burnett-hall.co.uk>
+Date:   Thu Oct 24 20:53:06 2024 +0100
+
+    [System18] Remove broken fixture file
+    
+    The game 182070 fixture file for System18 includes buying a previously
+    discarded train at action 258. PR tobymao#11275 has changed it so that
+    discarded trains are removed from the game, so there is no longer a
+    train to buy, breaking this fixture.
+
+[33mcommit bcca98a492fe69a9b59b98eed4b75166cd40ca25[m
+Merge: 068411afc f3080434a
+Author: Oliver Burnett-Hall <olly@burnett-hall.co.uk>
+Date:   Thu Oct 24 20:37:20 2024 +0100
+
+    Merge pull request #11260 from philcampeau/11257---1822ca-game-end-description
+    
+    [1822CA] fix game end description
+
+[33mcommit 410bc9d9367474d8bcc4fcfb8b66b8cb5fe1d5db[m
+Merge: 9ab561727 068411afc
+Author: MarcusBatty <70710620+MarcusBatty@users.noreply.github.com>
+Date:   Thu Oct 24 15:36:36 2024 -0400
+
+    Merge branch 'tobymao:master' into master
+
+[33mcommit 9ab56172729b413f1260618b6ed5c93f18421244[m
+Author: Marcus Batty <lewisthornberry@yahoo.com>
+Date:   Thu Oct 24 15:07:56 2024 -0400
+
+    river crossings work around
+
+[33mcommit de43a0ec34185ac12eef55bf24ac34cc509bb2a4[m
+Merge: 71ac4371a 068411afc
+Author: philcampeau <philcampeau@gmail.com>
+Date:   Thu Oct 24 15:02:45 2024 -0400
+
+    Merge branch 'tobymao:master' into 18ga-cotton-port
+
+[33mcommit 71ac4371a82c375bb6d0ef23e45c39f186ea7245[m
+Author: philcampeau <philcampeau@gmail.com>
+Date:   Thu Oct 24 14:54:27 2024 -0400
+
+    Update lib/engine/game/g_18_ga/game.rb
+    
+    Co-authored-by: Oliver Burnett-Hall <olly@burnett-hall.co.uk>
+
+[33mcommit 068411afc36c14bb17bdcbebd8d7a0f0bac74798[m
+Merge: 8b61e6a4f 80156fd82
+Author: Oliver Burnett-Hall <olly@burnett-hall.co.uk>
+Date:   Thu Oct 24 18:08:05 2024 +0100
+
+    Merge pull request #11293 from roseundy/18car_restart
+    
+    18Carolinas: fix power on corp restart
+
+[33mcommit 8b61e6a4f99faffd10033831237f15a3b9204b55[m
+Merge: f2c363348 db22a1ac7
+Author: Oliver Burnett-Hall <olly@burnett-hall.co.uk>
+Date:   Thu Oct 24 18:07:47 2024 +0100
+
+    Merge pull request #11291 from roseundy/s18_britain_fixes
+    
+    S18 full Britain map fixes; add S18 fixture
+
+[33mcommit f2c363348793bf73688a827fac0e5c69e6675817[m
+Merge: 1a857167d 62c42862b
+Author: Oliver Burnett-Hall <olly@burnett-hall.co.uk>
+Date:   Thu Oct 24 18:07:31 2024 +0100
+
+    Merge pull request #11275 from 18xx-ru/system-18-fix-discard
+    
+    System18: Remove discarded trains from the game
+
+[33mcommit 1a857167db9fc06aecd1fa2dbe06554a20ff2011[m
+Merge: 339dfddb0 43c8fef38
+Author: Oliver Burnett-Hall <olly@burnett-hall.co.uk>
+Date:   Thu Oct 24 18:07:10 2024 +0100
+
+    Merge pull request #11270 from philcampeau/18ESP-minimum-price
+    
+    [18ESP] sets minimum buy-in price for P6 and P7 to 1
+
+[33mcommit 87ec11ba4a97515efe0fabd07613fdcfd2092014[m
+Merge: bfbe37175 29d685abe
+Author: Marcus Batty <lewisthornberry@yahoo.com>
+Date:   Thu Oct 24 12:52:16 2024 -0400
+
+    merge from remote
+
+[33mcommit 29d685abe0fb692a2b5b0571ded3ccab470626f2[m
+Merge: b2433d958 339dfddb0
+Author: MarcusBatty <70710620+MarcusBatty@users.noreply.github.com>
+Date:   Thu Oct 24 12:18:03 2024 -0400
+
+    Merge branch 'tobymao:master' into master
+
+[33mcommit bfbe37175cc9d1ab7c6259dc14a0c23874877a47[m
+Author: Marcus Batty <lewisthornberry@yahoo.com>
+Date:   Thu Oct 24 00:29:10 2024 -0400
+
+    Joey helps first commit after fixing map
+
+[33mcommit 1054f984eed072e223f6e1726bf6d15f669fe965[m
+Author: Marcus Batty <lewisthornberry@yahoo.com>
+Date:   Wed Oct 23 22:43:02 2024 -0400
+
+    bunch of stuff
+
+[33mcommit 339dfddb0445bd7036217a0bb81893ee616ac6d1[m[33m ([m[1;31mupstream/master[m[33m, [m[1;31mupstream/HEAD[m[33m)[m
+Merge: 54f511811 b993d61a0
+Author: Oliver Burnett-Hall <olly@burnett-hall.co.uk>
+Date:   Mon Oct 21 13:05:02 2024 +0100
+
+    Merge pull request #11282 from bentziaxl/18esp_bug_fix
+    
+    [18esp] fix minor bugs
+
+[33mcommit 54f5118115893dd5219a118897f8329bc501f8fb[m
+Merge: 7dfc86329 44cdbc0c1
+Author: Oliver Burnett-Hall <olly@burnett-hall.co.uk>
+Date:   Mon Oct 21 12:57:47 2024 +0100
+
+    Merge pull request #11205 from philcampeau/18sj-nationalization-fix
+    
+    [18SJ] Corrects edge case nationalization calculation
+
+[33mcommit 80156fd8276ac5b583ebd03a6aacffaa53fc3ad8[m
+Author: Steve Undy <steve@roseundy.net>
+Date:   Sun Oct 20 12:52:41 2024 -0600
+
+    18Carolinas: fix power on corp restart
+
+[33mcommit db22a1ac78e3e19223b55cadf37bf90fe04a9053[m
+Author: Steve Undy <steve@roseundy.net>
+Date:   Sat Oct 19 13:06:11 2024 -0600
+
+    S18 full Britain map fixes; add S18 fixture
+
+[33mcommit 7dfc8632966d281bc89f6d25ea6519bf0f91d319[m
+Merge: 1798d1e24 638f916e2
+Author: Michael Brandt <michaelbrandt5@gmail.com>
+Date:   Fri Oct 18 22:38:48 2024 -0600
+
+    Merge pull request #11288 from michaeljb/18RoyalGorge
+    
+    [core/18RoyalGorge] add `Dividend` to `ability_blocking_step`, fix debt/company interactions
+
+[33mcommit 638f916e2248319635cc6b45c897ea234f2bff12[m
+Author: Michael Brandt <michaelbrandt5@gmail.com>
+Date:   Fri Oct 18 22:23:04 2024 -0600
+
+    [core/18RoyalGorge] add `Dividend` to `ability_blocking_step`, fix debt/company interactions
+    
+    * fixes debt pay-off and 13LB Gold Nugget bonus interacting and breaking
+    * possibly also affects Ghost Town Tour Co. (Y2), which is also active during
+      the dividend step
+
+[33mcommit 1798d1e241bb524eaf8330891165a27aa835728a[m
+Merge: cf6aad908 dc09f4e1f
+Author: Chris Rericha <67359577+crericha@users.noreply.github.com>
+Date:   Thu Oct 17 01:58:10 2024 -0400
+
+    Merge pull request #11286 from tobymao/1837-operating-round
+    
+    [1837] Operating round basics
+
+[33mcommit dc09f4e1f4b3ec0102bcf227fc4e4a6dee57afee[m
+Author: Chris Rericha <tristipher@
