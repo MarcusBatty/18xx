@@ -397,3 +397,25 @@ module Engine
     end
   end
 end
+
+=begin
+def share_price_change(entity, revenue = 0)
+  print "Dividends"
+  #return {} if entity.minor?
+  price = entity.share_price.price
+  print revenue, price
+  return { share_direction: :left, share_times: 2 } if revenue == 0
+  return { share_direction: :left, share_times: 1 } if revenue < price / 2
+  return { share_direction: :right, share_times: 1 } if revenue < price
+
+  times = 0
+  times = 1 if revenue >= price
+  times = 2 if revenue >= price * 2
+  times = 3 if revenue >= price * 3 
+  if times.positive?
+    { share_direction: :right, share_times: times }
+  else
+    {}
+  end
+end
+=end
