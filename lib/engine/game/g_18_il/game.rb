@@ -146,35 +146,96 @@ module Engine
                     operating_rounds: 2,
                   }].freeze
 
-        TRAINS = [{ name: '2', distance: 2, price: 80, rusts_on: '4', num: 99 },
-                  { name: '3', distance: 3, price: 160, rusts_on: '5+1P', num: 6 },
-                  { name: '4', distance: 4, price: 240, rusts_on: 'D', num: 5,
-                  variants: [
-                      {
-                        name: '3P',
-                        distance: [{ 'nodes' => ['city'], 'pay' => 3, 'visit' => 3, 'multiplier' => 2 },
-                                  {
-                                   'nodes' => ['town'],
-                                   'pay' => 99,
-                                   'visit' => 99,
-                                   'multiplier' => 2,
-                                 }], price: 320 },
-                    ],
-                  },
-                  { name: '4+2P',
-                    distance: [{ 'nodes' => %w[city offboard], 'pay' => 4, 'visit' => 4 },
-                      { 'nodes' => ['city'], 'pay' => 2, 'visit' => 2, 'multiplier' => 2 },
-                      { 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 }],
-                    price: 800, num: 2 },
-                  { name: '5+1P',
-                    distance: [{ 'nodes' => %w[city offboard], 'pay' => 5, 'visit' => 5 },
-                      { 'nodes' => ['city'], 'pay' => 1, 'visit' => 1, 'multiplier' => 2 },
-                      { 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 }],
-                    price: 700, num: 3 },
-                  { name: '6', distance: 6, price: 600, num: 4 },
-                  { name: 'D', distance: 999, price: 1000, num: 99 },
-        ].freeze
-
+       TRAINS = [
+=begin
+                    {
+                      name: 'Rogers',
+                      distance: [
+                        { 'nodes' => ['city'], 'pay' => 1, 'visit' => 1 },
+                        { 'nodes' => ['town'], 'pay' => 1, 'visit' => 1 }
+                       ], 
+                      price: 0,
+                      rusts_on: '3',
+                      num: 1
+                    },
+=end
+                    {
+                      name: '2',
+                      distance: [
+                        { 'nodes' => %w[city offboard], 'pay' => 2, 'visit' => 2 },
+                        { 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 }
+                       ], 
+                      price: 80,
+                      rusts_on: '4',
+                      num: 99
+                    },
+                    {
+                      name: '3',
+                      distance: [
+                        { 'nodes' => %w[city offboard], 'pay' => 3, 'visit' => 3 },
+                        { 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 }
+                       ], 
+                      price: 160,
+                      rusts_on: '5+1P',
+                      num: 6 
+                    },
+                    {
+                      name: '4',
+                      distance: [
+                        { 'nodes' => %w[city offboard], 'pay' => 4, 'visit' => 4 },
+                        { 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 }
+                       ], 
+                      price: 240,
+                      rusts_on: 'D',
+                      num: 5,
+                      variants: [
+                                 {
+                                  name: '3P',
+                                  distance: [
+                                             { 'nodes' => ['city'], 'pay' => 3, 'visit' => 3, 'multiplier' => 2 },
+                                             { 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 }
+                                            ], 
+                                  price: 320
+                                 },
+                                ],
+                    },
+                    {
+                      name: '4+2P',
+                      distance: [
+                                 { 'nodes' => %w[city offboard], 'pay' => 4, 'visit' => 4 },
+                                 { 'nodes' => ['city'], 'pay' => 2, 'visit' => 2, 'multiplier' => 2 },
+                                 { 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 }
+                                ],
+                      price: 800,
+                      num: 2
+                    },
+                    {
+                      name: '5+1P',
+                      distance: [
+                                 { 'nodes' => %w[city offboard], 'pay' => 5, 'visit' => 5 },
+                                 { 'nodes' => ['city'], 'pay' => 1, 'visit' => 1, 'multiplier' => 2 },
+                                 { 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 }
+                                ],
+                       price: 700,
+                       num: 3    
+                    },
+                    {
+                      name: '6',
+                      distance: [
+                        { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 },
+                        { 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 }
+                       ], 
+                      price: 600,
+                      num: 4 
+                    },
+                    { 
+                      name: 'D',
+                      distance: 999,
+                      price: 1000,
+                      num: 99 
+                    },
+                  ].freeze
+          
         def operating_round(round_num)
           Round::Operating.new(self, [
             Engine::Step::Bankrupt,
