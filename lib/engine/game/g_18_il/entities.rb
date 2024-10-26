@@ -7,17 +7,21 @@ module Engine
         COMPANIES = [
           {
             name: 'Extra Station',
-            sym: 'SV',
+            sym: 'ES',
             value: 5,
             revenue: 0,
             desc: 'Place an additional station marker on the charter for free. Once this ability is used, the private company closes. ',
             color: nil,
+            #TODO:  fix
             abilities: [
               {
                 type: 'additional_token',
                 count: 1,
                 owner_type: 'corporation',
-                when: 'owning_corp_or_turn',
+                when: 'token',
+                closed_when_used_up: true,
+                extra_slot: true,
+                special: true,
               },
             ],
           },
@@ -42,11 +46,12 @@ module Engine
               name: 'Frink, Walker, & Co.',
               value: 10,
               revenue: 0,
-              desc: 'During the tile-laying step of the corporation operating turn, place the G tile in Galena for free, ignoring terrain costs'\
-              'It does not have to be connected to a station marker and does not count as a tile lay. Place a mine marker on the corporation charter.'\
-              'Once this ability is used, the private company closes.',
+              desc: 'During the tile-laying step of the corporation operating turn, place the G tile in Galena for free, ignoring terrain costs. It '\
+              'does not have to be connected to a station marker and does not count as a tile lay. Place a mine marker on the corporation charter. Once'\
+              ' this ability is used, the private company closes.',
               sym: 'FW&C',
 
+              #TODO:  place mine marker
               abilities: [
                 {
                 type: 'tile_lay',
@@ -56,11 +61,42 @@ module Engine
                 discount: 60,
                 owner_type: 'corporation',
                 count: 1,
-                consume_tile_lay: true,
+                consume_tile_lay: false,
                 closed_when_used_up: true,
                 special: true,
                 },
               ],
+            },
+
+            {
+              name: 'Train Subsidy',
+              value: 5,
+              revenue: 0,
+              desc: 'When buying trains from the bank, receive a 25% discount on non-permanent trains and a 20% discount on permanent trains.',
+              sym: 'TS',
+
+              #TODO:  fix
+              abilities: [
+                  {
+                  type: 'train_discount',
+                  owner_type: 'corporation',
+                  discount: 30,
+                  trains: %w['2'],
+                  count: 1,
+                  when: 'buying_train',
+                  closed_when_used_up: true,
+                  special: true,
+                  },
+              ],
+            },
+
+            {
+              name: 'Share Premium',
+              value: 10,
+              revenue: 0,
+              desc: 'When issuing a share during the Issue a Share step, receive double the current share price from the bank to the corporation treasury.'\
+                    ' Once this ability is used, the private companY closes',
+              sym: 'SP',
             },
         ].freeze
 
