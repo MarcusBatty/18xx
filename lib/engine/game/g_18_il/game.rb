@@ -4,6 +4,8 @@ require_relative 'entities'
 require_relative 'map'
 require_relative 'meta'
 require_relative '../base'
+include CitiesPlusTownsRouteDistanceStr
+require_relative '../cities_plus_towns_route_distance_str'
 
 module Engine
   module Game
@@ -67,7 +69,8 @@ module Engine
       # p_any_operate    -- pres any time, share holders after operation
       # any_time         -- at any time
       # round            -- after the stock round the share was purchased in
-      SELL_AFTER = :operate
+      #SELL_AFTER = :operate
+      SELL_AFTER = :p_any_operate
 
       # down_share -- down one row per share
       # down_per_10 -- down one row per 10% sold
@@ -91,10 +94,18 @@ module Engine
 
       # :none -- No movement
       # :down_right -- Moves down and right
-      SOLD_OUT_TOP_ROW_MOVEMENT = :down_right
+      #SOLD_OUT_TOP_ROW_MOVEMENT = :down_right
 
       # TODO: big time changes here
       #GAME_END_CHECK = { final_phase: :one_more_full_or_set }.freeze
+
+      #MUST_EMERGENCY_ISSUE_BEFORE_EBUY = true
+      #CLOSED_CORP_TRAINS_REMOVED = false 
+      #CLOSED_CORP_TOKENS_REMOVED = false
+      #CLOSED_CORP_RESERVATIONS_REMOVED = false
+      #commented because issuing/closing/insolvency not implemented yet
+
+      MARKET_SHARE_LIMIT = 100
 
         MARKET = [
           %w[0c 
@@ -210,7 +221,8 @@ module Engine
                     train_limit: 2,
                     tiles: %i[yellow green brown gray],
                     operating_rounds: 2,
-                  }].freeze
+                  }
+                ].freeze
 
        TRAINS = [
 =begin
@@ -317,7 +329,7 @@ module Engine
             Engine::Step::Track,
             Engine::Step::Token,
             Engine::Step::Route,
-            Engine::Step::Dividend,
+            G18IL::Step::Dividend,
             Engine::Step::DiscardTrain,
             Engine::Step::BuyTrain,
             [Engine::Step::BuyCompany, { blocks: true }],
@@ -372,6 +384,35 @@ module Engine
           ]
         end
 
+
+        def revenue_for(route, stops)
+          revenue = super
+      
+          revenue += EW_NS_bonus(stops)[:revenue]
+      
+          revenue
+      end
+      
+      def EW_NS_bonus(stops)
+          bonus = { revenue: 0 }
+      
+          east = stops.find { |stop| stop.groups.include?('West') }
+          west = stops.find { |stop| stop.groups.include?('East') }
+          north = stops.find { |stop| stop.groups.include?('North') }
+          south = stops.find { |stop| stop.groups.include?('South') }
+      
+          if east && west
+            bonus[:revenue] = 80
+            bonus[:description] = 'E/W'
+          end
+      
+          if north && south
+            bonus[:revenue] = 100
+            bonus[:description] = 'N/S'
+          end
+      
+          bonus
+      end
 =begin
         STATUS_TEXT = Base::STATUS_TEXT.merge(
          'can_buy_companies_from_other_players' => ['Interplayer Company Buy',
