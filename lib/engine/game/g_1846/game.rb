@@ -529,7 +529,6 @@ module Engine
         def block_for_steamboat?
           steamboat.owned_by_player?
         end
-
         def michigan_central
           @michigan_central ||= company_by_id('MC')
         end
@@ -615,6 +614,7 @@ module Engine
 
           super
         end
+
 
         def stock_round
           Engine::Round::Stock.new(self, [

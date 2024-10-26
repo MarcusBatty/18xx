@@ -6,29 +6,36 @@ module Engine
       module Entities
         COMPANIES = [
           {
-            name: 'Schuylkill Valley',
+            name: 'Extra Station',
             sym: 'SV',
-            value: 20,
-            revenue: 5,
-            desc: 'No special abilities. ',
+            value: 5,
+            revenue: 0,
+            desc: 'Place an additional station marker on the charter for free. Once this ability is used, the private company closes. ',
             color: nil,
+            abilities: [
+              {
+                type: 'additional_token',
+                count: 1,
+                owner_type: 'corporation',
+                when: 'owning_corp_or_turn',
+              },
+            ],
           },
 
           {
             name: 'Illinois Steel Bridge Company',
             value: 10,
             revenue: 0,
-            desc: 'Ignore terrain costs for rivers and lakes.',
+            desc: '$20 discount for hexes with rivers and/or lakes.',
             sym: 'ISBC',
-=begin
             abilities: [
                 {
                 type: 'tile_discount',
                 terrain: 'water',
                 owner_type: 'corporation',
+                discount: 20,
                 },
               ],
-=end
             },
 
             {
@@ -39,13 +46,14 @@ module Engine
               'It does not have to be connected to a station marker and does not count as a tile lay. Place a mine marker on the corporation charter.'\
               'Once this ability is used, the private company closes.',
               sym: 'FW&C',
-=begin
+
               abilities: [
                 {
                 type: 'tile_lay',
                 hexes: ['C2'],
                 tiles: ['IL2'],
                 when: 'track',
+                discount: 60,
                 owner_type: 'corporation',
                 count: 1,
                 consume_tile_lay: true,
@@ -53,17 +61,7 @@ module Engine
                 special: true,
                 },
               ],
-=end
             },
-
-          {
-            name: 'Delaware & Hudson',
-            sym: 'DH',
-            value: 70,
-            revenue: 15,
-            desc: "A corporation owning the DH",
-            color: nil,
-          },
         ].freeze
 
 

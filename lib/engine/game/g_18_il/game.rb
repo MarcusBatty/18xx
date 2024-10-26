@@ -177,6 +177,7 @@ module Engine
                     name: '2',
                     train_limit: 4,
                     tiles: [:yellow],
+                    status: ['can_buy_companies'],
                     operating_rounds: 2
                   },
                   {
@@ -184,6 +185,7 @@ module Engine
                     on: '3',
                     train_limit: 4,
                     tiles: %i[yellow green],
+                    status: ['can_buy_companies'],
                     operating_rounds: 2
                   },
                   {
@@ -191,14 +193,15 @@ module Engine
                     on: '4',
                     train_limit: 3,
                     tiles: %i[yellow green],
-                    operating_rounds: 2
-                    
+                    status: ['can_buy_companies'],
+                    operating_rounds: 2     
                   },
                   {
                     name: '4+2P',
                     on: '4+2P',
                     train_limit: 2,
                     tiles: %i[yellow green brown],
+                    status: ['can_buy_companies'],
                     operating_rounds: 2
                   },
                   {
@@ -206,6 +209,7 @@ module Engine
                     on: '5+1P',
                     train_limit: 2,
                     tiles: %i[yellow green brown],
+                    status: ['can_buy_companies'],
                     operating_rounds: 2
                   },
                   {
@@ -213,6 +217,7 @@ module Engine
                     on: '6',
                     train_limit: 2,
                     tiles: %i[yellow green brown],
+                    status: ['can_buy_companies'],
                     operating_rounds: 2
                   },
                   {
@@ -220,7 +225,8 @@ module Engine
                     on: 'D',
                     train_limit: 2,
                     tiles: %i[yellow green brown gray],
-                    operating_rounds: 2,
+                    status: ['can_buy_companies'],
+                    operating_rounds: 2
                   }
                 ].freeze
 
