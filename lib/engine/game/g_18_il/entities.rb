@@ -123,6 +123,7 @@ module Engine
                   city: 2,
                   price: 0,
                   teleport_price: 0,
+                  from_owner: true,
                   count: 1,
                   extra_action: true,
                 },
