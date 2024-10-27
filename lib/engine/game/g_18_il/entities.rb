@@ -5,6 +5,7 @@ module Engine
     module G18IL
       module Entities
         COMPANIES = [
+=begin
           {
             name: 'Extra Token',
             sym: 'ES',
@@ -25,6 +26,7 @@ module Engine
               },
             ],
           },
+=end
 
           {
             name: 'Illinois Steel Bridge Company',
@@ -99,6 +101,20 @@ module Engine
               sym: 'SP',
               #TODO: implement
             },
+            {
+              name: 'Goodrich Transit Line',
+              value: 10,
+              revenue: 0,
+              desc: 'Place an available station marker in Chicago (H3) in the indicated station slot- GTL. Place a port marker on the charter.'\
+              ' Once this ability is used, the private company closes. If this company is still open when Chicago is upgraded with a brown tile, it closes immediately.',
+              sym: 'GTL',
+              closed_when_used_up: true,
+              #TODO:  add port marker to charter
+              #TODO:  closes on brown CHI tile
+              abilities: [
+                {type: 'reservation', remove: 'sold', hex: 'H3', city: 1},
+              ],
+          },
         ].freeze
 
 
@@ -225,11 +241,14 @@ module Engine
             simple_logo: '1846/IC.alt',
             shares: [20,10,10,10,10,10,10,10,10],
             tokens: [0,0,0],
-            coordinates: 'H7',
+            coordinates: 'H3',
+            city: 2,
             color: :green,
             type: 'ten_share',
             always_market_price: true,
-            abilities: [type: 'no_buy'],
+            abilities: [
+              {type: 'no_buy'},
+            ],
           },
 
         ].freeze
