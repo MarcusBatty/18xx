@@ -230,7 +230,7 @@ module Engine
                 ].freeze
 
                 TRAINS = [
-                  =begin
+=begin
                                           {
                                             name: 'Rogers',
                                             distance: [
@@ -241,30 +241,30 @@ module Engine
                                             rusts_on: '3',
                                             num: 1
                                           },
-                  =end
+=end
                                           {
                                             name: '2',
-                                            distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 }
-                                                       { 'nodes' => %w[city offboard], 'pay' => 2, 'visit' => 2 },], 
+                                            distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
+                                                       { 'nodes' => %w[city offboard], 'pay' => 2, 'visit' => 2 }], 
                                             price: 80,
                                             rusts_on: '4',
                                             num: 99
                                           },
                                           {
                                             name: '3',
-                                            distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 }
-                                                       { 'nodes' => %w[city offboard], 'pay' => 3, 'visit' => 3 },], 
+                                            distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
+                                                       { 'nodes' => %w[city offboard], 'pay' => 3, 'visit' => 3 }], 
                                             price: 160,
                                             rusts_on: '5+1P',
-                                            num: 6 
+                                            num: 1 
                                           },
                                           {
                                             name: '4',
-                                            distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 }
-                                                       { 'nodes' => %w[city offboard], 'pay' => 4, 'visit' => 4 },], 
+                                            distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
+                                                       { 'nodes' => %w[city offboard], 'pay' => 4, 'visit' => 4 }], 
                                             price: 240,
                                             rusts_on: 'D',
-                                            num: 5,
+                                            num: 1,
                                             variants: [{name: '3P',
                                                         distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
                                                                    { 'nodes' => ['city'], 'pay' => 3, 'visit' => 3, 'multiplier' => 2 }], 
@@ -273,25 +273,23 @@ module Engine
                                           {
                                             name: '4+2P',
                                             distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
-                                                       { 'nodes' => ['city'], 'pay' => 2, 'visit' => 2, 'multiplier' => 2 },
-                                                       { 'nodes' => %w[city offboard], 'pay' => 4, 'visit' => 4 },],
+                                                       { 'nodes' => %w[city offboard], 'pay' => 4, 'visit' => 4 }],
                                             price: 800,
-                                            num: 2
+                                            num: 1
                                           },
                                           {
                                             name: '5+1P',
                                             distance: [{  'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
-                                                       { 'nodes' => ['city'], 'pay' => 1, 'visit' => 1, 'multiplier' => 2 },
                                                        { 'nodes' => %w[city offboard], 'pay' => 5, 'visit' => 5 }],
                                              price: 700,
-                                             num: 3    
+                                             num: 1    
                                           },
                                           {
                                             name: '6',
                                             distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
                                                        { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }], 
                                             price: 600,
-                                            num: 4 
+                                            num: 1 
                                           },
                                           { name: 'D', distance: 999, price: 1000, num: 99 },
                           ].freeze
@@ -379,8 +377,8 @@ module Engine
       def EW_NS_bonus(stops)
           bonus = { revenue: 0 }
       
-          east = stops.find { |stop| stop.groups.include?('West') }
-          west = stops.find { |stop| stop.groups.include?('East') }
+          east = stops.find { |stop| stop.groups.include?('East') }
+          west = stops.find { |stop| stop.groups.include?('West') }
           north = stops.find { |stop| stop.groups.include?('North') }
           south = stops.find { |stop| stop.groups.include?('South') }
       
@@ -396,6 +394,16 @@ module Engine
       
           bonus
       end
+
+      def revenue_str(route)
+        str = super
+
+        bonus = EW_NS_bonus(route.stops)[:description]
+        str += " + #{bonus}" if bonus
+
+        str
+      end
+
 =begin
         STATUS_TEXT = Base::STATUS_TEXT.merge(
          'can_buy_companies_from_other_players' => ['Interplayer Company Buy',

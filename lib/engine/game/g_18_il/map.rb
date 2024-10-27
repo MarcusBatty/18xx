@@ -228,7 +228,7 @@ module Engine
           {
             'count' => 1,
             'color' => 'green',
-            'code' => 'label=CHI;city=revenue:40,loc:1.5;city=revenue:40,loc:4;city=revenue:40,loc:5.5;path=a:4,b:_1;path=a:0,b:_2',
+            'code' => 'label=CHI;city=revenue:40,loc:1.5;city=revenue:40,loc:3.5;city=revenue:40,loc:5.5;path=a:1,b:_0;path=a:4,b:_1;path=a:0,b:_2',
           },
           
           'IL63' => 
@@ -415,7 +415,7 @@ module Engine
           },
 
           yellow: {
-              ['H3'] => 'label=CHI;city=revenue:10,loc:1.5;city=revenue:10,loc:4;city=revenue:10,loc:5.5;path=a:4,b:_1;path=a:0,b:_2',
+              ['H3'] => 'label=CHI;city=revenue:10,loc:1.5;city=revenue:10,loc:3.5;city=revenue:10,loc:5.5;path=a:4,b:_1;path=a:0,b:_2',
               ['H5'] => 'path=a:3,b:0',
               ['E8'] => 'label=P;city=revenue:20;path=a:3,b:_0;upgrade=cost:20,terrain:water',
           },
@@ -430,8 +430,8 @@ module Engine
           },
 
           red: {
-              ['A10'] => 'label=W;offboard=revenue:yellow_20|brown_50;path=a:4,b:_0;path=a:5,b:_0;border=edge:4,type:water,cost:20;border=edge:5,type:water,cost:20',
-              ['B3'] => 'label=W;offboard=revenue:yellow_20|brown_40;path=a:4,b:_0;path=a:0,b:_0;border=edge:4,type:water,cost:20',
+              ['A10'] => 'label=W;offboard=revenue:yellow_20|brown_50,groups:West;path=a:4,b:_0;path=a:5,b:_0;border=edge:4,type:water,cost:20;border=edge:5,type:water,cost:20',
+              ['B3'] => 'label=W;offboard=revenue:yellow_20|brown_40,groups:West;path=a:4,b:_0;path=a:0,b:_0;border=edge:4,type:water,cost:20',
               ['B17'] => 'offboard=revenue:yellow_0,groups:StLouis,hide:1;city=revenue:0;city=revenue:0;city=revenue:0;city=revenue:0;border=edge:4',
               ['C16'] => 'offboard=revenue:yellow_50|brown_100,groups:StLouis;path=a:2,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:5,b:_0;border=edge:3,type:water,cost:20;border=edge:4,type:water,cost:20;border=edge:5,type:water,cost:20;border=edge:1',
               ['E24'] => 'path=a:3,b:5;border=edge:5;border=edge:4;path=a:2,b:5;border=edge:3,type:water,cost:20',
