@@ -60,7 +60,7 @@ module Engine
                 hexes: ['C2'],
                 tiles: ['IL2'],
                 when: 'track',
-                discount: 60,
+                discount: 80,
                 owner_type: 'corporation',
                 count: 1,
                 consume_tile_lay: false,
@@ -127,7 +127,7 @@ module Engine
                   count: 1,
                   extra_action: true,
                 },
-                {type: 'reservation', remove: 'sold', hex: 'H3', city: 2},
+                {type: 'reservation', remove: 'sold', hex: 'H3', city: 1},
               ],
           },
         ].freeze
