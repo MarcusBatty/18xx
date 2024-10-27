@@ -109,10 +109,24 @@ module Engine
               ' Once this ability is used, the private company closes. If this company is still open when Chicago is upgraded with a brown tile, it closes immediately.',
               sym: 'GTL',
               closed_when_used_up: true,
+              #hexes: 'H3',
+              #city: 2,
+
               #TODO:  add port marker to charter
               #TODO:  closes on brown CHI tile
               abilities: [
-                {type: 'reservation', remove: 'sold', hex: 'H3', city: 1},
+                {
+                  type: 'token',
+                  when: 'owning_corp_or_turn',
+                  owner_type: 'corporation',
+                  hexes: ['H3'],
+                  city: 2,
+                  price: 0,
+                  teleport_price: 0,
+                  count: 1,
+                  extra_action: true,
+                },
+                {type: 'reservation', remove: 'sold', hex: 'H3', city: 2},
               ],
           },
         ].freeze
