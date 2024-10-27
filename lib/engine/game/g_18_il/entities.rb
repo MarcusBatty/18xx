@@ -95,8 +95,9 @@ module Engine
               value: 10,
               revenue: 0,
               desc: 'When issuing a share during the Issue a Share step, receive double the current share price from the bank to the corporation treasury.'\
-                    ' Once this ability is used, the private companY closes',
+                    ' Once this ability is used, the private company closes.',
               sym: 'SP',
+              #TODO: implement
             },
         ].freeze
 

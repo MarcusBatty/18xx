@@ -4,7 +4,6 @@ require_relative 'entities'
 require_relative 'map'
 require_relative 'meta'
 require_relative '../base'
-include CitiesPlusTownsRouteDistanceStr
 require_relative '../cities_plus_towns_route_distance_str'
 
 module Engine
@@ -14,7 +13,7 @@ module Engine
         include_meta(G18IL::Meta)
         include Entities
         include Map
-
+        include CitiesPlusTownsRouteDistanceStr
         register_colors(red: '#d1232a',
                         orange: '#f58121',
                         black: '#110a0c',
