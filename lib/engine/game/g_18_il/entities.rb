@@ -6,7 +6,7 @@ module Engine
       module Entities
         COMPANIES = [
           {
-            name: 'Extra Station',
+            name: 'Extra Token',
             sym: 'ES',
             value: 5,
             revenue: 0,
