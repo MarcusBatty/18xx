@@ -299,7 +299,7 @@ module Engine
         DETROIT = ['I6']
 
         def nc
-          @dnc ||= corporation_by_id('NC')
+          @nc ||= corporation_by_id('NC')
         end
 
         def setup
