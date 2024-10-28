@@ -228,7 +228,7 @@ module Engine
           {
             'count' => 1,
             'color' => 'green',
-            'code' => 'label=CHI;city=revenue:40,loc:1.5;city=revenue:40,loc:3.5;city=revenue:40,loc:5.5;path=a:1,b:_0;path=a:4,b:_1;path=a:0,b:_2',
+            'code' => 'label=Chi;city=revenue:40,loc:1.5;city=revenue:40,loc:3.5;city=revenue:40,loc:5.5;path=a:1,b:_0;path=a:4,b:_1;path=a:0,b:_2',
           },
           
           'IL63' => 
@@ -258,22 +258,21 @@ module Engine
             'count' => 1,
             'color' => 'brown',
             'code' =>
-            'city=revenue:40,slots:3;path=a:0,b:_0;path=a:2,b:_0;path=a:3,b:_0;path=a:4,b:_0;label=P',
+            'city=revenue:40,slots:3;path=a:0,b:_0;path=a:1,b:_0;path=a:2,b:_0;path=a:3,b:_0;path=a:4,b:_0;label=P',
           },
 
           'IL71' => 
           {
             'count' => 1,
             'color' => 'brown',
-            'code' => 'city=revenue:40;path=a:1,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:5,b:_0;label=Spi',
+            'code' => 'city=revenue:40,slots:2;path=a:1,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:5,b:_0;label=Spi',
           },
 
           'IL72' => 
           {
             'count' => 1,
             'color' => 'brown',
-            'code' =>
-            'city=revenue:70,slots:3;path=a:1,b:_0;path=a:2,b:_0;path=a:0,b:_0;path=a:4,b:_0,track:future;label=Chi',
+            'code' => 'city=revenue:70,slots:3;path=a:1,b:_0;path=a:2,b:_0;path=a:0,b:_0;path=a:4,b:_0;label=Chi',
           },
 
           'IL73' => 
@@ -317,7 +316,7 @@ module Engine
             'count' => 1,
             'color' => 'gray',
             'code' =>
-            'city=revenue:100,slots:4;path=a:1,b:_0;path=a:2,b:_0;path=a:0,b:_0;path=a:4,b:_0,track:future;label=Chi',
+            'city=revenue:100,slots:4;path=a:1,b:_0;path=a:2,b:_0;path=a:0,b:_0;path=a:4,b:_0;label=Chi',
           },
 
         }.freeze
@@ -414,7 +413,7 @@ module Engine
           },
 
           yellow: {
-              ['H3'] => 'label=CHI;city=revenue:10,loc:1.5;city=revenue:10,loc:3.5;city=revenue:10,loc:5.5;path=a:4,b:_1;path=a:0,b:_2',
+              ['H3'] => 'label=Chi;city=revenue:10,loc:1.5;city=revenue:10,loc:3.5;city=revenue:10,loc:5.5;path=a:4,b:_1;path=a:0,b:_2',
               ['H5'] => 'path=a:3,b:0',
               ['E8'] => 'label=P;city=revenue:20;path=a:3,b:_0;upgrade=cost:20,terrain:water',
           },

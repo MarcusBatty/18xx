@@ -229,72 +229,86 @@ module Engine
                   }
                 ].freeze
 
-                TRAINS = [
-=begin
-                                          {
-                                            name: 'Rogers',
-                                            distance: [
-                                              { 'nodes' => ['city'], 'pay' => 1, 'visit' => 1 },
-                                              { 'nodes' => ['town'], 'pay' => 1, 'visit' => 1 }
-                                             ], 
-                                            price: 0,
-                                            rusts_on: '3',
-                                            num: 1
-                                          },
-=end
-                                          {
-                                            name: '2',
-                                            distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
-                                                       { 'nodes' => %w[city offboard], 'pay' => 2, 'visit' => 2 }], 
-                                            price: 80,
-                                            rusts_on: '4',
-                                            num: 99
-                                          },
-                                          {
-                                            name: '3',
-                                            distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
-                                                       { 'nodes' => %w[city offboard], 'pay' => 3, 'visit' => 3 }], 
-                                            price: 160,
-                                            rusts_on: '5+1P',
-                                            num: 1 
-                                          },
-                                          {
-                                            name: '4',
-                                            distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
-                                                       { 'nodes' => %w[city offboard], 'pay' => 4, 'visit' => 4 }], 
-                                            price: 240,
-                                            rusts_on: 'D',
-                                            num: 1,
-                                            variants: [{name: '3P',
-                                                        distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
-                                                                   { 'nodes' => ['city'], 'pay' => 3, 'visit' => 3, 'multiplier' => 2 }], 
-                                                        price: 320 },],
-                                          },
-                                          {
-                                            name: '4+2P',
-                                            distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
-                                                       { 'nodes' => %w[city offboard], 'pay' => 4, 'visit' => 4 }],
-                                            price: 800,
-                                            num: 1
-                                          },
-                                          {
-                                            name: '5+1P',
-                                            distance: [{  'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
-                                                       { 'nodes' => %w[city offboard], 'pay' => 5, 'visit' => 5 }],
-                                             price: 700,
-                                             num: 1    
-                                          },
-                                          {
-                                            name: '6',
-                                            distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
-                                                       { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }], 
-                                            price: 600,
-                                            num: 1 
-                                          },
-                                          { name: 'D', distance: 999, price: 1000, num: 99 },
+          TRAINS = [
+
+                  {
+                    name: 'Rogers',
+                    distance: [
+                      { 'nodes' => ['city'], 'pay' => 1, 'visit' => 1 },
+                      { 'nodes' => ['town'], 'pay' => 1, 'visit' => 1 }
+                      ], 
+                    price: 0,
+                    rusts_on: '3',
+                    num: 1
+                  },
+
+                  {
+                    name: '2',
+                    distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
+                                { 'nodes' => %w[city offboard], 'pay' => 2, 'visit' => 2 }], 
+                    price: 80,
+                    rusts_on: '4',
+                    num: 99
+                  },
+                  {
+                    name: '3',
+                    distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
+                                { 'nodes' => %w[city offboard], 'pay' => 3, 'visit' => 3 }], 
+                    price: 160,
+                    rusts_on: '5+1P',
+                    num: 1 
+                  },
+                  {
+                    name: '4',
+                    distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
+                                { 'nodes' => %w[city offboard], 'pay' => 4, 'visit' => 4 }], 
+                    price: 240,
+                    rusts_on: 'D',
+                    num: 1,
+                    variants: [{name: '3P',
+                                distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
+                                            { 'nodes' => ['city'], 'pay' => 3, 'visit' => 3, 'multiplier' => 2 }], 
+                                price: 320 },],
+                  },
+                  {
+                    name: '4+2P',
+                    distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
+                                { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }],
+                    price: 800,
+                    num: 1
+                  },
+                  {
+                    name: '5+1P',
+                    distance: [{  'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
+                                { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }],
+                      price: 700,
+                      num: 1    
+                  },
+                  {
+                    name: '6',
+                    distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
+                                { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }], 
+                    price: 600,
+                    num: 1 
+                  },
+                  { name: 'D', distance: 999, price: 1000, num: 99 },
                           ].freeze
                                                                 
-          
+        PORT_HEXES = %w[B1 D23 H1 I2]
+        MINE_HEXES = %w[C2 D9 D13 D17 E6 E14 F5 F13 F21 G22 H11]
+        DETROIT = ['I6']
+
+        def nc
+          @dnc ||= corporation_by_id('NC')
+        end
+
+        def setup
+          # Northern Cross comes with the 'Rogers' train
+          train = @depot.upcoming[0]
+          train.buyable = false
+          buy_train(nc, train, :free)
+        end
+
         def operating_round(round_num)
           G18IL::Round::Operating.new(self, [
             #Engine::Step::Bankrupt,
@@ -364,11 +378,26 @@ module Engine
             ['Corporation has any shares in the Market at end of an SR', '⤪ for each'],
           ]
         end
+=begin
+        #from 18JP-T
+        def revenue_for(route, stops)
+          revenue = super
 
+          # Double revenue of corporation's destination hexes
+          if (ability = abilities(route.train, :hex_bonus))
+            stops.each do |stop|
+              next unless ability.hexes.include?(stop.hex.name)
+
+              revenue += stop.route_revenue(route.phase, route.train)
+            end
+          end
+
+=end
 
         def revenue_for(route, stops)
           revenue = super
       
+          #revenue += P_bonus(route, stops)[:revenue]
           revenue += EW_NS_bonus(stops)[:revenue]
       
           revenue
@@ -405,6 +434,17 @@ module Engine
       end
 
 =begin
+      def P_bonus(route, stops)
+        bonus = { revenue: 0 }
+    
+        if train.name == '5+1P'
+          bonus[:revenue] = stops.map { |stop| stop.route_revenue(route.phase, route.train) }.max
+        end
+        
+        bonus
+    end
+
+
         STATUS_TEXT = Base::STATUS_TEXT.merge(
          'can_buy_companies_from_other_players' => ['Interplayer Company Buy',
                                                     'Companies can be bought between players after first stock round'],

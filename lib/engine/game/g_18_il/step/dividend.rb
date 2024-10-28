@@ -15,12 +15,12 @@ module Engine
             print "Dividends"
             price = entity.share_price.price
             print revenue, price
-            return { share_direction: :down, share_times: 2 } if revenue == 0
+            return { share_direction: :left, share_times: 1 } if revenue == 0
             return { share_direction: :down, share_times: 1 } if revenue < price / 2
             return { share_direction: :up, share_times: 1 } if revenue < price
-            return { share_direction: :up, share_times: 2 } if revenue < price * 2
-            return { share_direction: :up, share_times: 4 } if revenue < price * 3
-            return { share_direction: :up, share_times: 6 } 
+            return { share_direction: :right, share_times: 1 } if revenue < price * 2
+            return { share_direction: :right, share_times: 2 } if revenue < price * 3
+            return { share_direction: :right, share_times: 3 } 
         end
 =begin
           def share_price_change(entity, revenue = 0)

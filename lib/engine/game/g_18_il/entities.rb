@@ -5,7 +5,6 @@ module Engine
     module G18IL
       module Entities
         COMPANIES = [
-=begin
           {
             name: 'Extra Token',
             sym: 'ES',
@@ -19,20 +18,17 @@ module Engine
                 type: 'additional_token',
                 count: 1,
                 owner_type: 'corporation',
-                when: 'token',
+                when: 'any',
                 closed_when_used_up: true,
                 extra_slot: true,
-                special: true,
               },
             ],
           },
-=end
-
           {
             name: 'Illinois Steel Bridge Company',
-            value: 10,
+            value: 5,
             revenue: 0,
-            desc: '$20 discount for hexes with rivers and/or lakes.',
+            desc: 'Receive a $20 discount when laying a tile in a hex containing a river or a lake.',
             sym: 'ISBC',
             abilities: [
                 {
@@ -46,7 +42,7 @@ module Engine
 
             {
               name: 'Frink, Walker, & Co.',
-              value: 10,
+              value: 5,
               revenue: 0,
               desc: 'During the tile-laying step of the corporation operating turn, place the G tile in Galena for free, ignoring terrain costs. It '\
               'does not have to be connected to a station marker and does not count as a tile lay. Place a mine marker on the corporation charter. Once'\
@@ -60,12 +56,11 @@ module Engine
                 hexes: ['C2'],
                 tiles: ['IL2'],
                 when: 'track',
-                discount: 80,
+                free: true,
                 owner_type: 'corporation',
                 count: 1,
                 consume_tile_lay: false,
                 closed_when_used_up: true,
-                special: true,
                 },
               ],
             },
@@ -74,7 +69,7 @@ module Engine
               name: 'Train Subsidy',
               value: 5,
               revenue: 0,
-              desc: 'When buying trains from the bank, receive a 25% discount on non-permanent trains and a 20% discount on permanent trains.',
+              desc: 'Receive a 25% discount on non-permanent trains and a 20% discount on permanent trains. Once this ability is used, the private company closes.',
               sym: 'TS',
 
               #TODO:  fix
@@ -82,33 +77,42 @@ module Engine
                   {
                   type: 'train_discount',
                   owner_type: 'corporation',
-                  discount: 30,
-                  trains: %w['2'],
-                  count: 1,
+                  use_across_ors: false,
                   when: 'buying_train',
-                  closed_when_used_up: true,
-                  special: true,
+                  discount: 0.25,
+                  trains: %w[2 3 4 3P],
+                  count: 4,
                   },
+                  {
+                    type: 'train_discount',
+                    owner_type: 'corporation',
+                    use_across_ors: false,
+                    when: 'buying_train',
+                    discount: 0.20,
+                    trains: %w[4+2P 5+1P 6 D],
+                    count: 2,
+                    },
               ],
             },
-
+=begin
             {
               name: 'Share Premium',
-              value: 10,
+              value: 5,
               revenue: 0,
               desc: 'When issuing a share during the Issue a Share step, receive double the current share price from the bank to the corporation treasury.'\
                     ' Once this ability is used, the private company closes.',
               sym: 'SP',
               #TODO: implement
             },
+=end
             {
               name: 'Goodrich Transit Line',
-              value: 10,
+              value: 5,
               revenue: 0,
               desc: 'Place an available station marker in Chicago (H3) in the indicated station slot- GTL. Place a port marker on the charter.'\
               ' Once this ability is used, the private company closes. If this company is still open when Chicago is upgraded with a brown tile, it closes immediately.',
               sym: 'GTL',
-              closed_when_used_up: true,
+
               #hexes: 'H3',
               #city: 2,
 
@@ -126,6 +130,7 @@ module Engine
                   from_owner: true,
                   count: 1,
                   extra_action: true,
+                  closed_when_used_up: true,
                 },
                 {type: 'reservation', remove: 'sold', hex: 'H3', city: 1},
               ],
@@ -247,7 +252,7 @@ module Engine
             always_market_price: true,
             text_color: 'black',
           },
-
+=begin
           {
             float_percent: 20,
             sym: 'IC',
@@ -262,10 +267,15 @@ module Engine
             type: 'ten_share',
             always_market_price: true,
             abilities: [
-              {type: 'no_buy'},
+              { type:'close',when: 'never' },
+              {
+                type: 'borrow_train',
+                train_types: %w[2 3 4 3P 4+2P 5+1P 6 D],
+                description: 'May borrow a train when trainless',
+              },
             ],
           },
-
+=end
         ].freeze
       end
     end
