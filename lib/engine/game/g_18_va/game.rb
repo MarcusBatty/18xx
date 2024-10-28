@@ -66,7 +66,6 @@ module Engine
             on: %w[4 3G],
             train_limit: { five_share: 1, ten_share: 3 },
             tiles: %i[yellow green],
-            corporation_sizes: [5],
             operating_rounds: 2,
             status: %w[offboard_token_bonus cmd_token_bonus can_buy_companies may_convert limited_train_buy],
           },

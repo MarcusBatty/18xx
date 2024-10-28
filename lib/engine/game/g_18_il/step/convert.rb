@@ -8,30 +8,40 @@ module Engine
       module Step
         class Convert < Engine::Step::Base
           def actions(entity)
+            if entity.corporation? then
+              #@log << "actions in convert.rb"
+              #@log << "#{entity.total_shares}"
+            end
             return %w[convert pass] if can_convert?(entity)
-
             []
           end
 
           def description
-            'Convert to 10 Share'
+            'Convert'
           end
 
           def pass_description
-            'Do not convert'
-          end
+            'Skip'
+          end 
 
           def can_convert?(entity)
-            entity.corporation? &&
-              entity.operated? &&
-              @game.phase.status.include?('may_convert') &&
-              entity.total_shares == 5
+            #@log << "can_convert in convert.rb"
+            #@log << "#{entity.corporation?}"
+            (entity.corporation? && entity.total_shares == 5) || (entity.corporation? && entity.total_shares == 2)
           end
 
+
           def process_convert(action)
-            @game.convert(action.entity)
-            pass!
+            #@log << "process_convert"
+            #@log << "#{action.entity.corporation?}"
+            #@log << "#{action.entity.total_shares}"
+            if action.entity.corporation? then
+               @game.convert(action.entity)
+            else
+              pass!
+            end
           end
+
         end
       end
     end
