@@ -256,7 +256,7 @@ module Engine
                                 { 'nodes' => %w[city offboard], 'pay' => 3, 'visit' => 3 }], 
                     price: 160,
                     rusts_on: '5+1P',
-                    num: 1 
+                    num: 6 
                   },
                   {
                     name: '4',
@@ -264,7 +264,7 @@ module Engine
                                 { 'nodes' => %w[city offboard], 'pay' => 4, 'visit' => 4 }], 
                     price: 240,
                     rusts_on: 'D',
-                    num: 1,
+                    num: 5,
                     variants: [{name: '3P',
                                 distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
                                             { 'nodes' => ['city'], 'pay' => 3, 'visit' => 3, 'multiplier' => 2 }], 
@@ -275,21 +275,21 @@ module Engine
                     distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
                                 { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }],
                     price: 800,
-                    num: 1
+                    num: 2
                   },
                   {
                     name: '5+1P',
                     distance: [{  'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
                                 { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }],
                       price: 700,
-                      num: 1    
+                      num: 3    
                   },
                   {
                     name: '6',
                     distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
                                 { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }], 
                     price: 600,
-                    num: 1 
+                    num: 4 
                   },
                   { name: 'D', distance: 999, price: 1000, num: 99 },
                           ].freeze
@@ -297,6 +297,8 @@ module Engine
         PORT_HEXES = %w[B1 D23 H1 I2]
         MINE_HEXES = %w[C2 D9 D13 D17 E6 E14 F5 F13 F21 G22 H11]
         DETROIT = ['I6']
+        CLASS_A_COMPANIES = %w[]
+        CLASS_B_COMPANIES = %w[]
 
         def nc
           @nc ||= corporation_by_id('NC')
@@ -351,6 +353,7 @@ module Engine
           if @depot.upcoming.first.name == '2'
             depot.export_all!('2')
             phase.next!
+        #    @game.rust_trains!('Rogers', nc)
           else
             depot.export!
           end
@@ -432,8 +435,22 @@ module Engine
 
         str
       end
+=begin     
+            #checks 3P run to see if it visits offboard hex
+            def three_P_name?(name)
+              name == '3P'
+            end
+   
+            def three_P_train?(train)
+              three_P_name?(train.name)
+            end
 
-=begin
+            def check_other(route)
+              if three_P_train?(route.train)
+              raise GameError, 'Cannot visit offboard hexes' if route.stops.any? { |stop| stop.tile.color == :red }
+            end
+
+
       def P_bonus(route, stops)
         bonus = { revenue: 0 }
     

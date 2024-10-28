@@ -5,14 +5,15 @@ module Engine
     module G18IL
       module Entities
         COMPANIES = [
+          #TODO:  fix
           {
-            name: 'Extra Token',
+            name: 'Extra Station',
             sym: 'ES',
             value: 5,
             revenue: 0,
             desc: 'Place an additional station marker on the charter for free. Once this ability is used, the private company closes. ',
             color: nil,
-            #TODO:  fix
+
             abilities: [
               {
                 type: 'additional_token',
@@ -24,6 +25,105 @@ module Engine
               },
             ],
           },
+          {
+            #TODO:  add port marker to charter
+            #TODO:  closes on brown CHI tile
+            name: 'Goodrich Transit Line',
+            value: 5,
+            revenue: 0,
+            desc: 'Place an available station marker in Chicago (H3) in the indicated station slot- GTL. Place a port marker on the charter.'\
+            ' Once this ability is used, the private company closes. If this company is still open when Chicago is upgraded with a brown tile, it closes immediately.',
+            sym: 'GTL',
+            abilities: [
+              {
+                type: 'token',
+                when: 'owning_corp_or_turn',
+                owner_type: 'corporation',
+                hexes: ['H3'],
+                city: 2,
+                price: 0,
+                teleport_price: 0,
+                from_owner: true,
+                count: 1,
+                extra_action: true,
+                closed_when_used_up: true,
+              },
+              {type: 'reservation', remove: 'sold', hex: 'H3', city: 1},
+            ],
+        },
+=begin
+        {
+          name: 'Rush Delivery',
+          value: 5
+          revenue: 0,
+          desc: 'Buy one train from the bank prior to the “Run Trains” step during this operating round. The corporation may use emergency money raising if'\
+          ' it does not own a train. Once this ability is used, the private company closes.',
+          sym: 'RD',
+          abilities: [
+            {
+
+            },
+          ],
+        },
+        {
+          name: 'Station Subsidy',
+          value: 5
+          revenue: 0,
+          desc: 'This company starts with four subsidy cubes on it. When starting or converting a corporation, one, two, three, or four cubes may be discarded to receive a discount of $40,'\ 
+          ' $80, $120, or $160 respectively, when buying station markers. Once the fourth cube has been used, the private company closes.',
+          sym: 'SS',
+          abilities: [
+            {
+
+            },
+          ],
+        },
+        {
+          name: 'Share Premium',
+          value: 5,
+          revenue: 0,
+          desc: 'When issuing a share during the Issue a Share step, receive double the current share price from the bank to the corporation treasury.'\
+                ' Once this ability is used, the private company closes.',
+          sym: 'SP',
+          abilities: [
+            {
+
+            },            
+          ],
+        },
+=end 
+
+          #TODO:  place port marker, write code so blue can be upgraded to blue (and change hexes and tiles to be blue)  
+          {
+            name: 'Steamboat',
+            value: 5,
+            revenue: 0,
+            desc: 'At any time during the tile-laying step of the corporation’s operating turn, place either the “St. Paul Harbor” tile at B1 or the “Port of Memphis” tile at D23.'\
+            ' It does not have to be connected to a station marker and does not count as a tile lay. Place two port markers on the charter. Once this ability is used, the private company closes.',
+            sym: 'SMBT',
+            abilities: [
+              {
+              type: 'tile_lay',
+              hexes: %w[B1 D23],
+              tiles: %w[SPH POM],
+              when: 'track',
+              free: true,
+              owner_type: 'corporation',
+              count: 1,
+              closed_when_used_up: true,
+              },
+           #   {
+       #         type: 'tile_lay',
+
+       #         when: 'track',
+      #          free: true,
+      #          owner_type: 'corporation',
+      #          count: 1,
+      #          closed_when_used_up: true,
+      #        },
+            ],
+          },
+
           {
             name: 'Illinois Steel Bridge Company',
             value: 5,
@@ -41,6 +141,7 @@ module Engine
             },
 
             {
+              #TODO:  place mine marker
               name: 'Frink, Walker, & Co.',
               value: 5,
               revenue: 0,
@@ -48,8 +149,6 @@ module Engine
               'does not have to be connected to a station marker and does not count as a tile lay. Place a mine marker on the corporation charter. Once'\
               ' this ability is used, the private company closes.',
               sym: 'FW&C',
-
-              #TODO:  place mine marker
               abilities: [
                 {
                 type: 'tile_lay',
@@ -59,7 +158,6 @@ module Engine
                 free: true,
                 owner_type: 'corporation',
                 count: 1,
-                consume_tile_lay: false,
                 closed_when_used_up: true,
                 },
               ],
@@ -94,47 +192,8 @@ module Engine
                     },
               ],
             },
-=begin
-            {
-              name: 'Share Premium',
-              value: 5,
-              revenue: 0,
-              desc: 'When issuing a share during the Issue a Share step, receive double the current share price from the bank to the corporation treasury.'\
-                    ' Once this ability is used, the private company closes.',
-              sym: 'SP',
-              #TODO: implement
-            },
-=end
-            {
-              name: 'Goodrich Transit Line',
-              value: 5,
-              revenue: 0,
-              desc: 'Place an available station marker in Chicago (H3) in the indicated station slot- GTL. Place a port marker on the charter.'\
-              ' Once this ability is used, the private company closes. If this company is still open when Chicago is upgraded with a brown tile, it closes immediately.',
-              sym: 'GTL',
 
-              #hexes: 'H3',
-              #city: 2,
 
-              #TODO:  add port marker to charter
-              #TODO:  closes on brown CHI tile
-              abilities: [
-                {
-                  type: 'token',
-                  when: 'owning_corp_or_turn',
-                  owner_type: 'corporation',
-                  hexes: ['H3'],
-                  city: 2,
-                  price: 0,
-                  teleport_price: 0,
-                  from_owner: true,
-                  count: 1,
-                  extra_action: true,
-                  closed_when_used_up: true,
-                },
-                {type: 'reservation', remove: 'sold', hex: 'H3', city: 1},
-              ],
-          },
         ].freeze
 
 

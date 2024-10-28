@@ -187,27 +187,18 @@ module Engine
             'color' => 'yellow',
             'code' => 'path=a:5,b:0;path=a:3,b:0,track:future',
           },
-=begin
-          'IL50' =>
+          'POM' =>
           {
             'count' => 1,
-            'color' => 'blue',
-            'code' => 'city=revenue:30;path=a:3,b:_0;path=a:5,b:_0;label=Memphis;icon=image:port',
-          },
-=end
-
-          'IL50' =>
-          {
-            'count' => 1,
-            'color' => 'blue',
-            'code' => 'offboard=revenue:30;path=a:3,b:5;label=Memphis;icon=image:port',
+            'color' => 'yellow',
+            'code' => 'town=revenue:30;path=a:3,b:_0;path=a:5,b:_0;icon=image:port',
           },
 
-          'IL51' =>
+          'SPH' =>
           {
             'count' => 1,
-            'color' => 'blue',
-            'code' => 'offboard=revenue:50;path=a:5,b:_0;label=StPaul;icon=image:port',
+            'color' => 'yellow',
+            'code' => 'town=revenue:50;path=a:5,b:_0;icon=image:port',                       
           },
 
           'IL60' => 
@@ -361,27 +352,27 @@ module Engine
           'F25' => 'New Orleans',
           'G2' => 'Milwaukee +100 N/S',
           'I2' => 'Lake Michigan',
+          'B1' => 'St. Paul Harbor',
         }.freeze
 
         HEXES = {
 
           blue: {
-              ['B1'] => 'offboard=revenue:yellow_0,groups:port;path=a:5,b:_0,',
-              ['D23'] => 'offboard=revenue:yellow_0,groups:port;path=a:3,b:_0',
-              ['H1'] => 'town=revenue:20,groups:port;path=a:1,b:_0;path=a:5,b:_0;border=edge:5;icon=image:port',
-              ['I2'] => 'offboard=revenue:yellow_0,groups:port;path=a:1,b:2;border=edge:0;border=edge:2',
-              ['I4'] => 'offboard=revenue:yellow_0,groups:port;border=edge:3',
+              ['H1'] => 'town=revenue:20;path=a:1,b:_0;path=a:5,b:_0;border=edge:5;icon=image:port',
+              ['I2'] => 'offboard=revenue:0;path=a:1,b:2;border=edge:0;border=edge:2',
+              ['I4'] => 'offboard=revenue:0;border=edge:3',
           },
 
           white: {
             %w[C10 C12 D7 D11 E4 E10 E16 E18 F7 G18 H9 H13 H15] => '',
             %w[E2 F3 F9 F11 G4 G16] => 'city=revenue:0',
             %w[D9 E14 F13 H11] => 'town=revenue:0;icon=image:18_co/mine',
-
+              #TO DO: change B1 to blue (requires new code for upgrade color to function properly when using Steamboat)
+              ['B1'] => 'town=revenue:0;icon=image:port;path=a:5,b:_0',
               ['B9'] => 'border=edge:1,type:water,cost:20;border=edge:2,type:water;border=edge:3,type:water',  
               ['B11'] => 'city=revenue:0;border=edge:1,type:water;border=edge:2,type:water,cost:20',
               ['B13'] => 'border=edge:0,type:water;border=edge:1,type:water;border=edge:2,type:water',
-              ['C2'] => 'label=G;town=revenue:0;upgrade=cost:60,terrain:mountain;icon=image:18_co/mine;border=edge:1,type:water,cost:20;border=edge:2,type:water',
+              ['C2'] => 'label=G;town=revenue:0;upgrade=cost:60,terrain:mountain;icon=image:18_co/mine;border=edge:1,type:water,cost:20',
               ['C6'] => 'city=revenue:0;border=edge:1,type:water;border=edge:2,cost:20,type:water;border=edge:3,type:water',
               ['C8'] => 'city=revenue:0;border=edge:2,type:water',
               ['C14'] => 'border=edge:1,type:water,cost:20;border=edge:0,type:water,cost:20',
@@ -391,6 +382,8 @@ module Engine
               ['D15'] => 'city=revenue:0;border=edge:1,type:water,cost:20',
               ['D17'] => 'town=revenue:0;border=edge:1,type:water;border=edge:2,type:water,cost:20;icon=image:18_co/mine',
               ['D19'] => 'border=edge:1,type:water;border=edge:2,type:water;border=edge:0,type:water,cost:20', 
+              #TO DO: change D23 to blue (requires new code for upgrade color to function properly when using Steamboat)
+              ['D23'] => 'town=revenue:0;icon=image:port;path=a:3,b:_0;path=a:5,b:_0',
               ['E6'] => 'town=revenue:0;upgrade=cost:20,terrain:water;icon=image:18_co/mine',
               ['E12'] => 'label=Spi;city=revenue:20;path=a:1,b:_0',
               ['E20'] => 'path=a:4,b:0,track:future',
