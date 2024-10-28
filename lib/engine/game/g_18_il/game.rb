@@ -232,13 +232,13 @@ module Engine
           TRAINS = [
 
                   {
-                    name: 'Rogers',
+                    name: 'Rogers (1+1)',
                     distance: [
                       { 'nodes' => ['city'], 'pay' => 1, 'visit' => 1 },
                       { 'nodes' => ['town'], 'pay' => 1, 'visit' => 1 }
                       ], 
                     price: 0,
-                    rusts_on: '3',
+                    obsolete_on: '2',
                     num: 1
                   },
 

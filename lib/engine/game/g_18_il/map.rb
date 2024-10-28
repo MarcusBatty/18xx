@@ -44,7 +44,7 @@ module Engine
           {
             'count' => 1,
             'color' => 'yellow',
-            'code' => 'city=revenue:20;path=a:1,b:_0;path=a:3,b:_0;label=Spi',
+            'code' => 'city=revenue:20;path=a:1,b:_0;path=a:3,b:_0;label=S',
           },
 
           'IL11' => 
@@ -212,7 +212,7 @@ module Engine
           {
             'count' => 1,
             'color' => 'green',
-            'code' => 'city=revenue:30;path=a:1,b:_0;path=a:3,b:_0;path=a:4,b:_0;label=Spi',
+            'code' => 'city=revenue:30;path=a:1,b:_0;path=a:3,b:_0;path=a:4,b:_0;label=S',
           },
 
           'IL62' =>
@@ -256,7 +256,7 @@ module Engine
           {
             'count' => 1,
             'color' => 'brown',
-            'code' => 'city=revenue:40,slots:2;path=a:1,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:5,b:_0;label=Spi',
+            'code' => 'city=revenue:40,slots:2;path=a:1,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:5,b:_0;label=S',
           },
 
           'IL72' => 
@@ -299,7 +299,7 @@ module Engine
             'count' => 1,
             'color' => 'gray',
             'code' =>
-            'city=revenue:50,slots:3;path=a:1,b:_0;path=a:2,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:5,b:_0;label=Spi',
+            'city=revenue:50,slots:3;path=a:1,b:_0;path=a:2,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:5,b:_0;label=S',
           },
 
           'IL82' => 
@@ -385,7 +385,7 @@ module Engine
               #TO DO: change D23 to blue (requires new code for upgrade color to function properly when using Steamboat)
               ['D23'] => 'town=revenue:0;icon=image:port;path=a:3,b:_0;path=a:5,b:_0',
               ['E6'] => 'town=revenue:0;upgrade=cost:20,terrain:water;icon=image:18_co/mine',
-              ['E12'] => 'label=Spi;city=revenue:20;path=a:1,b:_0',
+              ['E12'] => 'label=S;city=revenue:40;path=a:1,b:_0',
               ['E20'] => 'path=a:4,b:0,track:future',
               ['E22'] => 'label=C;city=revenue:0;path=a:3,b:_0,track:future;path=a:0,b:_0,track:future;border=edge:0,type:water,cost:20;border=edge:1,type:water;border=edge:2,type:water;border=edge:5,type:water',
               ['F5'] => 'town=revenue:0;upgrade=cost:20,terrain:water;icon=image:18_co/mine',
@@ -399,7 +399,7 @@ module Engine
               ['G14'] => 'path=a:1,b:3,track:future;upgrade=cost:20,terrain:water',
               ['G10'] => 'label=C;city=revenue:0;path=a:3,b:_0,track:future;path=a:0,b:_0,track:future',
               ['G20'] => 'border=edge:5,type:water,cost:20',
-              ['G22'] => 'town=revenue:0;icon=image:18_co/mine;border=edge:5,type:water;border=edge:4,type:water;border=edge:0,type:water,cost:20;border=edge:1,type:water',
+              ['G22'] => 'town=revenue:0;icon=image:18_co/mine;border=edge:5,type:water;border=edge:4,type:water;border=edge:0,type:water,cost:20;border=edge:1,type:water,cost:20',
               ['H7'] => 'label=K;city=revenue:0;path=a:1,b:_0,track:future;path=a:3,b:_0,track:future',
               ['H17'] => 'border=edge:4,type:water;border=edge:5,type:water,cost:20',
               ['H19'] => 'border=edge:4,type:water,cost:20;border=edge:5,type:water',
@@ -427,7 +427,7 @@ module Engine
               ['B17'] => 'offboard=revenue:yellow_0,groups:StLouis,hide:1;city=revenue:0;city=revenue:0;city=revenue:0;city=revenue:0;border=edge:4',
               ['C16'] => 'offboard=revenue:yellow_50|brown_100,groups:StLouis;path=a:2,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:5,b:_0;border=edge:3,type:water,cost:20;border=edge:4,type:water,cost:20;border=edge:5,type:water,cost:20;border=edge:1',
               ['E24'] => 'path=a:3,b:5;border=edge:5;border=edge:4;path=a:2,b:5;border=edge:3,type:water,cost:20',
-              ['F23'] => 'path=a:3,b:0;border=edge:0;border=edge:1;border=edge:5;border=edge:3,type:water,cost:20;border=edge:2,type:water;border=edge:4,type:water',
+              ['F23'] => 'path=a:3,b:0;path=a:4,b:0;border=edge:0;border=edge:1;border=edge:3,type:water,cost:20;border=edge:2,type:water;border=edge:4,type:water,cost:20;border=edge:5',
               ['F25'] => 'label=S;offboard=revenue:yellow_50|brown_60,groups:South;path=a:2,b:_0;path=a:3,b:_0;path=a:4,b:_0;border=edge:2;border=edge:3;border=edge:4',
               ['G2'] =>  'label=N;offboard=revenue:yellow_20|brown_40,groups:North;path=a:4,b:_0;path=a:5,b:_0',
               ['G24'] => 'path=a:3,b:1;border=edge:1;border=edge:2;border=edge:3,type:water,cost:20',
