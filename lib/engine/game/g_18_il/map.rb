@@ -187,20 +187,6 @@ module Engine
             'color' => 'yellow',
             'code' => 'path=a:5,b:0;path=a:3,b:0,track:future',
           },
-          'POM' =>
-          {
-            'count' => 1,
-            'color' => 'blue',
-            'code' => 'town=revenue:30;path=a:3,b:_0;path=a:5,b:_0;icon=image:port',
-          },
-
-          'SPH' =>
-          {
-            'count' => 1,
-            'color' => 'blue',
-            'code' => 'town=revenue:50;path=a:5,b:_0;icon=image:port',                       
-          },
-
           'IL60' => 
           {
             'count' => 1,
@@ -310,6 +296,20 @@ module Engine
             'city=revenue:100,slots:4;path=a:1,b:_0;path=a:2,b:_0;path=a:0,b:_0;path=a:4,b:_0;label=Chi',
           },
 
+          #BLUE
+          'POM' =>
+          {
+            'count' => 1,
+            'color' => 'blue',
+            'code' => 'town=revenue:30;path=a:3,b:_0;path=a:5,b:_0;icon=image:port,blocks_lay:true',
+          },
+
+          'SPH' =>
+          {
+            'count' => 1,
+            'color' => 'blue',
+            'code' => 'town=revenue:50;path=a:5,b:_0;icon=image:port,blocks_lay:true',                       
+          },
         }.freeze
 
         LOCATION_NAMES = {
@@ -421,7 +421,7 @@ module Engine
               ['B3'] => 'label=W;offboard=revenue:yellow_20|brown_40,groups:West;path=a:4,b:_0;path=a:0,b:_0;border=edge:0;border=edge:4,type:water,cost:20;border=edge:5',
               ['B5'] => 'path=a:3,b:5;border=edge:3;border=edge:4;border=edge:5,type:water,cost:20',
               ['B15'] => 'path=a:4,b:5;border=edge:0;border=edge:3,type:water;border=edge:4,type:water,cost:20;border=edge:5',
-              ['B17'] => 'offboard=revenue:yellow_0,groups:StLouis,hide:1;city=revenue:0;city=revenue:0;city=revenue:0;city=revenue:0;border=edge:3;border=edge:4',
+              ['B17'] => 'city=revenue:0,slots:4,groups:StLouis;border=edge:3;border=edge:4',
               ['C4'] => 'border=edge:0,type:water;border=edge:1;border=edge:2;border=edge:3,type:water;border=edge:4,type:water;border=edge:5,type:water',
               ['C16'] => 'offboard=revenue:yellow_50|brown_100,groups:StLouis;path=a:2,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:5,b:_0;border=edge:2;border=edge:3,type:water,cost:20;border=edge:4,type:water,cost:20;border=edge:5,type:water,cost:20;border=edge:1',
               ['E24'] => 'path=a:3,b:5;border=edge:5;border=edge:4;path=a:2,b:5;border=edge:3,type:water,cost:20',

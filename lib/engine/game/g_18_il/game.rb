@@ -239,7 +239,7 @@ module Engine
                       { 'nodes' => ['town'], 'pay' => 1, 'visit' => 1 }
                       ], 
                     price: 0,
-                    obsolete_on: '2',
+                    rusts_on: '3',
                     num: 1
                   },
 
