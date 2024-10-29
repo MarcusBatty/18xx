@@ -5,6 +5,8 @@ require_relative 'map'
 require_relative 'meta'
 require_relative '../base'
 require_relative '../cities_plus_towns_route_distance_str'
+require_relative 'step/buy_tokens'
+require_relative 'step/token'
 
 
 module Engine
@@ -15,6 +17,9 @@ module Engine
         include Entities
         include Map
         include CitiesPlusTownsRouteDistanceStr
+
+        attr_accessor :STL_nodes
+
         register_colors(red: '#d1232a',
                         orange: '#f58121',
                         black: '#110a0c',
@@ -239,7 +244,7 @@ module Engine
                       { 'nodes' => ['town'], 'pay' => 1, 'visit' => 1 }
                       ], 
                     price: 0,
-                    rusts_on: '3',
+                  #  abilities: [{ type: 'close', on_phase: '3' }],
                     num: 1
                   },
 
@@ -301,6 +306,9 @@ module Engine
         CLASS_A_COMPANIES = %w[]
         CLASS_B_COMPANIES = %w[]
         PORT_TILES = %w[SPH POM]
+        STL_HEXES = %w[B15 C16]
+        STL_TOKEN_HEXES = %w[B15]
+
         def nc
           @nc ||= corporation_by_id('NC')
         end
@@ -310,6 +318,10 @@ module Engine
           train = @depot.upcoming[0]
           train.buyable = false
           buy_train(nc, train, :free)
+
+          @STL_nodes = STL_HEXES.map do |h|
+            hex_by_id(h).tile.nodes.find { |n| n.offboard? && n.groups.include?('STL') }
+          end
         end
 
         #allows blue-on-blue tile lays
@@ -394,15 +406,12 @@ module Engine
 
         def or_round_finished
           return if @depot.upcoming.empty?
-
+          #phase 3 starts in OR1.2, which exports all 2-trains and rusts the 'Rogers' train
           if @depot.upcoming.first.name == '2'
             depot.export_all!('2')
             phase.next!
-            #@log << "or_round_finished"
-            #@log << "#{train_by_id('Rogers')}"
-            #@log << "#{corporation_by_id('NC')}"
-            #@log << "#{entity.total_shares}, #{can_convert?(entity)}"
-            #@game.rust_trains!(train_by_id('Rogers'), corporation_by_id('NC'))
+            nc.trains.delete_at(0)
+            @log << "-- Event: Rogers (1+1) train rusts --"
           else
             depot.export!
           end
@@ -484,6 +493,27 @@ module Engine
 
         str
       end
+
+      def STL_permit?(entity)
+        STL_TOKEN_HEXES.any? { |hexid| hex_by_id(hexid).tile.cities.any? { |c| c.tokened_by?(entity) } }
+      end
+
+      def STL_hex?(stop)
+        @STL_nodes.include?(stop)
+      end
+
+      def check_STL(visits)
+        return if !STL_hex?(visits.first) && !STL_hex?(visits.last)
+        raise GameError, 'Train cannot visit St. Louis without a permit token' unless STL_permit?(current_entity)
+      end
+
+      def check_distance(route, visits)
+       #use for P trains!! 
+       #raise GameError, 'Local train cannot visit an offboard' if train_type(route.train) == :local && visits.any?(&:offboard?)
+        check_STL(visits)
+        return super
+      end
+
 =begin     
             #checks 3P run to see if it visits offboard hex
             def three_P_name?(name)
