@@ -8,8 +8,9 @@ module Engine
       module Step
         class IssueShares < Engine::Step::IssueShares
           def process_sell_shares(action)
-            @log << "process_sell_shares"
+            #@log << "process_sell_shares"
             @game.sell_shares_and_change_price(action.bundle)
+            @game.stock_market.move_left(action.bundle.corporation) 
             pass!
           end
         end
