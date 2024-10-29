@@ -6,7 +6,6 @@ require_relative 'meta'
 require_relative '../base'
 require_relative '../cities_plus_towns_route_distance_str'
 
-
 module Engine
   module Game
     module G18IL
@@ -313,16 +312,16 @@ module Engine
         end
 
         #allows blue-on-blue tile lays
-        #TO DO: tie track lays to specific hexes, then only allow via private
+        #TO DO: only allow via private
         def tile_valid_for_phase?(tile, hex: nil, phase_color_cache: nil)
           return true if tile.name == 'SPH' or 'POM'
           super
         end
 
         def upgrades_to?(from, to, special = false, selected_company: nil)
-         if from.hex.name == 'B1' or 'D23'
-          return true if from.color == :blue && to.color == :blue 
-         end
+          if from.hex.name == 'B1' or 'D23'
+            return true if from.color == :blue && to.color == :blue 
+          end
           super
         end
 
@@ -334,8 +333,10 @@ module Engine
             Engine::Step::SpecialToken,
             Engine::Step::BuyCompany,
             Engine::Step::HomeToken,
+            #trade_assets here,
             G18IL::Step::Convert,
-            G18IL::Step::IssueShares,
+            Engine::Step::IssueShares,
+            # and/or buy a share into the reserve
             Engine::Step::Track,
             Engine::Step::Token,
             Engine::Step::Route,
@@ -364,45 +365,13 @@ module Engine
           ])
         end
 
-        def issuable_shares(entity)
-
-          return [] unless entity.corporation?
-          return [] unless round.steps.find { |step| step.instance_of?(G18IL::Step::IssueShares) }.active?
-
-          num_shares = entity.total_shares - (entity.num_player_shares + entity.num_market_shares)
-          bundles = bundles_for_corporation(entity, entity)
-
-          #@log << "#{entity.share_price}"
-          #share_price = stock_market.find_share_price(entity, :left).price
-
-          bundles
-            .each { |bundle| bundle.share_price = entity.share_price.price }
-            .reject { |bundle| bundle.num_shares > 1 }
-            #.reject { |bundle| bundle.num_shares > num_shares }
-        end
-
-=begin
-        def issuable_shares(entity)
-          @log << "issuable_shares"
-          i_shares = entity.total_shares - (entity.num_player_shares + entity.num_market_shares)
-          if (i_shares > 0) then
-            i_shares = 1 
-          end
-          i_shares
-        end
-=end
-
         def or_round_finished
           return if @depot.upcoming.empty?
 
           if @depot.upcoming.first.name == '2'
             depot.export_all!('2')
             phase.next!
-            #@log << "or_round_finished"
-            #@log << "#{train_by_id('Rogers')}"
-            #@log << "#{corporation_by_id('NC')}"
-            #@log << "#{entity.total_shares}, #{can_convert?(entity)}"
-            #@game.rust_trains!(train_by_id('Rogers'), corporation_by_id('NC'))
+        #    @game.rust_trains!('Rogers', nc)
           else
             depot.export!
           end
@@ -529,64 +498,7 @@ module Engine
         def optional_6_train
           @optional_rules&.include?(:optional_6_train)
         end
-
-
-      def process_convert(action)
-        #@log << "process_convert in game.rb"
-        @game.convert(action.entity)
-      end
 =end
-
-      def convert(corporation)
-        #@log << "convert in game.rb"
-        before = corporation.total_shares
-        shares = @_shares.values.select { |share| share.corporation == corporation }
-
-        corporation.share_holders.clear
-
-        case corporation.type
-        when :five_share
-          shares.each { |share| share.percent = 10 }
-          shares[0].percent = 20
-          new_shares = Array.new(5) { |i| Share.new(corporation, percent: 10, index: i + 4) }
-          corporation.type = :ten_share
-          corporation.float_percent = 20
-          2.times { corporation.tokens << Engine::Token.new(corporation, price: 0) }
-        when :two_share
-          shares.each { |share| share.percent = 20 }
-          shares[0].percent = 40
-          new_shares = Array.new(3) { |i| Share.new(corporation, percent: 20, index: i + 1) }
-          corporation.type = :five_share
-          corporation.float_percent = 20
-          1.times { corporation.tokens << Engine::Token.new(corporation, price: 0) }
-        else
-          raise GameError, 'Cannot convert 10 share corporation'
-        end
-
-        shares.each { |share| corporation.share_holders[share.owner] += share.percent }
-
-        new_shares.each do |share|
-          add_new_share(share)
-        end
-
-        after = corporation.total_shares
-        @log << "#{corporation.name} converts from #{before} to #{after} shares"
-
-        new_shares
-      end
-
-      def add_new_share(share)
-        owner = share.owner
-        corporation = share.corporation
-        corporation.share_holders[owner] += share.percent if owner
-        owner.shares_by_corporation[corporation] << share
-        @_shares[share.id] = share
-      end
-
-      def status_array(corp)
-        return ['5-Share'] if corp.type == :five_share
-        return ['10-Share'] if corp.type == :ten_share
-      end
 
       end
     end
