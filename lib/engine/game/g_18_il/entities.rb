@@ -164,7 +164,28 @@ module Engine
                 },
               ],
             },
-
+=begin
+            {
+              name: 'Tredegar Iron Works',
+              value: 60,
+              revenue: 15,
+              desc: 'Closing this private grants the operating Corporation a $200 discount '\
+                    'when buying a train from the depot',
+              sym: 'P2',
+              color: nil,
+              abilities: [
+                {
+                  type: 'train_discount',
+                  discount: 200,
+                  owner_type: 'corporation',
+                  trains: %w[2 3 4 5 6 4D],
+                  count: 1,
+                  closed_when_used_up: true,
+                  when: 'buy_train',
+                },
+              ],
+            },
+=end
             {
               name: 'Train Subsidy',
               value: 5,
