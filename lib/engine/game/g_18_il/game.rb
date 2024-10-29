@@ -244,7 +244,7 @@ module Engine
 
                   {
                     name: '2',
-                    distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
+                    distance: [{ 'nodes' => %w[halt town], 'pay' => 99, 'visit' => 99 },
                                 { 'nodes' => %w[city offboard], 'pay' => 2, 'visit' => 2 }], 
                     price: 80,
                     rusts_on: '4',
@@ -252,7 +252,7 @@ module Engine
                   },
                   {
                     name: '3',
-                    distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
+                    distance: [{ 'nodes' => %w[halt town], 'pay' => 99, 'visit' => 99 },
                                 { 'nodes' => %w[city offboard], 'pay' => 3, 'visit' => 3 }], 
                     price: 160,
                     rusts_on: '5+1P',
@@ -260,33 +260,33 @@ module Engine
                   },
                   {
                     name: '4',
-                    distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
+                    distance: [{ 'nodes' => %w[halt town], 'pay' => 99, 'visit' => 99 },
                                 { 'nodes' => %w[city offboard], 'pay' => 4, 'visit' => 4 }], 
                     price: 240,
                     rusts_on: 'D',
                     num: 5,
                     variants: [{name: '3P',
-                                distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
+                                distance: [{ 'nodes' => %w[halt town], 'pay' => 99, 'visit' => 99 },
                                             { 'nodes' => ['city'], 'pay' => 3, 'visit' => 3, 'multiplier' => 2 }], 
                                 price: 320 },],
                   },
                   {
                     name: '4+2P',
-                    distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
+                    distance: [{ 'nodes' => %w[halt town], 'pay' => 99, 'visit' => 99 },
                                 { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }],
                     price: 800,
                     num: 2
                   },
                   {
                     name: '5+1P',
-                    distance: [{  'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
+                    distance: [{  'nodes' => %w[halt town], 'pay' => 99, 'visit' => 99 },
                                 { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }],
                       price: 700,
                       num: 3    
                   },
                   {
                     name: '6',
-                    distance: [{ 'nodes' => ['town'], 'pay' => 99, 'visit' => 99 },
+                    distance: [{ 'nodes' => %w[halt town], 'pay' => 99, 'visit' => 99 },
                                 { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }], 
                     price: 600,
                     num: 4 
@@ -299,7 +299,7 @@ module Engine
         DETROIT = ['I6']
         CLASS_A_COMPANIES = %w[]
         CLASS_B_COMPANIES = %w[]
-
+        PORT_TILES = %w[SPH POM]
         def nc
           @nc ||= corporation_by_id('NC')
         end
@@ -309,6 +309,20 @@ module Engine
           train = @depot.upcoming[0]
           train.buyable = false
           buy_train(nc, train, :free)
+        end
+
+        #allows blue-on-blue tile lays
+        #TO DO: tie track lays to specific hexes, then only allow via private
+        def tile_valid_for_phase?(tile, hex: nil, phase_color_cache: nil)
+          return true if tile.name == 'SPH' or 'POM'
+          super
+        end
+
+        def upgrades_to?(from, to, special = false, selected_company: nil)
+         if from.hex.name == 'B1' or 'D23'
+          return true if from.color == :blue && to.color == :blue 
+         end
+          super
         end
 
         def operating_round(round_num)
@@ -333,6 +347,10 @@ module Engine
           ], round_num: round_num)
         end
 
+        def steamboat
+          @steamboat ||= company_by_id('SMBT')
+        end
+        
         def trade_assets
          #@log << "#{current_entity.name} skips Trade Assets."
         end

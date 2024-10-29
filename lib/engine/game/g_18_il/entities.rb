@@ -94,24 +94,26 @@ module Engine
 =end 
 
           #TODO:  place port marker, write code so blue can be upgraded to blue (and change hexes and tiles to be blue)  
-          {
-            name: 'Steamboat',
-            value: 5,
-            revenue: 0,
-            desc: 'At any time during the tile-laying step of the corporation’s operating turn, place either the “St. Paul Harbor” tile at B1 or the “Port of Memphis” tile at D23.'\
-            ' It does not have to be connected to a station marker and does not count as a tile lay. Place two port markers on the charter. Once this ability is used, the private company closes.',
-            sym: 'SMBT',
-            abilities: [
-              {
-              type: 'tile_lay',
-              hexes: %w[B1 D23],
-              tiles: %w[SPH POM],
-              when: 'track',
-              free: true,
-              owner_type: 'corporation',
-              count: 1,
-              closed_when_used_up: true,
-              },
+          # {
+          #   name: 'Steamboat',
+          #   value: 5,
+          #   revenue: 0,
+          #   desc: 'At any time during the tile-laying step of the corporation’s operating turn, place either the “St. Paul Harbor” tile at B1 or the “Port of Memphis” tile at D23.'\
+          #   ' It does not have to be connected to a station marker and does not count as a tile lay. Place two port markers on the charter. Once this ability is used, the private company closes.',
+          #   sym: 'SMBT',
+          #   abilities: [
+          #     {
+          #     type: 'tile_lay',
+          #     #hexes: %w[B1 D23],
+          #     hexes: ['B1'],
+          #     #tiles: %w[SPH POM],
+          #     tiles: ['SPH'],
+          #     when: 'track',
+          #     free: true,
+          #     owner_type: 'corporation',
+          #     count: 1,
+          #     closed_when_used_up: true,
+          #     },
            #   {
        #         type: 'tile_lay',
 
@@ -121,8 +123,8 @@ module Engine
       #          count: 1,
       #          closed_when_used_up: true,
       #        },
-            ],
-          },
+      #      ],
+       #   },
 
           {
             name: 'Illinois Steel Bridge Company',

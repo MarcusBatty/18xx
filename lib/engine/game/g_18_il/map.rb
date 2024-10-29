@@ -190,14 +190,14 @@ module Engine
           'POM' =>
           {
             'count' => 1,
-            'color' => 'yellow',
+            'color' => 'blue',
             'code' => 'town=revenue:30;path=a:3,b:_0;path=a:5,b:_0;icon=image:port',
           },
 
           'SPH' =>
           {
             'count' => 1,
-            'color' => 'yellow',
+            'color' => 'blue',
             'code' => 'town=revenue:50;path=a:5,b:_0;icon=image:port',                       
           },
 
@@ -358,6 +358,8 @@ module Engine
         HEXES = {
 
           blue: {
+              ['B1'] => 'town=revenue:0;icon=image:port,blocks_lay:1;path=a:5,b:_0',
+              ['D23'] => 'town=revenue:0;icon=image:port,blocks_lay:1;path=a:3,b:_0;path=a:5,b:_0',
               ['H1'] => 'town=revenue:20;path=a:1,b:_0;path=a:5,b:_0;border=edge:5;icon=image:port',
               ['I2'] => 'offboard=revenue:0;path=a:1,b:2;border=edge:0;border=edge:2',
               ['I4'] => 'offboard=revenue:0;border=edge:3',
@@ -367,8 +369,6 @@ module Engine
             %w[C10 C12 D7 D11 E4 E10 E16 E18 F7 G18 H9 H13 H15] => '',
             %w[E2 F3 F9 F11 G4 G16] => 'city=revenue:0',
             %w[D9 E14 F13 H11] => 'town=revenue:0;icon=image:18_co/mine',
-              #TO DO: change B1 to blue (requires new code for upgrade color to function properly when using Steamboat)
-              ['B1'] => 'town=revenue:0;icon=image:port;path=a:5,b:_0',
               ['B9'] => 'border=edge:1,type:water,cost:20;border=edge:2,type:water;border=edge:3,type:water',  
               ['B11'] => 'city=revenue:0;border=edge:1,type:water;border=edge:2,type:water,cost:20',
               ['B13'] => 'border=edge:0,type:water;border=edge:1,type:water;border=edge:2,type:water',
@@ -382,12 +382,10 @@ module Engine
               ['D15'] => 'city=revenue:0;border=edge:1,type:water,cost:20',
               ['D17'] => 'town=revenue:0;border=edge:1,type:water;border=edge:2,type:water,cost:20;icon=image:18_co/mine',
               ['D19'] => 'border=edge:1,type:water;border=edge:2,type:water;border=edge:0,type:water,cost:20', 
-              #TO DO: change D23 to blue (requires new code for upgrade color to function properly when using Steamboat)
-              ['D23'] => 'town=revenue:0;icon=image:port;path=a:3,b:_0;path=a:5,b:_0',
               ['E6'] => 'town=revenue:0;upgrade=cost:20,terrain:water;icon=image:18_co/mine',
               ['E12'] => 'label=S;city=revenue:40;path=a:1,b:_0',
               ['E20'] => 'path=a:4,b:0,track:future',
-              ['E22'] => 'label=C;city=revenue:0;path=a:3,b:_0,track:future;path=a:0,b:_0,track:future;border=edge:0,type:water,cost:20;border=edge:1,type:water;border=edge:2,type:water;border=edge:5,type:water',
+              ['E22'] => 'label=C;city=revenue:0;path=a:3,b:_0,track:future;path=a:0,b:_0,track:future;border=edge:0,type:water,cost:20;border=edge:5,type:water',
               ['F5'] => 'town=revenue:0;upgrade=cost:20,terrain:water;icon=image:18_co/mine',
               ['F15'] => 'path=a:4,b:0,track:future',
               ['F17'] => 'city=revenue:0;path=a:3,b:_0,track:future;path=a:0,b:_0,track:future;upgrade=cost:20,terrain:water',
@@ -412,9 +410,6 @@ module Engine
           },
 
           gray: {
-              ['B5'] => 'path=a:3,b:5;border=edge:4;border=edge:5,type:water,cost:20',
-              ['B15'] => 'path=a:4,b:5;border=edge:3,type:water;border=edge:4,type:water,cost:20',
-              ['C4'] => 'border=edge:0,type:water;border=edge:1;border=edge:3,type:water;border=edge:4,type:water;border=edge:5,type:water',
               ['D1'] => 'path=a:1,b:5',
               ['D21'] => 'path=a:3,b:0;border=edge:3,type:water,cost:20;border=edge:4,type:water;border=edge:5,type:water',
               ['F1'] => 'path=a:1,b:0',
@@ -423,9 +418,12 @@ module Engine
 
           red: {
               ['A10'] => 'label=W;offboard=revenue:yellow_20|brown_50,groups:West;path=a:4,b:_0;path=a:5,b:_0;border=edge:4,type:water,cost:20;border=edge:5,type:water,cost:20',
-              ['B3'] => 'label=W;offboard=revenue:yellow_20|brown_40,groups:West;path=a:4,b:_0;path=a:0,b:_0;border=edge:4,type:water,cost:20',
-              ['B17'] => 'offboard=revenue:yellow_0,groups:StLouis,hide:1;city=revenue:0;city=revenue:0;city=revenue:0;city=revenue:0;border=edge:4',
-              ['C16'] => 'offboard=revenue:yellow_50|brown_100,groups:StLouis;path=a:2,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:5,b:_0;border=edge:3,type:water,cost:20;border=edge:4,type:water,cost:20;border=edge:5,type:water,cost:20;border=edge:1',
+              ['B3'] => 'label=W;offboard=revenue:yellow_20|brown_40,groups:West;path=a:4,b:_0;path=a:0,b:_0;border=edge:0;border=edge:4,type:water,cost:20;border=edge:5',
+              ['B5'] => 'path=a:3,b:5;border=edge:3;border=edge:4;border=edge:5,type:water,cost:20',
+              ['B15'] => 'path=a:4,b:5;border=edge:0;border=edge:3,type:water;border=edge:4,type:water,cost:20;border=edge:5',
+              ['B17'] => 'offboard=revenue:yellow_0,groups:StLouis,hide:1;city=revenue:0;city=revenue:0;city=revenue:0;city=revenue:0;border=edge:3;border=edge:4',
+              ['C4'] => 'border=edge:0,type:water;border=edge:1;border=edge:2;border=edge:3,type:water;border=edge:4,type:water;border=edge:5,type:water',
+              ['C16'] => 'offboard=revenue:yellow_50|brown_100,groups:StLouis;path=a:2,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:5,b:_0;border=edge:2;border=edge:3,type:water,cost:20;border=edge:4,type:water,cost:20;border=edge:5,type:water,cost:20;border=edge:1',
               ['E24'] => 'path=a:3,b:5;border=edge:5;border=edge:4;path=a:2,b:5;border=edge:3,type:water,cost:20',
               ['F23'] => 'path=a:3,b:0;path=a:4,b:0;border=edge:0;border=edge:1;border=edge:3,type:water,cost:20;border=edge:2,type:water;border=edge:4,type:water,cost:20;border=edge:5',
               ['F25'] => 'label=S;offboard=revenue:yellow_50|brown_60,groups:South;path=a:2,b:_0;path=a:3,b:_0;path=a:4,b:_0;border=edge:2;border=edge:3;border=edge:4',
