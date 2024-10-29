@@ -321,7 +321,7 @@ module Engine
             Engine::Step::BuyCompany,
             Engine::Step::HomeToken,
             G18IL::Step::Convert,
-            Engine::Step::IssueShares,
+            G18IL::Step::IssueShares,
             Engine::Step::Track,
             Engine::Step::Token,
             Engine::Step::Route,
@@ -345,6 +345,34 @@ module Engine
             G18IL::Step::BuySellParShares,
           ])
         end
+
+        def issuable_shares(entity)
+
+          return [] unless entity.corporation?
+          return [] unless round.steps.find { |step| step.instance_of?(G18IL::Step::IssueShares) }.active?
+
+          num_shares = entity.total_shares - (entity.num_player_shares + entity.num_market_shares)
+          bundles = bundles_for_corporation(entity, entity)
+
+          #@log << "#{entity.share_price}"
+          #share_price = stock_market.find_share_price(entity, :left).price
+
+          bundles
+            .each { |bundle| bundle.share_price = entity.share_price.price }
+            .reject { |bundle| bundle.num_shares > 1 }
+            #.reject { |bundle| bundle.num_shares > num_shares }
+        end
+
+=begin
+        def issuable_shares(entity)
+          @log << "issuable_shares"
+          i_shares = entity.total_shares - (entity.num_player_shares + entity.num_market_shares)
+          if (i_shares > 0) then
+            i_shares = 1 
+          end
+          i_shares
+        end
+=end
 
         def or_round_finished
           return if @depot.upcoming.empty?
