@@ -412,24 +412,15 @@ module Engine
           end
 =end
 
-
-        def three_p_train?(train)
-          three_p_train_name?(train.name)
-        end
-        
-        def three_p_train_name?(name)
-          name == '3P'
-        end
-
-        def check_other(route)
-           return unless three_p_train?(route.train)
-           raise GameError, 'Cannot visit red areas' #if route.stops.any? { |stop| stop.tile.color == :red }
-        end
-
+        #adds E/W and N/S bonus, and doubles 3P train revenue
         def revenue_for(route, stops)
           revenue = super
       
-          #revenue = revenue * 2 if three_p_train?(route.train)
+          if three_p_train?(route.train)
+            p_bonus_revenue = revenue
+            revenue += p_bonus_revenue
+          end
+
           revenue += EW_NS_bonus(stops)[:revenue]
       
           revenue
@@ -483,12 +474,26 @@ module Engine
       end
 
       def check_distance(route, visits)
-       #use for P trains!! 
-       #raise GameError, 'Local train cannot visit an offboard' if train_type(route.train) == :local && visits.any?(&:offboard?)
+    
         check_stl(visits)
+
+        if three_p_train?(route.train)
+          raise GameError, 'Cannot visit red areas' if visits.first.tile.color == :red || visits.last.tile.color == :red
+        end
+
         return super
+        
       end
 
+        #disallows 3P trains from running to red areas
+        def three_p_train?(train)
+          three_p_train_name?(train.name)
+        end
+        
+        def three_p_train_name?(name)
+          name == '3P'
+        end
+      
 =begin     
             #checks 3P run to see if it visits offboard hex
             def three_P_name?(name)
