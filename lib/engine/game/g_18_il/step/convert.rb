@@ -37,6 +37,7 @@ module Engine
             #@log << "#{action.entity.total_shares}"
             if action.entity.corporation? then
                @game.convert(action.entity)
+               pass!
             else
               pass!
             end
