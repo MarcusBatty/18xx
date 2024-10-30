@@ -469,14 +469,10 @@ module Engine
         raise GameError, 'Train cannot visit St. Louis without a permit token' unless stl_permit?(current_entity)
       end
 
-      def available_hex(entity, hex, normal: false)
-        return nil if @game.class::STL_TOKEN_HEXES.include?(hex.id) # never highlight the STL hexes
-      end
-
       def check_distance(route, visits)
     
         check_stl(visits)
-
+        #disallows 3P trains from running to red areas
         if three_p_train?(route.train)
           raise GameError, 'Cannot visit red areas' if visits.first.tile.color == :red || visits.last.tile.color == :red
         end
@@ -485,7 +481,7 @@ module Engine
         
       end
 
-        #disallows 3P trains from running to red areas
+
         def three_p_train?(train)
           three_p_train_name?(train.name)
         end

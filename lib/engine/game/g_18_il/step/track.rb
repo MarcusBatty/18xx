@@ -7,14 +7,11 @@ module Engine
     module G18IL
       module Step
         class Track < Engine::Step::Track
-          def actions(entity)
+
+          def available_hex(entity, hex, normal: false)
+            return nil if @game.class::STL_HEXES.include?(hex.id) && !@game.stl_permit?(current_entity) # highlight the STL hexes only when corp has permit token
             super
           end
-
-           def available_hex(entity, hex, normal: false)
-             return nil if @game.class::STL_TOKEN_HEXES.include?(hex.id) # never highlight the STL hexes
-             super
-           end
         end
       end
     end

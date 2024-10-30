@@ -20,7 +20,7 @@ module Engine
           end
 
           def can_token_stl?(entity)
-            !@game.stl_permit?(entity) && stl_reachable?(entity)
+            !@game.stl_permit?(entity) && stl_reachable?(entity) #&& #only one company can token per tile color phase
           end
 
           def stl_reachable?(entity)
@@ -38,6 +38,7 @@ module Engine
             raise GameError, 'Permit token already placed this turn' if @round.tokened
             raise GameError, 'Already placed permit token in STL' if @game.stl_permit?(entity)
             raise GameError, 'Permit token is already used' if token.used
+           #raise GameError, 'No more permit tokens allowed in this phase' if ...
 
             city.place_token(entity, token, free: true, check_tokenable: check_tokenable)
 
