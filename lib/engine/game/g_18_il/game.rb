@@ -368,7 +368,7 @@ module Engine
           if @depot.upcoming.first.name == '2'
             depot.export_all!('2')
             phase.next!
-            nc.trains.pop
+            nc.trains.drop(1)
             @log << "-- Event: Rogers (1+1) train rusts --"
           else
             depot.export!

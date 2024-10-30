@@ -165,7 +165,7 @@ module Engine
               abilities: [
                 {
                   type: 'train_discount',
-                  discount: .25,
+                  discount: 0.25,
                   owner_type: 'corporation',
                   trains: %w[2 3 4 3P],
                   count: 2,
@@ -180,11 +180,9 @@ module Engine
                   discount: 0.2,
                   trains: %w[4+2P 5+1P 6 D],
                   count: 4,
-                  },
-             ],
-           },
-
-
+                },
+              ],
+            },
         ].freeze
 
 
