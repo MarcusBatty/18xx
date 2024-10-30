@@ -12,7 +12,7 @@ module Engine
             old = action.bundle.corporation.share_price.price
             @game.stock_market.move_left(action.bundle.corporation) 
             new = action.bundle.corporation.share_price.price
-            @log << "#{action.bundle.corporation.name}'s share price moves left from #{old} to #{new}"
+            @log << "#{action.bundle.corporation.name}'s share price moves left from $#{old} to $#{new}"
             pass!
           end
         end

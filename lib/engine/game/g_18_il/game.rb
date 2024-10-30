@@ -7,6 +7,7 @@ require_relative '../base'
 require_relative '../cities_plus_towns_route_distance_str'
 require_relative 'step/buy_tokens'
 require_relative 'step/token'
+require_relative 'step/track'
 
 
 module Engine
@@ -18,7 +19,7 @@ module Engine
         include Map
         include CitiesPlusTownsRouteDistanceStr
 
-        attr_accessor :STL_nodes
+        attr_accessor :stl_nodes
 
         register_colors(red: '#d1232a',
                         orange: '#f58121',
@@ -46,69 +47,27 @@ module Engine
         MUST_BID_INCREMENT_MULTIPLE = true
         ONLY_HIGHEST_BID_COMMITTED = true
 
-        # From 17:
-        # Two lays with one being an upgrade, second tile costs 20
-        #TILE_COST = 0
         TILE_LAYS = [
           { lay: true, upgrade: true, cost:0},
           { lay: true, upgrade: :not_if_upgraded, cost: 20, cannot_reuse_same_hex: true },
         ].freeze
 
-        # TODO: verify
-        HOME_TOKEN_TIMING = :float
-        MUST_BUY_TRAIN = :always
+      HOME_TOKEN_TIMING = :float
+      MUST_BUY_TRAIN = :always
 
         # TODO:  first D only
-        GAME_END_CHECK = {
-          #bankrupt: :immediate,
-          #bank: :full_or,
-          #all_closed: :immediate,
-        }.freeze
-
-      # TODO:  two rules on selling shares
-      # when can a share holder sell shares
-      # first            -- after first stock round
-      # after_sr_floated -- after stock round in which company floated
-      # operate          -- after operation
-      # full_or_turn     -- after corp completes a full OR turn
-      # p_any_operate    -- pres any time, share holders after operation
-      # any_time         -- at any time
-      # round            -- after the stock round the share was purchased in
-      #SELL_AFTER = :operate
+      GAME_END_CHECK = { final_phase: :one_more_full_or_set }.freeze
       SELL_AFTER = :p_any_operate
-
-      # down_share -- down one row per share
-      # down_per_10 -- down one row per 10% sold
-      # down_block -- down one row per block
-      # left_share -- left one column per share
-      # left_share_pres -- left one column per share if president
-      # left_block -- one row per block
-      # down_block_pres -- down one row per block if president
-      # left_block_pres -- left one column per block if president
-      # left_per_10_if_pres_else_left_one -- left_share_pres + left_block
-      # none -- don't drop price
       SELL_MOVEMENT = :none
-
-      # do shares in the pool drop the price?
-      # none, down_block, left_block, down_share
       POOL_SHARE_DROP = :down_share
 
       # TODO:  depends on share type 2 vs 5 vs 10
-      # do sold out shares increase the price?
       SOLD_OUT_INCREASE = true
 
-      # :none -- No movement
-      # :down_right -- Moves down and right
-      SOLD_OUT_TOP_ROW_MOVEMENT = :down_right
-
-      # TODO: big time changes here
-      #GAME_END_CHECK = { final_phase: :one_more_full_or_set }.freeze
-
-      #MUST_EMERGENCY_ISSUE_BEFORE_EBUY = true
-      #CLOSED_CORP_TRAINS_REMOVED = false 
-      #CLOSED_CORP_TOKENS_REMOVED = false
-      #CLOSED_CORP_RESERVATIONS_REMOVED = false
-      #commented because issuing/closing/insolvency not implemented yet
+      MUST_EMERGENCY_ISSUE_BEFORE_EBUY = true
+      CLOSED_CORP_TRAINS_REMOVED = false 
+      CLOSED_CORP_TOKENS_REMOVED = false
+      CLOSED_CORP_RESERVATIONS_REMOVED = false
 
       MARKET_SHARE_LIMIT = 100
 
@@ -314,18 +273,17 @@ module Engine
         end
 
         def setup
-          # Northern Cross comes with the 'Rogers' train
+          # Northern Cross starts with the 'Rogers' train
           train = @depot.upcoming[0]
           train.buyable = false
           buy_train(nc, train, :free)
 
-          @STL_nodes = STL_HEXES.map do |h|
+          @stl_nodes = STL_HEXES.map do |h|
             hex_by_id(h).tile.nodes.find { |n| n.offboard? && n.groups.include?('STL') }
           end
         end
 
         #allows blue-on-blue tile lays
-        #TO DO: tie track lays to specific hexes, then only allow via private
         def tile_valid_for_phase?(tile, hex: nil, phase_color_cache: nil)
           return true if tile.name == 'SPH' or 'POM'
           super
@@ -348,8 +306,8 @@ module Engine
             Engine::Step::HomeToken,
             G18IL::Step::Convert,
             G18IL::Step::IssueShares,
-            Engine::Step::Track,
-            Engine::Step::Token,
+            G18IL::Step::Track,
+            G18IL::Step::Token,
             Engine::Step::Route,
             G18IL::Step::Dividend,
             Engine::Step::DiscardTrain,
@@ -410,7 +368,7 @@ module Engine
           if @depot.upcoming.first.name == '2'
             depot.export_all!('2')
             phase.next!
-            nc.trains.delete_at(0)
+            nc.trains.pop
             @log << "-- Event: Rogers (1+1) train rusts --"
           else
             depot.export!
@@ -494,23 +452,27 @@ module Engine
         str
       end
 
-      def STL_permit?(entity)
+      def stl_permit?(entity)
         STL_TOKEN_HEXES.any? { |hexid| hex_by_id(hexid).tile.cities.any? { |c| c.tokened_by?(entity) } }
       end
 
-      def STL_hex?(stop)
-        @STL_nodes.include?(stop)
+      def stl_hex?(stop)
+        @stl_nodes.include?(stop)
       end
 
-      def check_STL(visits)
-        return if !STL_hex?(visits.first) && !STL_hex?(visits.last)
-        raise GameError, 'Train cannot visit St. Louis without a permit token' unless STL_permit?(current_entity)
+      def check_stl(visits)
+        return if !stl_hex?(visits.first) && !stl_hex?(visits.last)
+        raise GameError, 'Train cannot visit St. Louis without a permit token' unless stl_permit?(current_entity)
+      end
+
+      def available_hex(entity, hex, normal: false)
+        return nil if @game.class::STL_TOKEN_HEXES.include?(hex.id) # never highlight the STL hexes
       end
 
       def check_distance(route, visits)
        #use for P trains!! 
        #raise GameError, 'Local train cannot visit an offboard' if train_type(route.train) == :local && visits.any?(&:offboard?)
-        check_STL(visits)
+        check_stl(visits)
         return super
       end
 

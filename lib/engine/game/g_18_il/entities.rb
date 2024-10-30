@@ -156,44 +156,51 @@ module Engine
               ],
             },
             {
-              name: 'Train Subsidy',
-              value: 5,
-              revenue: 0,
-              desc: 'Receive a 25% discount on non-permanent trains and a 20% discount on permanent trains. Once this ability is used, the private company closes.',
-              sym: 'TS',
-              abilities: [
+              name: 'Nydqvist och Holm AB',
+              value: 90,
+              revenue: 20,
+              desc: 'May buy one train at half price (one time during the game).',
+              sym: 'NOHAB',
+              abilities:
+              [
                 {
                   type: 'train_discount',
-                  owner_type: 'corporation',
-                  when: 'buy_train',
                   discount: 0.5,
-                  trains: %w[2 3 4],
+                  owner_type: 'corporation',
+                  trains: %w[2 3],
                   count: 1,
-                  closed_when_used_up: true,
+                  when: 'buy_train',
                 },
               ],
-              #TODO:  fix
-              abilities: [
-                  {
-                  type: 'train_discount',
-                  owner_type: 'corporation',
-                  use_across_ors: false,
-                  when: 'buying_train',
-                  discount: 0.25,
-                  trains: %w[2 3 4 3P],
-                  count: 1,
-                  },
-                  {
-                    type: 'train_discount',
-                    owner_type: 'corporation',
-                    use_across_ors: false,
-                    when: 'buying_train',
-                    discount: 0.20,
-                    trains: %w[4+2P 5+1P 6 D],
-                    count: 4,
-                    },
-              ],
             },
+            # {
+            #   name: 'Train Subsidy',
+            #   value: 5,
+            #   revenue: 0,
+            #   desc: 'Receive a 25% discount on non-permanent trains and a 20% discount on permanent trains. Once this ability is used, the private company closes.',
+            #   sym: 'TS',
+            #   #TODO:  fix
+            #   abilities: [
+            #     {
+            #       type: 'train_discount',
+            #       discount: 200,
+            #       owner_type: 'corporation',
+            #       trains: %w[2 3],
+            #       count: 2,
+            #       closed_when_used_up: true,
+            #       when: 'buy_train',
+             #   },
+                  # {
+                  #   type: 'train_discount',
+                  #   owner_type: 'corporation',
+                  #   use_across_ors: false,
+                  #   when: 'buying_train',
+                  #   discount: 0.20,
+                  #   trains: %w[4+2P 5+1P 6 D],
+                  #   count: 4,
+                  #   },
+         #     ],
+        #    },
 
 
         ].freeze

@@ -11,7 +11,7 @@ module Engine
         DEV_STAGE = :alpha
 
         GAME_DESIGNER = 'Scott Ninmer'
-        GAME_LOCATION = 'Illinois'
+        GAME_LOCATION = 'Illinois, USA'
         #GAME_RULES_URL = 'https://boardgamegeek.com/filepage/268508/rules-english'
         #GAME_INFO_URL = 'https://github.com/tobymao/18xx/wiki/1850jr'
 
