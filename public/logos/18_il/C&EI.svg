@@ -16,10 +16,6 @@
         stroke-miterlimit: 10;
       }
 
-      .st4 {
-        fill: #2600aa;
-      }
-
       .st1 {
         stroke-width: .7px;
       }
@@ -30,6 +26,10 @@
 
       .st2, .st3 {
         stroke: #000;
+      }
+
+      .st4 {
+        fill: #740013;
       }
 
       .st3 {
@@ -66,7 +66,9 @@
   </g>
   <g class="st5">
     <g class="st5">
-      <text class="st6" transform="translate(2.1 4.9)"><tspan x="0" y="0">NC</tspan></text>
+      <g class="st5">
+        <text class="st6" transform="translate(.9 4.9)"><tspan x="0" y="0">C&amp;EI</tspan></text>
+      </g>
     </g>
   </g>
 </svg>

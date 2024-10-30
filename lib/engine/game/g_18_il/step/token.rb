@@ -49,7 +49,6 @@ module Engine
           def available_hex(entity, hex)
             @game.graph.reachable_hexes(entity)[hex] ||
               (can_token_stl?(entity) && @game.class::STL_TOKEN_HEXES.include?(hex.id))
-              @log << "available_hex running!"
           end
         end
       end

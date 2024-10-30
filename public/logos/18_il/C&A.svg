@@ -17,7 +17,7 @@
       }
 
       .st4 {
-        fill: #2600aa;
+        fill: #45df00;
       }
 
       .st1 {
@@ -66,7 +66,9 @@
   </g>
   <g class="st5">
     <g class="st5">
-      <text class="st6" transform="translate(2.1 4.9)"><tspan x="0" y="0">NC</tspan></text>
+      <g class="st5">
+        <text class="st6" transform="translate(1.2 4.9)"><tspan x="0" y="0">C&amp;A</tspan></text>
+      </g>
     </g>
   </g>
 </svg>

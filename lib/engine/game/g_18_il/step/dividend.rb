@@ -8,8 +8,9 @@ module Engine
     module G18IL
       module Step
         class Dividend < Engine::Step::Dividend
-          DIVIDEND_TYPES = %i[payout half withhold].freeze
+
           include Engine::Step::HalfPay
+          DIVIDEND_TYPES = %i[payout half withhold].freeze
 
           def share_price_change(entity, revenue = 0)
             print "Dividends"
@@ -21,15 +22,8 @@ module Engine
             return { share_direction: :right, share_times: 1 } if revenue < price * 2
             return { share_direction: :right, share_times: 2 } if revenue < price * 3
             return { share_direction: :right, share_times: 3 } 
-        end
-=begin
-          def share_price_change(entity, revenue = 0)
-            return { share_direction: :right, share_times: 1 } if revenue >= entity.share_price.price
-            return { share_direction: :left, share_times: 1 } if revenue.zero?
-
-            {}
           end
-=end
+
         end
       end
     end

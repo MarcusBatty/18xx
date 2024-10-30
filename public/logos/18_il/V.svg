@@ -16,10 +16,6 @@
         stroke-miterlimit: 10;
       }
 
-      .st4 {
-        fill: #2600aa;
-      }
-
       .st1 {
         stroke-width: .7px;
       }
@@ -36,18 +32,22 @@
         stroke-width: .8px;
       }
 
-      .st5, .st6 {
+      .st4, .st5 {
         isolation: isolate;
       }
 
-      .st6 {
+      .st5 {
         font-family: Arial-BoldMT, Arial;
         font-size: 2.6px;
         font-weight: 700;
       }
+
+      .st6 {
+        fill: #fffd44;
+      }
     </style>
   </defs>
-  <circle class="st4" cx="4" cy="4" r="4"/>
+  <circle class="st6" cx="4" cy="4" r="4"/>
   <g>
     <path class="st3" d="M6.3.9c-.9,2.1-.9,4.2,0,6.2"/>
     <path class="st1" d="M6.3.9c-.9,2.1-.9,4.2,0,6.2"/>
@@ -64,9 +64,11 @@
     <line class="st2" x1=".2" y1="4" x2="7.8" y2="4"/>
     <line class="st0" x1=".2" y1="4" x2="7.8" y2="4"/>
   </g>
-  <g class="st5">
-    <g class="st5">
-      <text class="st6" transform="translate(2.1 4.9)"><tspan x="0" y="0">NC</tspan></text>
+  <g class="st4">
+    <g class="st4">
+      <g class="st4">
+        <text class="st5" transform="translate(3.1 4.9)"><tspan x="0" y="0">V</tspan></text>
+      </g>
     </g>
   </g>
 </svg>
