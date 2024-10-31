@@ -1,14 +1,18 @@
 # frozen_string_literal: true
 
 require_relative 'entities'
+require_relative 'companies'
 require_relative 'map'
 require_relative 'meta'
+require_relative 'tiles'
+require_relative 'trains'
+require_relative 'market'
+require_relative 'phases'
 require_relative '../base'
 require_relative '../cities_plus_towns_route_distance_str'
 require_relative 'step/buy_tokens'
 require_relative 'step/token'
 require_relative 'step/track'
-
 
 module Engine
   module Game
@@ -16,7 +20,12 @@ module Engine
       class Game < Game::Base
         include_meta(G18IL::Meta)
         include Entities
+        include Companies
         include Map
+        include Tiles
+        include Trains
+        include Market
+        include Phases
         include CitiesPlusTownsRouteDistanceStr
 
         attr_accessor :stl_nodes, :blocking_token
@@ -52,213 +61,22 @@ module Engine
           { lay: true, upgrade: :not_if_upgraded, cost: 20, cannot_reuse_same_hex: true },
         ].freeze
 
-      HOME_TOKEN_TIMING = :float
-      MUST_BUY_TRAIN = :always
+        HOME_TOKEN_TIMING = :float
+        MUST_BUY_TRAIN = :always
 
         # TODO:  first D only
-      GAME_END_CHECK = { final_phase: :one_more_full_or_set }.freeze
-      SELL_AFTER = :p_any_operate
-      SELL_MOVEMENT = :none
-      POOL_SHARE_DROP = :down_share
+        GAME_END_CHECK = { final_phase: :one_more_full_or_set }.freeze
+        SELL_AFTER = :p_any_operate
+        SELL_MOVEMENT = :none
+        POOL_SHARE_DROP = :down_share
 
-      # TODO:  depends on share type 2 vs 5 vs 10
-      SOLD_OUT_INCREASE = true
+        # TODO:  depends on share type 2 vs 5 vs 10
+        SOLD_OUT_INCREASE = true
 
-      MUST_EMERGENCY_ISSUE_BEFORE_EBUY = true
-      CLOSED_CORP_TRAINS_REMOVED = false
-      CLOSED_CORP_TOKENS_REMOVED = false
-      CLOSED_CORP_RESERVATIONS_REMOVED = false
-
-      MARKET_SHARE_LIMIT = 100
-
-        MARKET = [
-          %w[0c
-            20
-            22
-            24
-            26g
-            28
-            30
-            32
-            34
-            36
-            38
-            40p
-            50
-            60p
-            67
-            74
-            80p
-            85
-            90
-            95
-            100p
-            104
-            108
-            112
-            116
-            120p
-            122
-            124
-            126
-            129
-            132
-            135
-            139
-            143
-            147
-            152
-            157
-            163
-            169
-            176
-            183
-            191
-            200
-            208
-            218
-            229
-            241
-            254
-            268
-            283
-            300
-            316
-            334
-            354
-            376
-            400],
-          ].freeze
-
-        # TODO: Remove empty grey legend
-         STOCKMARKET_COLORS = {
-            par: :yellow,
-            close: :black,
-          }.freeze
-
-          PHASES = [
-                  {
-                    name: '2',
-                    train_limit: 4,
-                    tiles: [:yellow],
-                    status: ['can_buy_companies'],
-                    operating_rounds: 2
-                  },
-                  {
-                    name: '3',
-                    on: '3',
-                    train_limit: 4,
-                    tiles: %i[yellow green],
-                    status: ['can_buy_companies'],
-                    operating_rounds: 2
-                  },
-                  {
-                    name: '4',
-                    on: '4',
-                    train_limit: 3,
-                    tiles: %i[yellow green],
-                    status: ['can_buy_companies'],
-                    operating_rounds: 2
-                  },
-                  {
-                    name: '4+2P',
-                    on: '4+2P',
-                    train_limit: 2,
-                    tiles: %i[yellow green brown],
-                    status: ['can_buy_companies'],
-                    operating_rounds: 2
-                  },
-                  {
-                    name: '5',
-                    on: '5+1P',
-                    train_limit: 2,
-                    tiles: %i[yellow green brown],
-                    status: ['can_buy_companies'],
-                    operating_rounds: 2
-                  },
-                  {
-                    name: '6',
-                    on: '6',
-                    train_limit: 2,
-                    tiles: %i[yellow green brown],
-                    status: ['can_buy_companies'],
-                    operating_rounds: 2
-                  },
-                  {
-                    name: 'D',
-                    on: 'D',
-                    train_limit: 2,
-                    tiles: %i[yellow green brown gray],
-                    status: ['can_buy_companies'],
-                    operating_rounds: 2
-                  }
-                ].freeze
-
-          TRAINS = [
-
-                  {
-                    name: 'Rogers (1+1)',
-                    distance: [
-                      { 'nodes' => ['city'], 'pay' => 1, 'visit' => 1 },
-                      { 'nodes' => ['town'], 'pay' => 1, 'visit' => 1 }
-                      ],
-                    price: 0,
-                    num: 1
-                  },
-
-                  {
-                    name: '2',
-                    distance: [{ 'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
-                                { 'nodes' => %w[city offboard], 'pay' => 2, 'visit' => 2 }],
-                    price: 80,
-                    rusts_on: '4',
-                    num: 99
-                  },
-                  {
-                    name: '3',
-                    distance: [{ 'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
-                                { 'nodes' => %w[city offboard], 'pay' => 3, 'visit' => 3 }],
-                    price: 160,
-                    rusts_on: '5+1P',
-                    num: 6
-                  },
-                  {
-                    name: '4',
-                    distance: [{ 'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
-                                { 'nodes' => %w[city offboard], 'pay' => 4, 'visit' => 4 }],
-                    price: 240,
-                    rusts_on: 'D',
-                    num: 5,
-                    variants: [{name: '3P',
-                                distance: [{ 'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
-                                            { 'nodes' => ['city'], 'pay' => 3, 'visit' => 3 }],
-                                price: 320 }]
-                  },
-                  {
-                    name: '4+2P',
-                    distance: [{ 'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
-                                { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }],
-                    price: 800,
-                    num: 2
-                  },
-                  {
-                    name: '5+1P',
-                    distance: [{  'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
-                                { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }],
-                      price: 700,
-                      num: 3
-                  },
-                  {
-                    name: '6',
-                    distance: [{ 'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
-                                { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }],
-                    price: 600,
-                    num: 4
-                  },
-                  { name: 'D', distance: 999, price: 1000, num: 99 },
-                          ].freeze
-
-
+        MUST_EMERGENCY_ISSUE_BEFORE_EBUY = true
+        CLOSED_CORP_TRAINS_REMOVED = false
+        CLOSED_CORP_TOKENS_REMOVED = false
+        CLOSED_CORP_RESERVATIONS_REMOVED = false
 
         PORT_HEXES = %w[B1 D23 H1 I2]
         MINE_HEXES = %w[C2 D9 D13 D17 E6 E14 F5 F13 F21 G22 H11]
@@ -345,7 +163,6 @@ module Engine
         end
 
         def stock_round
-          print "hello dolly"
           G18IL::Round::Stock.new(self, [
             #Engine::Step::DiscardTrain,
             #Engine::Step::Exchange,
@@ -371,17 +188,6 @@ module Engine
             #.reject { |bundle| bundle.num_shares > num_shares }
         end
 
-=begin
-        def issuable_shares(entity)
-          @log << "issuable_shares"
-          i_shares = entity.total_shares - (entity.num_player_shares + entity.num_market_shares)
-          if (i_shares > 0) then
-            i_shares = 1
-          end
-          i_shares
-        end
-=end
-
         def or_round_finished
           return if @depot.upcoming.empty?
           #phase 3 starts in OR1.2, which exports all 2-trains and rusts the 'Rogers' train
@@ -395,27 +201,8 @@ module Engine
           end
         end
 
-
         def init_stock_market
-          print "Hello market"
           StockMarket.new(self.class::MARKET, [], zigzag: :flip)
-        end
-
-        def price_movement_chart
-          [
-            ['Action', 'Share Price Change'],
-            ['Dividend = 0', '1 ←'],
-            ['Dividend < 1/2 stock price', '1 ⤪'],
-            ['Dividend ≥ 1/2 stock price but < stock price', '1 ⤨'],
-            ['Dividend ≥ stock price', '1 →'],
-            ['Dividend ≥ 2X stock price', '2 →'],
-            ['Dividend ≥ 3X stock price', '3 →'],
-            ['Voluntary Issue','Full Amount, then 1 ←'],
-            ['Emergency Issue','Half Amount, then ⤪ for each'],
-           # ['Corporation director sells any number of shares', '1 ←'],
-            ['Corporation is sold out at end of an SR', '1 ⤨ (5 share) or 1 → (10 share)'],
-            ['Corporation has any shares in the Market at end of an SR', '⤪ for each'],
-          ]
         end
 
         #adds E/W and N/S bonus, and doubles 3P train revenue
@@ -430,62 +217,62 @@ module Engine
           revenue += EW_NS_bonus(stops)[:revenue]
 
           revenue
-      end
-
-      def EW_NS_bonus(stops)
-          bonus = { revenue: 0 }
-
-          east = stops.find { |stop| stop.groups.include?('East') }
-          west = stops.find { |stop| stop.groups.include?('West') }
-          north = stops.find { |stop| stop.groups.include?('North') }
-          south = stops.find { |stop| stop.groups.include?('South') }
-
-          if east && west
-            bonus[:revenue] = 80
-            bonus[:description] = 'E/W'
-          end
-
-          if north && south
-            bonus[:revenue] = 100
-            bonus[:description] = 'N/S'
-          end
-
-          bonus
-      end
-
-      def revenue_str(route)
-        str = super
-
-        bonus = EW_NS_bonus(route.stops)[:description]
-        str += " + #{bonus}" if bonus
-
-        str
-      end
-
-      def stl_permit?(entity)
-        STL_TOKEN_HEXES.any? { |hexid| hex_by_id(hexid).tile.cities.any? { |c| c.tokened_by?(entity) } }
-      end
-
-      def stl_hex?(stop)
-        @stl_nodes.include?(stop)
-      end
-
-      def check_stl(visits)
-        return if !stl_hex?(visits.first) && !stl_hex?(visits.last)
-        raise GameError, 'Train cannot visit St. Louis without a permit token' unless stl_permit?(current_entity)
-      end
-
-      def check_distance(route, visits)
-
-        check_stl(visits)
-        #disallows 3P trains from running to red areas
-        if three_p_train?(route.train)
-          raise GameError, 'Cannot visit red areas' if visits.first.tile.color == :red || visits.last.tile.color == :red
         end
 
-        return super
+        def EW_NS_bonus(stops)
+            bonus = { revenue: 0 }
 
-      end
+            east = stops.find { |stop| stop.groups.include?('East') }
+            west = stops.find { |stop| stop.groups.include?('West') }
+            north = stops.find { |stop| stop.groups.include?('North') }
+            south = stops.find { |stop| stop.groups.include?('South') }
+
+            if east && west
+              bonus[:revenue] = 80
+              bonus[:description] = 'E/W'
+            end
+
+            if north && south
+              bonus[:revenue] = 100
+              bonus[:description] = 'N/S'
+            end
+
+            bonus
+        end
+
+        def revenue_str(route)
+          str = super
+
+          bonus = EW_NS_bonus(route.stops)[:description]
+          str += " + #{bonus}" if bonus
+
+          str
+        end
+
+        def stl_permit?(entity)
+          STL_TOKEN_HEXES.any? { |hexid| hex_by_id(hexid).tile.cities.any? { |c| c.tokened_by?(entity) } }
+        end
+
+        def stl_hex?(stop)
+          @stl_nodes.include?(stop)
+        end
+
+        def check_stl(visits)
+          return if !stl_hex?(visits.first) && !stl_hex?(visits.last)
+          raise GameError, 'Train cannot visit St. Louis without a permit token' unless stl_permit?(current_entity)
+        end
+
+        def check_distance(route, visits)
+
+          check_stl(visits)
+          #disallows 3P trains from running to red areas
+          if three_p_train?(route.train)
+            raise GameError, 'Cannot visit red areas' if visits.first.tile.color == :red || visits.last.tile.color == :red
+          end
+
+          return super
+
+        end
 
 
         def three_p_train?(train)
@@ -496,56 +283,56 @@ module Engine
           name == '3P'
         end
 
-      def convert(corporation)
-        #@log << "convert in game.rb"
-        before = corporation.total_shares
-        shares = @_shares.values.select { |share| share.corporation == corporation }
+        def convert(corporation)
+          #@log << "convert in game.rb"
+          before = corporation.total_shares
+          shares = @_shares.values.select { |share| share.corporation == corporation }
 
-        corporation.share_holders.clear
+          corporation.share_holders.clear
 
-        case corporation.type
-        when :five_share
-          shares.each { |share| share.percent = 10 }
-          shares[0].percent = 20
-          new_shares = Array.new(5) { |i| Share.new(corporation, percent: 10, index: i + 4) }
-          corporation.type = :ten_share
-          corporation.float_percent = 20
-          2.times { corporation.tokens << Engine::Token.new(corporation, price: 0) }
-        when :two_share
-          shares.each { |share| share.percent = 20 }
-          shares[0].percent = 40
-          new_shares = Array.new(3) { |i| Share.new(corporation, percent: 20, index: i + 1) }
-          corporation.type = :five_share
-          corporation.float_percent = 20
-          1.times { corporation.tokens << Engine::Token.new(corporation, price: 0) }
-        else
-          raise GameError, 'Cannot convert 10 share corporation'
+          case corporation.type
+          when :five_share
+            shares.each { |share| share.percent = 10 }
+            shares[0].percent = 20
+            new_shares = Array.new(5) { |i| Share.new(corporation, percent: 10, index: i + 4) }
+            corporation.type = :ten_share
+            corporation.float_percent = 20
+            2.times { corporation.tokens << Engine::Token.new(corporation, price: 0) }
+          when :two_share
+            shares.each { |share| share.percent = 20 }
+            shares[0].percent = 40
+            new_shares = Array.new(3) { |i| Share.new(corporation, percent: 20, index: i + 1) }
+            corporation.type = :five_share
+            corporation.float_percent = 20
+            1.times { corporation.tokens << Engine::Token.new(corporation, price: 0) }
+          else
+            raise GameError, 'Cannot convert 10 share corporation'
+          end
+
+          shares.each { |share| corporation.share_holders[share.owner] += share.percent }
+
+          new_shares.each do |share|
+            add_new_share(share)
+          end
+
+          after = corporation.total_shares
+          @log << "#{corporation.name} converts from #{before} to #{after} shares"
+
+          new_shares
         end
 
-        shares.each { |share| corporation.share_holders[share.owner] += share.percent }
-
-        new_shares.each do |share|
-          add_new_share(share)
+        def add_new_share(share)
+          owner = share.owner
+          corporation = share.corporation
+          corporation.share_holders[owner] += share.percent if owner
+          owner.shares_by_corporation[corporation] << share
+          @_shares[share.id] = share
         end
 
-        after = corporation.total_shares
-        @log << "#{corporation.name} converts from #{before} to #{after} shares"
-
-        new_shares
-      end
-
-      def add_new_share(share)
-        owner = share.owner
-        corporation = share.corporation
-        corporation.share_holders[owner] += share.percent if owner
-        owner.shares_by_corporation[corporation] << share
-        @_shares[share.id] = share
-      end
-
-      def status_array(corp)
-        return ['5-Share'] if corp.type == :five_share
-        return ['10-Share'] if corp.type == :ten_share
-      end
+        def status_array(corp)
+          return ['5-Share'] if corp.type == :five_share
+          return ['10-Share'] if corp.type == :ten_share
+        end
 
       end
     end
