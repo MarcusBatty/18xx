@@ -8,8 +8,13 @@ module Engine
       module Step
         class Token < Engine::Step::Token
           
-          def actions(entity)
-            super
+          def can_replace_token?(entity, token)
+            available_hex(entity, token.city.hex)
+          end
+
+          def available_hex(entity, hex)
+            @game.graph.reachable_hexes(entity)[hex] ||
+              (can_token_stl?(entity) && @game.class::STL_TOKEN_HEXES.include?(hex.id))
           end
 
           def can_place_token?(entity)
@@ -26,31 +31,38 @@ module Engine
           def stl_reachable?(entity)
              @game.stl_nodes.any? do |node|
              @game.graph.connected_nodes(entity)[node]
-            end
+             end
           end
-
-          def place_token(entity, city, token, connected: true, extra_action: false,
-                          special_ability: nil, check_tokenable: true)
+          
+          def place_token(entity, city, token, connected: true, extra_action: false, special_ability: nil, check_tokenable: true)
             hex = city.hex
-            return super unless @game.class::STL_TOKEN_HEXES.include?(hex.id)
 
+            return super unless @game.class::STL_TOKEN_HEXES.include?(hex.id)
             raise GameError, 'Must be connected to St. Louis to place permit token' if !@game.loading && !stl_reachable?(entity)
             raise GameError, 'Permit token already placed this turn' if @round.tokened
             raise GameError, 'Already placed permit token in STL' if @game.stl_permit?(entity)
             raise GameError, 'Permit token is already used' if token.used
-           #raise GameError, 'No more permit tokens allowed in this phase' if ...
 
+             if @game.class::STL_TOKEN_HEXES.include?(hex.id)
+                @log << "#{@game.phase.name}"
+                @log << "#{@game.phase.name == 'D' && city.tokens[3].corporation.name == 'B'}"
+                if city.tokens[0].corporation.name == 'B'
+                    city.tokens[0] = nil 
+                elsif @game.phase.name != '2' && city.tokens[1].corporation.name == 'B'
+                    city.tokens[1] = nil
+                elsif (@game.phase.name != '2' or '3') && city.tokens[2].corporation.name == 'B'
+                    city.tokens[2] = nil
+                elsif @game.phase.name == 'D' && city.tokens[3].corporation.name == 'B'
+                    city.tokens[3] = nil
+                end
+             end
+              
             city.place_token(entity, token, free: true, check_tokenable: check_tokenable)
-
-            @log << "#{entity.name} places a permit token in STL"
+            @log << "#{entity.name} places a permit token in St. Louis (B15)"
 
             @round.tokened = true
           end
 
-          def available_hex(entity, hex)
-            @game.graph.reachable_hexes(entity)[hex] ||
-              (can_token_stl?(entity) && @game.class::STL_TOKEN_HEXES.include?(hex.id))
-          end
         end
       end
     end

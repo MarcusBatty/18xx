@@ -19,7 +19,7 @@ module Engine
         include Map
         include CitiesPlusTownsRouteDistanceStr
 
-        attr_accessor :stl_nodes
+        attr_accessor :stl_nodes, :blocking_token
 
         register_colors(red: '#d1232a',
                         orange: '#f58121',
@@ -65,68 +65,68 @@ module Engine
       SOLD_OUT_INCREASE = true
 
       MUST_EMERGENCY_ISSUE_BEFORE_EBUY = true
-      CLOSED_CORP_TRAINS_REMOVED = false 
+      CLOSED_CORP_TRAINS_REMOVED = false
       CLOSED_CORP_TOKENS_REMOVED = false
       CLOSED_CORP_RESERVATIONS_REMOVED = false
 
       MARKET_SHARE_LIMIT = 100
 
         MARKET = [
-          %w[0c 
-            20 
-            22 
-            24 
-            26g 
-            28 
-            30 
-            32 
-            34 
-            36 
-            38 
-            40p 
-            50 
-            60p 
-            67 
-            74 
-            80p 
-            85 
-            90 
-            95 
-            100p 
-            104 
+          %w[0c
+            20
+            22
+            24
+            26g
+            28
+            30
+            32
+            34
+            36
+            38
+            40p
+            50
+            60p
+            67
+            74
+            80p
+            85
+            90
+            95
+            100p
+            104
             108
-            112 
-            116 
-            120p 
-            122 
-            124 
-            126 
-            129 
-            132 
-            135 
-            139 
-            143 
+            112
+            116
+            120p
+            122
+            124
+            126
+            129
+            132
+            135
+            139
+            143
             147
-            152 
-            157 
-            163 
-            169 
-            176 
-            183 
-            191 
-            200 
-            208 
-            218 
-            229 
-            241 
-            254 
-            268 
-            283 
-            300 
-            316 
-            334 
-            354 
-            376 
+            152
+            157
+            163
+            169
+            176
+            183
+            191
+            200
+            208
+            218
+            229
+            241
+            254
+            268
+            283
+            300
+            316
+            334
+            354
+            376
             400],
           ].freeze
 
@@ -158,7 +158,7 @@ module Engine
                     train_limit: 3,
                     tiles: %i[yellow green],
                     status: ['can_buy_companies'],
-                    operating_rounds: 2     
+                    operating_rounds: 2
                   },
                   {
                     name: '4+2P',
@@ -201,16 +201,15 @@ module Engine
                     distance: [
                       { 'nodes' => ['city'], 'pay' => 1, 'visit' => 1 },
                       { 'nodes' => ['town'], 'pay' => 1, 'visit' => 1 }
-                      ], 
+                      ],
                     price: 0,
-                  #  abilities: [{ type: 'close', on_phase: '3' }],
                     num: 1
                   },
 
                   {
                     name: '2',
                     distance: [{ 'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
-                                { 'nodes' => %w[city offboard], 'pay' => 2, 'visit' => 2 }], 
+                                { 'nodes' => %w[city offboard], 'pay' => 2, 'visit' => 2 }],
                     price: 80,
                     rusts_on: '4',
                     num: 99
@@ -218,22 +217,22 @@ module Engine
                   {
                     name: '3',
                     distance: [{ 'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
-                                { 'nodes' => %w[city offboard], 'pay' => 3, 'visit' => 3 }], 
+                                { 'nodes' => %w[city offboard], 'pay' => 3, 'visit' => 3 }],
                     price: 160,
                     rusts_on: '5+1P',
-                    num: 6 
+                    num: 6
                   },
                   {
                     name: '4',
                     distance: [{ 'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
-                                { 'nodes' => %w[city offboard], 'pay' => 4, 'visit' => 4 }], 
+                                { 'nodes' => %w[city offboard], 'pay' => 4, 'visit' => 4 }],
                     price: 240,
                     rusts_on: 'D',
                     num: 5,
                     variants: [{name: '3P',
                                 distance: [{ 'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
-                                            { 'nodes' => ['city'], 'pay' => 3, 'visit' => 3 }], 
-                                price: 320 },],
+                                            { 'nodes' => ['city'], 'pay' => 3, 'visit' => 3 }],
+                                price: 320 }]
                   },
                   {
                     name: '4+2P',
@@ -247,18 +246,20 @@ module Engine
                     distance: [{  'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
                                 { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }],
                       price: 700,
-                      num: 3    
+                      num: 3
                   },
                   {
                     name: '6',
                     distance: [{ 'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
-                                { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }], 
+                                { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }],
                     price: 600,
-                    num: 4 
+                    num: 4
                   },
                   { name: 'D', distance: 999, price: 1000, num: 99 },
                           ].freeze
-                                                                
+
+
+
         PORT_HEXES = %w[B1 D23 H1 I2]
         MINE_HEXES = %w[C2 D9 D13 D17 E6 E14 F5 F13 F21 G22 H11]
         DETROIT = ['I6']
@@ -267,9 +268,24 @@ module Engine
         PORT_TILES = %w[SPH POM]
         STL_HEXES = %w[B15 C16]
         STL_TOKEN_HEXES = %w[B15]
+        
 
-        def nc
-          @nc ||= corporation_by_id('NC')
+        def setup_preround
+          super
+          #places blocking tokens (phase colors) in STL
+          blocking_logo = ["18_il/yellow_blocking","/logos/18_il/green_blocking.svg","/logos/18_il/brown_blocking.svg","/logos/18_il/gray_blocking.svg"]
+
+          blocking_corp = Corporation.new(sym: 'B', name: 'blocking', logo: blocking_logo[0], simple_logo: blocking_logo[0], tokens: [0])
+          blocking_corp.tokens << Token.new(blocking_corp, price: 0, logo: blocking_logo[1], simple_logo: blocking_logo[1], type: :blocking)
+          blocking_corp.tokens << Token.new(blocking_corp, price: 0, logo: blocking_logo[2], simple_logo: blocking_logo[2], type: :blocking)
+          blocking_corp.tokens << Token.new(blocking_corp, price: 0, logo: blocking_logo[3], simple_logo: blocking_logo[3], type: :blocking)
+
+          blocking_corp.owner = @bank
+
+          blocking_city = @hexes.find { |hex| hex.id == 'B15' }.tile.cities.first
+
+          blocking_corp.tokens.each do |token| blocking_city.exchange_token(token)
+          end
         end
 
         def setup
@@ -278,20 +294,28 @@ module Engine
           train.buyable = false
           buy_train(nc, train, :free)
 
-          @stl_nodes = STL_HEXES.map do |h|
-            hex_by_id(h).tile.nodes.find { |n| n.offboard? && n.groups.include?('STL') }
+          @stl_nodes = STL_HEXES.map do |h| hex_by_id(h).tile.nodes.find { |n| n.offboard? && n.groups.include?('STL') }
           end
         end
 
-        #allows blue-on-blue tile lays
+        def nc
+          @nc ||= corporation_by_id('NC')
+        end
+        
+        def blocking_corp
+          @blocking_corp ||= corporation_by_id('B')
+        end
+
+        #allows blue tile lays at any time
         def tile_valid_for_phase?(tile, hex: nil, phase_color_cache: nil)
           return true if tile.name == 'SPH' or 'POM'
           super
         end
 
+        #allows blue-on-blue tile lays
         def upgrades_to?(from, to, special = false, selected_company: nil)
          if from.hex.name == 'B1' or 'D23'
-          return true if from.color == :blue && to.color == :blue 
+          return true if from.color == :blue && to.color == :blue
          end
           super
         end
@@ -316,14 +340,10 @@ module Engine
           ], round_num: round_num)
         end
 
-        def steamboat
-          @steamboat ||= company_by_id('SMBT')
-        end
-        
         def trade_assets
          #@log << "#{current_entity.name} skips Trade Assets."
         end
-        
+
         def stock_round
           print "hello dolly"
           G18IL::Round::Stock.new(self, [
@@ -356,7 +376,7 @@ module Engine
           @log << "issuable_shares"
           i_shares = entity.total_shares - (entity.num_player_shares + entity.num_market_shares)
           if (i_shares > 0) then
-            i_shares = 1 
+            i_shares = 1
           end
           i_shares
         end
@@ -397,53 +417,39 @@ module Engine
             ['Corporation has any shares in the Market at end of an SR', '⤪ for each'],
           ]
         end
-=begin
-        #from 18JP-T
-        def revenue_for(route, stops)
-          revenue = super
-
-          # Double revenue of corporation's destination hexes
-          if (ability = abilities(route.train, :hex_bonus))
-            stops.each do |stop|
-              next unless ability.hexes.include?(stop.hex.name)
-
-              revenue += stop.route_revenue(route.phase, route.train)
-            end
-          end
-=end
 
         #adds E/W and N/S bonus, and doubles 3P train revenue
         def revenue_for(route, stops)
           revenue = super
-      
+
           if three_p_train?(route.train)
             p_bonus_revenue = revenue
             revenue += p_bonus_revenue
           end
 
           revenue += EW_NS_bonus(stops)[:revenue]
-      
+
           revenue
       end
-      
+
       def EW_NS_bonus(stops)
           bonus = { revenue: 0 }
-      
+
           east = stops.find { |stop| stop.groups.include?('East') }
           west = stops.find { |stop| stop.groups.include?('West') }
           north = stops.find { |stop| stop.groups.include?('North') }
           south = stops.find { |stop| stop.groups.include?('South') }
-      
+
           if east && west
             bonus[:revenue] = 80
             bonus[:description] = 'E/W'
           end
-      
+
           if north && south
             bonus[:revenue] = 100
             bonus[:description] = 'N/S'
           end
-      
+
           bonus
       end
 
@@ -470,7 +476,7 @@ module Engine
       end
 
       def check_distance(route, visits)
-    
+
         check_stl(visits)
         #disallows 3P trains from running to red areas
         if three_p_train?(route.train)
@@ -478,70 +484,17 @@ module Engine
         end
 
         return super
-        
+
       end
 
 
         def three_p_train?(train)
           three_p_train_name?(train.name)
         end
-        
+
         def three_p_train_name?(name)
           name == '3P'
         end
-      
-=begin     
-            #checks 3P run to see if it visits offboard hex
-            def three_P_name?(name)
-              name == '3P'
-            end
-   
-            def three_P_train?(train)
-              three_P_name?(train.name)
-            end
-
-            def check_other(route)
-              if three_P_train?(route.train)
-              raise GameError, 'Cannot visit offboard hexes' if route.stops.any? { |stop| stop.tile.color == :red }
-            end
-
-
-      def P_bonus(route, stops)
-        bonus = { revenue: 0 }
-    
-        if train.name == '5+1P'
-          bonus[:revenue] = stops.map { |stop| stop.route_revenue(route.phase, route.train) }.max
-        end
-        
-        bonus
-    end
-
-
-        STATUS_TEXT = Base::STATUS_TEXT.merge(
-         'can_buy_companies_from_other_players' => ['Interplayer Company Buy',
-                                                    'Companies can be bought between players after first stock round'],
-       ).freeze
-
-        def multiple_buy_only_from_market?
-          !optional_rules&.include?(:multiple_brown_from_ipo)
-        end
-
-        def num_trains(train)
-          return train[:num] unless train[:name] == '6'
-
-          optional_6_train ? 3 : 2
-        end
-
-        def optional_6_train
-          @optional_rules&.include?(:optional_6_train)
-        end
-
-
-      def process_convert(action)
-        #@log << "process_convert in game.rb"
-        @game.convert(action.entity)
-      end
-=end
 
       def convert(corporation)
         #@log << "convert in game.rb"

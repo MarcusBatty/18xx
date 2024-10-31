@@ -12,6 +12,7 @@ module Engine
             return nil if @game.class::STL_HEXES.include?(hex.id) && !@game.stl_permit?(current_entity) # highlight the STL hexes only when corp has permit token
             super
           end
+          
         end
       end
     end
