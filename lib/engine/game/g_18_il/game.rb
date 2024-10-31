@@ -137,9 +137,9 @@ module Engine
          end
           super
         end
-
+        
         def operating_round(round_num)
-          G18IL::Round::Operating.new(self, [
+          Engine::Round::Operating.new(self, [
             #Engine::Step::Bankrupt,
             Engine::Step::Exchange,
             Engine::Step::SpecialTrack,
