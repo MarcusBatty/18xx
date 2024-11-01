@@ -24,56 +24,56 @@ module Engine
               '546' => 4,
               '611' => 6,
               '619' => 6,
-              'IL1' => 
+              'M1' => 
               {
                 'count' => 9,
                 'color' => 'yellow',
                 'code' => 'town=revenue:10;path=a:0,b:_0;path=a:2,b:_0;icon=image:18_co/mine',
               },
     
-              'IL2' => 
+              'G1' => 
               {
                 'count' => 1,
                 'color' => 'yellow',
                 'code' => 'town=revenue:30;path=a:1,b:_0;path=a:2,b:_0;path=a:4,b:_0;path=a:5,b:_0;icon=image:18_co/mine;label=G',
               },
               
-              'IL3' => 
+              'S1' => 
               {
                 'count' => 1,
                 'color' => 'yellow',
                 'code' => 'city=revenue:20;path=a:1,b:_0;path=a:3,b:_0;label=S',
               },
     
-              'IL11' => 
+              'C11' => 
               {
                 'count' => 2,
                 'color' => 'yellow',
                 'code' => 'city=revenue:20;path=a:1,b:_0;path=a:0,b:_0;path=a:3,b:_0,track:future;label=C',
               },
     
-              'IL12' => 
+              'C12' => 
               {
                 'count' => 2,
                 'color' => 'yellow',
                 'code' => 'city=revenue:20;path=a:2,b:_0;path=a:0,b:_0;path=a:3,b:_0,track:future;label=C',
               },
     
-              'IL13' => 
+              'C13' => 
               {
                 'count' => 3,
                 'color' => 'yellow',
                 'code' => 'city=revenue:20;path=a:3,b:_0;path=a:0,b:_0;label=C',
               },
     
-              'IL14' => 
+              'C14' => 
               {
                 'count' => 2,
                 'color' => 'yellow',
                 'code' => 'city=revenue:20;path=a:4,b:_0;path=a:0,b:_0;path=a:3,b:_0,track:future;label=C',
               },
     
-              'IL15' => 
+              'C15' => 
               {
                 'count' => 2,
                 'color' => 'yellow',
@@ -81,146 +81,148 @@ module Engine
               },
     
     
-              'IL16' =>
+              'K11' =>
               {
                 'count' => 1,
                 'color' => 'yellow',
                 'code' => 'city=revenue:10;path=a:1,b:_0;path=a:3,b:_0;label=K',
               },
     
-              'IL17' => 
+              'K12' => 
               {
                 'count' => 2,
                 'color' => 'yellow',
                 'code' => 'city=revenue:10;path=a:1,b:_0;path=a:4,b:_0;path=a:3,b:_0,track:future;label=K',
               },
     
-              'IL18' => 
+              'K13' => 
               {
                 'count' => 2,
                 'color' => 'yellow',
                 'code' => 'city=revenue:10;path=a:3,b:_0;path=a:4,b:_0;path=a:1,b:_0,track:future;label=K',
               },
     
-              'IL21' => 
+              'IC1' => 
               {
                 'count' => 2,
                 'color' => 'yellow',
                 'code' => 'path=a:1,b:0;path=a:4,b:0,track:future',
               },
     
-              'IL22' => 
+              'IC2' => 
               {
                 'count' => 2,
                 'color' => 'yellow',
                 'code' => 'path=a:2,b:0;path=a:4,b:0,track:future',
               },
     
-              'IL23' => 
+              'IC3' => 
               {
                 'count' => 2,
                 'color' => 'yellow',
                 'code' => 'path=a:3,b:0;path=a:4,b:0,track:future',
               },
     
-              'IL24' => 
+              'IC4' => 
               {
                 'count' => 2,
                 'color' => 'yellow',
                 'code' => 'path=a:5,b:0;path=a:4,b:0,track:future',
               },
     
-              'IL25' => 
+              'IC5' => 
               {
                 'count' => 2,
                 'color' => 'yellow',
                 'code' => 'path=a:1,b:0;path=a:2,b:0,track:future',
               },
               
-              'IL26' => 
+              'IC6' => 
               {
                 'count' => 2,
                 'color' => 'yellow',
                 'code' => 'path=a:3,b:0;path=a:2,b:0,track:future',
               },
     
-              'IL27' => 
+              'IC7' => 
               {
                 'count' => 2,
                 'color' => 'yellow',
                 'code' => 'path=a:4,b:0;path=a:2,b:0,track:future',
               },
     
-              'IL28' => 
+              'IC8' => 
               {
                 'count' => 2,
                 'color' => 'yellow',
                 'code' => 'path=a:5,b:0;path=a:2,b:0,track:future',
               },
     
-              'IL29' => 
+              'IC9' => 
               {
                 'count' => 2,
                 'color' => 'yellow',
                 'code' => 'path=a:1,b:0;path=a:3,b:0,track:future',
               },
               
-              'IL30' => 
+              'IC10' => 
               {
                 'count' => 2,
                 'color' => 'yellow',
                 'code' => 'path=a:2,b:0;path=a:3,b:0,track:future',
               },
     
-              'IL31' => 
+              'IC11' => 
               {
                 'count' => 2,
                 'color' => 'yellow',
                 'code' => 'path=a:4,b:0;path=a:3,b:0,track:future',
               },
     
-              'IL32' => 
+              'IC12' => 
               {
                 'count' => 2,
                 'color' => 'yellow',
                 'code' => 'path=a:5,b:0;path=a:3,b:0,track:future',
               },
-              'IL60' => 
+                  
+              # GREEN
+              'P2' => 
               {
                 'count' => 1,
                 'color' => 'green',
                 'code' => 'city=revenue:30,slots:2;path=a:1,b:_0;path=a:2,b:_0;path=a:4,b:_0;path=a:5,b:_0;label=P',
               },
     
-              'IL61' => 
+              'S2' => 
               {
                 'count' => 1,
                 'color' => 'green',
                 'code' => 'city=revenue:30;path=a:1,b:_0;path=a:3,b:_0;path=a:4,b:_0;label=S',
               },
     
-              'IL62' =>
+              'CHI2' =>
               {
                 'count' => 1,
                 'color' => 'green',
                 'code' => 'label=Chi;city=revenue:40,loc:1.5;city=revenue:40,loc:3.5;city=revenue:40,loc:5.5;path=a:1,b:_0;path=a:4,b:_1;path=a:0,b:_2',
               },
               
-              'IL63' => 
+              'C21' => 
               {
                 'count' => 2,
                 'color' => 'green',
                 'code' => 'city=revenue:20,slots:2;path=a:1,b:_0;path=a:3,b:_0;path=a:0,b:_0;label=C',
               },
     
-              'IL64' => 
+              'C22' => 
               {
                 'count' => 2,
                 'color' => 'green',
                 'code' => 'city=revenue:20,slots:2;path=a:3,b:_0;path=a:5,b:_0;path=a:0,b:_0;label=C',
               },
     
-              'IL65' => 
+              'K2' => 
               {
                 'count' => 1,
                 'color' => 'green',
@@ -228,7 +230,7 @@ module Engine
               },
     
               # BROWN
-              'IL70' => 
+              'P3' => 
               {
                 'count' => 1,
                 'color' => 'brown',
@@ -236,49 +238,49 @@ module Engine
                 'city=revenue:40,slots:3;path=a:0,b:_0;path=a:1,b:_0;path=a:2,b:_0;path=a:3,b:_0;path=a:4,b:_0;label=P',
               },
     
-              'IL71' => 
+              'S3' => 
               {
                 'count' => 1,
                 'color' => 'brown',
                 'code' => 'city=revenue:40,slots:2;path=a:1,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:5,b:_0;label=S',
               },
     
-              'IL72' => 
+              'CHI3' => 
               {
                 'count' => 1,
                 'color' => 'brown',
                 'code' => 'city=revenue:70,slots:3;path=a:1,b:_0;path=a:2,b:_0;path=a:0,b:_0;path=a:4,b:_0;label=Chi',
               },
     
-              'IL73' => 
+              'C31' => 
               {
                 'count' => 2,
                 'color' => 'brown',
                 'code' => 'city=revenue:30,slots:2;path=a:1,b:_0;path=a:3,b:_0;path=a:0,b:_0;label=C',
               },
     
-              'IL74' => 
+              'C32' => 
               {
                 'count' => 2,
                 'color' => 'brown',
                 'code' => 'city=revenue:30,slots:2;path=a:3,b:_0;path=a:5,b:_0;path=a:0,b:_0;label=C',
               },
     
-              'IL75' => 
+              'K3' => 
               {
                 'count' => 1,
                 'color' => 'brown',
                 'code' => 'city=revenue:30,slots:2;path=a:1,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:0,b:_0;label=K',
               },
     
-              'IL80' => 
+              'P4' => 
               {
                 'count' => 1,
                 'color' => 'gray',
                 'code' => 'city=revenue:50,slots:4;path=a:1,b:_0;path=a:2,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:5,b:_0;path=a:0,b:_0;label=P',
               },
     
-              'IL81' => 
+              'S4' => 
               {
                 'count' => 1,
                 'color' => 'gray',
@@ -286,7 +288,7 @@ module Engine
                 'city=revenue:50,slots:3;path=a:1,b:_0;path=a:2,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:5,b:_0;label=S',
               },
     
-              'IL82' => 
+              'CHI4' => 
               {
                 'count' => 1,
                 'color' => 'gray',

@@ -4,6 +4,7 @@ module Engine
   module Game
     module G18IL
       module Entities
+        
         CORPORATIONS = [
           {
             float_percent: 100,

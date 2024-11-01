@@ -78,14 +78,14 @@ module Engine
         CLOSED_CORP_TOKENS_REMOVED = false
         CLOSED_CORP_RESERVATIONS_REMOVED = false
 
-        PORT_HEXES = %w[B1 D23 H1 I2]
-        MINE_HEXES = %w[C2 D9 D13 D17 E6 E14 F5 F13 F21 G22 H11]
-        DETROIT = ['I6']
-        CLASS_A_COMPANIES = %w[]
-        CLASS_B_COMPANIES = %w[]
-        PORT_TILES = %w[SPH POM]
-        STL_HEXES = %w[B15 C16]
-        STL_TOKEN_HEXES = %w[B15]
+        PORT_HEXES = %w[B1 D23 H1 I2].freeze
+        MINE_HEXES = %w[C2 D9 D13 D17 E6 E14 F5 F13 F21 G22 H11].freeze
+        DETROIT = ['I6'].freeze
+        CLASS_A_COMPANIES = %w[].freeze
+        CLASS_B_COMPANIES = %w[].freeze
+        PORT_TILES = %w[SPH POM].freeze
+        STL_HEXES = %w[B15 C16].freeze
+        STL_TOKEN_HEXES = %w[B15].freeze
         
 
         def setup_preround
