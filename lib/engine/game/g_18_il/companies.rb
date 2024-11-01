@@ -5,7 +5,7 @@ module Engine
       module G18IL
         module Companies
 
-          MINE_HEXES = %w[C2 D9 D17 D13 E14 F13 H11 E6 F5 F21 G22]
+          MINE_HEXES = %w[C2 D9 D17 D13 E14 F13 H11 E6 F5 F21 G22].freeze
 
           COMPANIES = [
             #TODO:  fix
@@ -155,15 +155,14 @@ module Engine
                 abilities: [
                 {
                     type: 'tile_lay',
-                    hexes: MINE_HEXES,
                     tiles: ['IL1'],
+                    hexes: MINE_HEXES,
                     when: 'track',
                     owner_type: 'corporation',
                     count: 1,
                     consume_tile_lay: false,
                     reachable: true,
                     closed_when_used_up: true,
-                    #special: true,
                     },
                 ],
                 }
