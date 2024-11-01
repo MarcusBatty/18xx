@@ -41,7 +41,7 @@ module Engine
             variants: [{name: '3P',
                         distance: [{ 'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
                                     { 'nodes' => ['city'], 'pay' => 3, 'visit' => 3 }],
-                        price: 320 }]
+                        price: 320 }],
             },
             {
             name: '4+2P',
@@ -55,7 +55,7 @@ module Engine
             distance: [{  'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
                         { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }],
                 price: 700,
-                num: 3
+                num: 3,
             },
             {
             name: '6',
@@ -64,7 +64,8 @@ module Engine
             price: 600,
             num: 4
             },
-            { name: 'D', distance: 999, price: 1000, num: 99 },
+            { name: 'D', distance: 999, price: 1000, num: 9,
+              events: [{ 'type' => 'signal_end_game' }],},
             ].freeze
         end
       end

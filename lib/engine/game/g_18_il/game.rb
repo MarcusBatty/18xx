@@ -112,7 +112,8 @@ module Engine
           train.buyable = false
           buy_train(nc, train, :free)
 
-          @stl_nodes = STL_HEXES.map do |h| hex_by_id(h).tile.nodes.find { |n| n.offboard? && n.groups.include?('STL') }
+          @stl_nodes = STL_HEXES.map do |h| 
+            hex_by_id(h).tile.nodes.find { |n| n.offboard? && n.groups.include?('STL') }
           end
         end
 
@@ -333,6 +334,65 @@ module Engine
           return ['5-Share'] if corp.type == :five_share
           return ['10-Share'] if corp.type == :ten_share
         end
+
+        # TODO copied from 17 
+        def event_signal_end_game!
+          # If we're in round 1, we have another set of ORs with 2 ORs
+          # If we're in round 2, we have another set of ORs with 2 ORs
+          @final_operating_rounds = @round.round_num == 2 ? 2 : 2
+          game_end_check
+          @log << "First D train bought/exported, ending game at the end of #{@turn + 1}.#{@final_operating_rounds}"
+
+          # remove unopened corporations and decrement cert limit
+          cur = @cert_limit
+          self.corporations.each do |cp|
+            if !cp.floated then
+
+              # TODO change later? not sure this is correct
+              close_corporation(cp)
+
+              # TODO place one of its station markers facedown in its home station on the map
+
+              # decrement cert_limit for each removed corporation
+              @cert_limit = cur - 1
+              @log << "cert limit decremented to #{@cert_limit}"
+              cur = @cert_limit
+            end
+          end
+
+          # strike
+          pullman_strike
+        end
+
+        def final_operating_rounds
+          @final_operating_rounds || super
+        end
+
+        # Pullman Strike: Flip all 5+1P trains over to their 5-train
+        # side and flip all 4+2P trains over to their 4-train side.
+        # TODO:   illegal access of class variables
+        def pullman_strike
+          @log << "pullman_strike"
+          self.corporations.each do |cp|
+            cp.trains.each do |train|
+              if train.name == '4+2P' then
+                #TODO: replace with '4' and all the fixins
+                @log << "#{train.name} replaced with 4"
+                train.name = '4'
+                train.distance = [{'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
+                                  {'nodes' => %w[city offboard], 'pay' => 4, 'visit' => 4 }]
+
+              elsif train.name == '5+1P' then
+                #replace with '5'
+                @log << "#{train.name} replaced with 5"
+                train.name = '5'
+                train.distance = [{'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
+                                  {'nodes' => %w[city offboard], 'pay' => 5, 'visit' => 5 }]
+              end
+            end
+          end
+        end
+        
 
       end
     end
