@@ -6,7 +6,7 @@ module Engine
         module Companies
 
           MINE_HEXES = %w[C2 D9 D17 D13 E14 F13 H11 E6 F5 F21 G22]
-          
+
           COMPANIES = [
             #TODO:  fix
             {
@@ -22,7 +22,7 @@ module Engine
                   type: 'additional_token',
                   count: 1,
                   owner_type: 'corporation',
-                  when: 'owning_corp_or_turn',
+                  when: 'owning_corp_track',
                   closed_when_used_up: true,
                   extra_slot: true,
                 },
@@ -161,6 +161,7 @@ module Engine
                     owner_type: 'corporation',
                     count: 1,
                     consume_tile_lay: false,
+                    reachable: true,
                     closed_when_used_up: true,
                     #special: true,
                     },
