@@ -4,6 +4,9 @@ module Engine
     module Game
       module G18IL
         module Companies
+
+          MINE_HEXES = %w[C2 D9 D17 D13 E14 F13 H11 E6 F5 F21 G22]
+          
           COMPANIES = [
             #TODO:  fix
             {
@@ -19,13 +22,13 @@ module Engine
                   type: 'additional_token',
                   count: 1,
                   owner_type: 'corporation',
-                  when: 'any',
+                  when: 'owning_corp_or_turn',
                   closed_when_used_up: true,
                   extra_slot: true,
                 },
               ],
             },
-            
+
             {
               #TODO:  add port marker to charter
               #TODO:  closes on brown CHI tile
@@ -143,6 +146,26 @@ module Engine
                   },
                 ],
               },
+              {
+                name: 'Chicago-Virden Coal Company',
+                value: 5,
+                revenue: 0,
+                desc: 'During the tile-laying step of the corporation’s operating turn, place a yellow mine tile. This is an extra tile lay and is free but must otherwise follow the rules. Place a mine marker on the corporation’s charter. Once this ability is used, the private company closes.',
+                sym: 'CV',
+                abilities: [
+                {
+                    type: 'tile_lay',
+                    hexes: MINE_HEXES,
+                    tiles: ['IL1'],
+                    when: 'track',
+                    owner_type: 'corporation',
+                    count: 1,
+                    consume_tile_lay: false,
+                    closed_when_used_up: true,
+                    #special: true,
+                    },
+                ],
+                }
           ].freeze
         end
       end
