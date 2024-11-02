@@ -5,6 +5,7 @@ module Engine
     module G18IL
       module Companies
 
+        #TODO: reference game.rb's version instead of having redundancy (dunno how...)
         MINE_HEXES = %w[C2 D9 D13 D17 E6 E14 F5 F13 F21 G22 H11].freeze
 
         COMPANIES = [
@@ -28,7 +29,6 @@ module Engine
               },
             ],
           },
-
           {
             #TODO:  add port marker to charter
             #TODO:  closes on brown CHI tile
@@ -57,7 +57,6 @@ module Engine
               { type: 'close', on_phase: '4' },
             ],
           },
-
           #TODO:  place port marker
           {
             name: 'Steamboat',
@@ -79,7 +78,6 @@ module Engine
               },
             ],
           },
-
           {
             name: 'Illinois Steel Bridge Company',
             value: 5,
@@ -95,7 +93,6 @@ module Engine
                 },
               ],
             },
-
             {
               #TODO:  place mine marker
               name: 'Frink, Walker, & Co.',
@@ -177,44 +174,120 @@ module Engine
 end
 
 =begin
-        {
-          name: 'Rush Delivery',
-          value: 5
-          revenue: 0,
-          desc: 'Buy one train from the bank prior to the “Run Trains” step during this operating round. The corporation may use emergency money raising if'\
-          ' it does not own a train. Once this ability is used, the private company closes.',
-          sym: 'RD',
-          abilities: [
-            {
+              {
+                name: 'Rush Delivery',
+                value: 5
+                revenue: 0,
+                desc: 'Buy one train from the bank prior to the “Run Trains” step during this operating round. The corporation may use emergency money raising if'\
+                ' it does not own a train. Once this ability is used, the private company closes.',
+                sym: 'RD',
+                abilities: [
+                  {
 
-            },
-          ],
-        },
-        {
-          name: 'Station Subsidy',
-          value: 5
-          revenue: 0,
-          desc: 'This company starts with four subsidy cubes on it. When starting or converting a corporation, one, two, three, or four cubes may be discarded to receive a discount of $40,'\ 
-          ' $80, $120, or $160 respectively, when buying station markers. Once the fourth cube has been used, the private company closes.',
-          sym: 'SS',
-          abilities: [
-            {
+                  },
+                ],
+              },
+              {
+                name: 'Station Subsidy',
+                value: 5
+                revenue: 0,
+                desc: 'This company starts with four subsidy cubes on it. When starting or converting a corporation, one, two, three, or four cubes may be discarded to receive a discount of $40,'\ 
+                ' $80, $120, or $160 respectively, when buying station markers. Once the fourth cube has been used, the private company closes.',
+                sym: 'SS',
+                abilities: [
+                  {
 
-            },
-          ],
-        },
-        {
-          name: 'Share Premium',
-          value: 5,
-          revenue: 0,
-          desc: 'When issuing a share during the Issue a Share step, receive double the current share price from the bank to the corporation treasury.'\
-                ' Once this ability is used, the private company closes.',
-          sym: 'SP',
-          abilities: [
-            {
+                  },
+                ],
+              },
+              {
+                name: 'Share Premium',
+                value: 5,
+                revenue: 0,
+                desc: 'When issuing a share during the Issue a Share step, receive double the current share price from the bank to the corporation treasury.'\
+                      ' Once this ability is used, the private company closes.',
+                sym: 'SP',
+                abilities: [
+                  {
 
-            },            
-          ],
-        },
+                  },            
+                ],
+              },
+              {
+                name: 'U.S. Mail Line',
+                value: 5
+                revenue: 0,
+                desc: 'After the “Run Trains” step of the corporation’s operating turn, receive $5 from the bank to the corporation’s treasury per stop that each train visited. '\
+                'Multiple trains visiting the same stop grant $5 per visit. The corporation may choose to receive a mine marker at any time.  When it does, the pri-vate company closes.',
+                sym: 'SS',
+                abilities: [
+                  {
+
+                  },
+                ],
+              },
+              {
+                name: 'Advanced Track',
+                value: 5,
+                revenue: 0,
+                desc: 'This company starts with two subsidy cubes on it. At any time during the tile-laying step of the corporation's operat-ing turn, discard one cube to lay or upgrade one additional tile for free,'\
+                'except for any terrain costs. Only one cube may be used per turn. Once the second cube has been used, the private company closes.',
+                sym: 'SP',
+                abilities: [
+                  {
+
+                  },            
+                ],
+              },
+              {
+                name: 'Central Illinois Boom',
+                value: 5,
+                revenue: 0,
+                desc: 'In phase D, upgrade Peoria or Springfield using the match-ing gray tile.  It does not have to be connected to a station marker, does not count as a tile lay, and may be upgraded regardless of the current city color. '\
+                'The unused tile is re-moved from the game. Once this ability is used, the private company closes.',
+                sym: 'SP',
+                abilities: [
+                  {
+
+                  },            
+                ],
+              },
+              {
+                name: 'Diverse Cargo',
+                value: 5,
+                revenue: 0,
+                desc: 'Place either a mine or port marker on the corporation’s charter. Once this ability is used, the private company clos-es.',
+                sym: 'SP',
+                abilities: [
+                  {
+
+                  },            
+                ],
+              },
+              {
+                name: 'Engineering Mastery',
+                value: 5,
+                revenue: 0,
+                desc: 'During the tile-laying step of the corporation's operating turn, upgrade two tiles from yellow to green (instead of two lays or one lay and one upgrade), paying the normal $20 fee and any terrain costs.',
+                sym: 'SP',
+                abilities: [
+                  {
+
+                  },            
+                ],
+              },
+              {
+                name: 'Lincoln Funeral Car',
+                value: 5,
+                revenue: 0,
+                desc: 'During the “Run Trains” step of the corporation’s operating turn, one of the corporation’s trains earns an additional $20/$30/$40 for each of the following cities in its route dur-ing a yellow/green/brown phase, '\
+                'respectively: Chicago (H3), Joliet (G6), Bloomington (F9), and Springfield (E12). Once this ability is used, the private company closes.',
+                sym: 'SP',
+                abilities: [
+                  {
+
+                  },            
+                ],
+              },
 =end 
 

@@ -25,7 +25,7 @@ module Engine
           end
 
           def can_token_stl?(entity)
-            !@game.stl_permit?(entity) && stl_reachable?(entity) #&& #only one company can token per tile color phase
+            !@game.stl_permit?(entity) && stl_reachable?(entity)
           end
 
           def stl_reachable?(entity)
@@ -43,18 +43,12 @@ module Engine
             raise GameError, 'Already placed permit token in STL' if @game.stl_permit?(entity)
             raise GameError, 'Permit token is already used' if token.used
 
-             if @game.class::STL_TOKEN_HEXES.include?(hex.id)
-                @log << "#{@game.phase.name}"
-                @log << "#{@game.phase.name == 'D' && city.tokens[3].corporation.name == 'B'}"
-                if city.tokens[0].corporation.name == 'B'
-                    city.tokens[0] = nil 
-                elsif @game.phase.name != '2' && city.tokens[1].corporation.name == 'B'
-                    city.tokens[1] = nil
-                elsif (@game.phase.name != '2' or '3') && city.tokens[2].corporation.name == 'B'
-                    city.tokens[2] = nil
-                elsif @game.phase.name == 'D' && city.tokens[3].corporation.name == 'B'
-                    city.tokens[3] = nil
-                end
+            #swaps dummy corp token in STL for tokening corp's token if slot available
+             case @game.class::STL_TOKEN_HEXES.include?(hex.id)
+                when city.tokens[0].corporation.name == 'B' then city.tokens[0] = nil 
+                when @game.phase.name != '2' && city.tokens[1].corporation.name == 'B' then city.tokens[1] = nil
+                when (@game.phase.name != '2' or '3') && city.tokens[2].corporation.name == 'B' then city.tokens[2] = nil
+                when @game.phase.name == 'D' && city.tokens[3].corporation.name == 'B' then city.tokens[3] = nil
              end
               
             city.place_token(entity, token, free: true, check_tokenable: check_tokenable)

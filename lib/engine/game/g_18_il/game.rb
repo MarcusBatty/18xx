@@ -84,24 +84,20 @@ module Engine
         CLASS_A_COMPANIES = %w[].freeze
         CLASS_B_COMPANIES = %w[].freeze
         PORT_TILES = %w[SPH POM].freeze
-        STL_HEXES = %w[B15 C16].freeze
-        STL_TOKEN_HEXES = %w[B15].freeze
+        STL_HEXES = %w[B15 B17 C16 C18].freeze
+        STL_TOKEN_HEXES = %w[C18].freeze
         
 
         def setup_preround
           super
           #places blocking tokens (phase colors) in STL
           blocking_logo = ["18_il/yellow_blocking","/logos/18_il/green_blocking.svg","/logos/18_il/brown_blocking.svg","/logos/18_il/gray_blocking.svg"]
-
           blocking_corp = Corporation.new(sym: 'B', name: 'blocking', logo: blocking_logo[0], simple_logo: blocking_logo[0], tokens: [0])
           blocking_corp.tokens << Token.new(blocking_corp, price: 0, logo: blocking_logo[1], simple_logo: blocking_logo[1], type: :blocking)
           blocking_corp.tokens << Token.new(blocking_corp, price: 0, logo: blocking_logo[2], simple_logo: blocking_logo[2], type: :blocking)
           blocking_corp.tokens << Token.new(blocking_corp, price: 0, logo: blocking_logo[3], simple_logo: blocking_logo[3], type: :blocking)
-
           blocking_corp.owner = @bank
-
-          blocking_city = @hexes.find { |hex| hex.id == 'B15' }.tile.cities.first
-
+          blocking_city = @hexes.find { |hex| hex.id == 'C18' }.tile.cities.first
           blocking_corp.tokens.each do |token| blocking_city.exchange_token(token)
           end
         end
@@ -263,25 +259,20 @@ module Engine
           raise GameError, 'Train cannot visit St. Louis without a permit token' unless stl_permit?(current_entity)
         end
 
-        def check_distance(route, visits)
+        def three_p_train?(train)
+          train.name == '3P'
+        end
 
+        def check_three_p_train(route, visits)     
+          raise GameError, 'Cannot visit red areas' if visits.first.tile.color == :red || visits.last.tile.color == :red if three_p_train?(route.train)
+        end
+        
+        def check_distance(route, visits)
+          #checks STL for permit token
           check_stl(visits)
           #disallows 3P trains from running to red areas
-          if three_p_train?(route.train)
-            raise GameError, 'Cannot visit red areas' if visits.first.tile.color == :red || visits.last.tile.color == :red
-          end
-
+          check_three_p_train(route, visits)
           return super
-
-        end
-
-
-        def three_p_train?(train)
-          three_p_train_name?(train.name)
-        end
-
-        def three_p_train_name?(name)
-          name == '3P'
         end
 
         def convert(corporation)

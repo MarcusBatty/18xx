@@ -548,6 +548,7 @@ module Engine
           @merging = nil
           @london_nodes = LONDON_HEXES.map do |h|
             hex_by_id(h).tile.nodes.find { |n| n.offboard? && n.groups.include?('London') }
+
           end
         end
 
