@@ -69,7 +69,7 @@ module Engine
         MUST_BUY_TRAIN = :always
 
         # TODO:  first D only
-        GAME_END_CHECK = { final_phase: :full_or }.freeze
+        GAME_END_CHECK = { final_phase: :one_more_full_or_set }.freeze
         SELL_AFTER = :p_any_operate
         SELL_MOVEMENT = :none
         POOL_SHARE_DROP = :down_share
@@ -96,7 +96,7 @@ module Engine
           super
           #places blocking tokens (phase colors) in STL
           blocking_logo = ["18_il/yellow_blocking","/logos/18_il/green_blocking.svg","/logos/18_il/brown_blocking.svg","/logos/18_il/gray_blocking.svg"]
-          game_start_blocking_corp = Corporation.new(sym: 'GSB', name: 'blocking', logo: blocking_logo[0], simple_logo: blocking_logo[0], tokens: [0])
+          game_start_blocking_corp = Corporation.new(sym: 'GSB', name: 'game_start_blocking_corp', logo: blocking_logo[0], simple_logo: blocking_logo[0], tokens: [0])
           game_start_blocking_corp.owner = @bank
           city = @hexes.find { |hex| hex.id == 'C18' }.tile.cities.first
           blocking_logo.each do |n| 
@@ -104,7 +104,8 @@ module Engine
            city.place_token(game_start_blocking_corp, token, check_tokenable: false)          
           end
 
-          game_end_blocking_corp = Corporation.new(sym: 'GEB', name: 'Blocking', logo: '1828/blocking', tokens: [0])
+          #creates corp that adds blocking tokens at the start of the final cycle
+          game_end_blocking_corp = Corporation.new(sym: 'GEB', name: 'game_end_blocking_corp', logo: '18_il/yellow_blocking', tokens: [0])
         end
 
         def setup
@@ -117,6 +118,29 @@ module Engine
             hex_by_id(h).tile.nodes.find { |n| n.offboard? && n.groups.include?('STL') }
           end
         end
+
+        def next_round!
+          @round =
+            case @round
+            when Engine::Round::Stock
+              @operating_rounds = @final_operating_rounds || @phase.operating_rounds
+              reorder_players
+              new_operating_round
+            when Engine::Round::Operating
+              or_round_finished
+              if @round.round_num < @operating_rounds
+                new_operating_round(@round.round_num + 1)
+              else
+                @turn += 1
+                or_set_finished
+                new_stock_round
+              end
+            when init_round.class
+              reorder_players
+              new_stock_round
+            end
+        end
+
 
         def nc
           @nc ||= corporation_by_id('NC')
@@ -338,13 +362,16 @@ module Engine
           #To test: train export happens at the end of an OR, so if that triggers phase 'D', there should be 1 OR played before CR
           @final_operating_rounds = 2
           game_end_check
-          @final_turn -= 1 if @round.stock?
-          @log << "First D train bought/exported, ending game at the end of #{@turn + 1}.#{@final_operating_rounds}"
+          if round.round_num == 2
+             #round.round_num = 3
+          end
+          #@final_turn -= 1 if @round.stock?
+          @log << "First D train bought/exported, game ends at the end of #{@turn - 6}.#{@final_operating_rounds}"
 
           @log << "-- Event: Removing unopened corporations and placing blocking tokens --"
           #remove unopened corporations and decrement cert limit
           remove_unparred_corporations!
-          @log << "-- Certificate limit has been adjusted to #{@cert_limit} --"
+          @log << "-- Certificate limit adjusted to #{@cert_limit} --"
 
           #Pullman Strike
           @log << "-- Event: Pullman Strike --"
@@ -354,7 +381,7 @@ module Engine
         def remove_unparred_corporations!
           @corporations.reject(&:ipoed).reject(&:closed?).each do |corporation|
             place_home_blocking_token(corporation)
-            @log << "Removing #{corporation.name}"
+            @log << "#{corporation.name} removed from the game"
             @corporations.delete(corporation)
             @cert_limit -= 1
           end
@@ -372,7 +399,7 @@ module Engine
           end
 
           cities.each { |city| 
-          @log << "Placing a blocking token on #{hex.name} (#{hex.location_name})"
+          @log << "Blocking token placed on #{hex.name} (#{hex.location_name})"
            city ||= hex.tile.cities[0]
            token = Token.new(game_end_blocking_corp, price: 0, logo: "/logos/18_il/#{corporation.name}_blocking.svg", simple_logo: "/logos/18_il/#{corporation.name}_blocking.svg", type: :blocking)
            city.place_token(game_end_blocking_corp, token, check_tokenable: false) }

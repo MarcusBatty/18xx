@@ -28,14 +28,14 @@ module Engine
               {
                 'count' => 9,
                 'color' => 'yellow',
-                'code' => 'town=revenue:10;path=a:0,b:_0;path=a:2,b:_0;icon=image:18_co/mine',
+                'code' => 'town=revenue:10;path=a:0,b:_0;path=a:2,b:_0;icon=image:18_il/mine',
               },
     
               'G1' => 
               {
                 'count' => 1,
                 'color' => 'yellow',
-                'code' => 'town=revenue:30;path=a:1,b:_0;path=a:2,b:_0;path=a:4,b:_0;path=a:5,b:_0;icon=image:18_co/mine;label=G',
+                'code' => 'town=revenue:30;path=a:1,b:_0;path=a:2,b:_0;path=a:4,b:_0;path=a:5,b:_0;icon=image:18_il/mine;label=G',
               },
               
               'S1' => 
