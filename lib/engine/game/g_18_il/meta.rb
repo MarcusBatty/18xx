@@ -10,6 +10,7 @@ module Engine
 
         DEV_STAGE = :alpha
 
+        GAME_SUBTITLE = 'The Formation of the Illinois Central Railroad'
         GAME_DESIGNER = 'Scott Ninmer'
         GAME_LOCATION = 'Illinois, USA'
         #GAME_RULES_URL = 'https://boardgamegeek.com/filepage/268508/rules-english'

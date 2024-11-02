@@ -49,6 +49,10 @@ module Engine
         CERT_LIMIT = { 2 => 22, 3 => 18, 4 => 15, 5 => 13 }.freeze
         STARTING_CASH = { 2 => 10000, 3 => 480, 4 => 420, 5 => 360 }.freeze
 
+        EVENTS_TEXT = Base::EVENTS_TEXT.merge(
+          'pullman_strike' => ['4+2P is downgraded to 4', '5+1P is downgraded to 5']
+        ).freeze
+
         POOL_SHARE_DROP = :down_share
         BANKRUPTCY_ALLOWED = false
         CERT_LIMIT_INCLUDES_PRIVATES = false
@@ -65,7 +69,7 @@ module Engine
         MUST_BUY_TRAIN = :always
 
         # TODO:  first D only
-        GAME_END_CHECK = { final_phase: :one_more_full_or_set }.freeze
+        GAME_END_CHECK = { final_phase: :full_or }.freeze
         SELL_AFTER = :p_any_operate
         SELL_MOVEMENT = :none
         POOL_SHARE_DROP = :down_share
@@ -99,6 +103,7 @@ module Engine
           blocking_corp.owner = @bank
           blocking_city = @hexes.find { |hex| hex.id == 'C18' }.tile.cities.first
           blocking_corp.tokens.each do |token| blocking_city.exchange_token(token)
+            @blocking_corporation = Corporation.new(sym: 'B', name: 'Blocking', logo: '1828/blocking', tokens: [0])
           end
         end
 
@@ -328,31 +333,57 @@ module Engine
 
         # TODO copied from 17 
         def event_signal_end_game!
-          # If we're in round 1, we have another set of ORs with 2 ORs
-          # If we're in round 2, we have another set of ORs with 2 ORs
-          @final_operating_rounds = @round.round_num == 2 ? 2 : 2
+          # If we're in OR(x).1, play OR(x).2, rules changes, CR(x+1), SR(x+1), OR(x+1).1, OR(x+1).2, end.
+          # If we're in OR(x).2, play OR(x).3, rules changes, CR(x+1), SR(x+1), OR(x+1).1, OR(x+1).2, end.
+          #To test: train export happens at the end of an OR, so if that triggers phase 'D', there should be 1 OR played before CR
+          @final_operating_rounds = 2
           game_end_check
+          @final_turn -= 1 if @round.stock?
           @log << "First D train bought/exported, ending game at the end of #{@turn + 1}.#{@final_operating_rounds}"
 
-          # remove unopened corporations and decrement cert limit
-          cur = @cert_limit
-          self.corporations.each do |cp|
-            if !cp.floated then
+          @log << "-- Event: Removing unopened corporations and placing blocking tokens --"
+          #remove unopened corporations and decrement cert limit
+          remove_unparred_corporations!
+          @log << "-- Certificate limit has been adjusted to #{@cert_limit} --"
 
-              # TODO change later? not sure this is correct
-              close_corporation(cp)
+          #Pullman Strike
+          @log << "-- Event: Pullman Strike --"
+          pullman_strike
+        end
 
-              # TODO place one of its station markers facedown in its home station on the map
+        def remove_unparred_corporations!
+          @corporations.reject(&:ipoed).reject(&:closed?).each do |corporation|
+            place_home_blocking_token(corporation)
+            @log << "Removing #{corporation.name}"
+            @corporations.delete(corporation)
+            @cert_limit -= 1
+          end
+        end
 
-              # decrement cert_limit for each removed corporation
-              @cert_limit = cur - 1
-              @log << "cert limit decremented to #{@cert_limit}"
-              cur = @cert_limit
-            end
+        def place_home_blocking_token(corporation)
+          cities = []
+
+          hex = hex_by_id(corporation.coordinates)
+          if hex.tile.reserved_by?(corporation)
+            cities.concat(hex.tile.cities)
+          else
+            cities << hex.tile.cities.find { |city| city.reserved_by?(corporation) }
+            cities.first.remove_reservation!(corporation)
           end
 
-          # strike
-          pullman_strike
+          cities.each { |city| place_blocking_token(hex, city: city) }
+        end
+       
+        #TODO: replace blocking token icon with one for each closed corp
+        def place_blocking_token(hex, city: nil)
+          @log << "Placing a blocking token on #{hex.name} (#{hex.location_name})"
+          token = Token.new(@blocking_corporation)
+          city ||= hex.tile.cities[0]
+          city.place_token(@blocking_corporation, token, check_tokenable: false)
+        end
+
+        def blocking_token?(token)
+          token&.corporation == @blocking_corporation
         end
 
         def final_operating_rounds
@@ -363,28 +394,25 @@ module Engine
         # side and flip all 4+2P trains over to their 4-train side.
         # TODO:   illegal access of class variables
         def pullman_strike
-          @log << "pullman_strike"
+          downgraded_trains = []
+          owners = Hash.new(0)
           self.corporations.each do |cp|
             cp.trains.each do |train|
               if train.name == '4+2P' then
-                #TODO: replace with '4' and all the fixins
-                @log << "#{train.name} replaced with 4"
+                @log << "#{train.name} train downgraded to a 4-train (#{cp.name})"
                 train.name = '4'
                 train.distance = [{'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
                                   {'nodes' => %w[city offboard], 'pay' => 4, 'visit' => 4 }]
 
               elsif train.name == '5+1P' then
-                #replace with '5'
-                @log << "#{train.name} replaced with 5"
+                @log << "#{train.name} train downgraded to a 5-train (#{cp.name})"
                 train.name = '5'
                 train.distance = [{'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
                                   {'nodes' => %w[city offboard], 'pay' => 5, 'visit' => 5 }]
               end
             end
           end
-        end
-        
-
+        end  
       end
     end
   end
