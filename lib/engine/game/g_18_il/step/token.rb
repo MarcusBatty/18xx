@@ -45,7 +45,7 @@ module Engine
 
             #swaps dummy corp token in STL for tokening corp's token if slot available
              case @game.class::STL_TOKEN_HEXES.include?(hex.id)
-                when city.tokens[0].corporation.name == 'B' then city.tokens[0] = nil 
+                when city.tokens[0].corporation.name == 'GSB' then city.tokens[0] = nil 
                 when @game.phase.name != '2' && city.tokens[1].corporation.name == 'B' then city.tokens[1] = nil
                 when (@game.phase.name != '2' or '3') && city.tokens[2].corporation.name == 'B' then city.tokens[2] = nil
                 when @game.phase.name == 'D' && city.tokens[3].corporation.name == 'B' then city.tokens[3] = nil

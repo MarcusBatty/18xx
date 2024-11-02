@@ -96,15 +96,15 @@ module Engine
           super
           #places blocking tokens (phase colors) in STL
           blocking_logo = ["18_il/yellow_blocking","/logos/18_il/green_blocking.svg","/logos/18_il/brown_blocking.svg","/logos/18_il/gray_blocking.svg"]
-          blocking_corp = Corporation.new(sym: 'B', name: 'blocking', logo: blocking_logo[0], simple_logo: blocking_logo[0], tokens: [0])
-          blocking_corp.tokens << Token.new(blocking_corp, price: 0, logo: blocking_logo[1], simple_logo: blocking_logo[1], type: :blocking)
-          blocking_corp.tokens << Token.new(blocking_corp, price: 0, logo: blocking_logo[2], simple_logo: blocking_logo[2], type: :blocking)
-          blocking_corp.tokens << Token.new(blocking_corp, price: 0, logo: blocking_logo[3], simple_logo: blocking_logo[3], type: :blocking)
-          blocking_corp.owner = @bank
-          blocking_city = @hexes.find { |hex| hex.id == 'C18' }.tile.cities.first
-          blocking_corp.tokens.each do |token| blocking_city.exchange_token(token)
-            @blocking_corporation = Corporation.new(sym: 'B', name: 'Blocking', logo: '1828/blocking', tokens: [0])
+          game_start_blocking_corp = Corporation.new(sym: 'GSB', name: 'blocking', logo: blocking_logo[0], simple_logo: blocking_logo[0], tokens: [0])
+          game_start_blocking_corp.owner = @bank
+          city = @hexes.find { |hex| hex.id == 'C18' }.tile.cities.first
+          blocking_logo.each do |n| 
+           token = Token.new(game_start_blocking_corp, price: 0, logo: "#{n}", simple_logo: "#{n}", type: :blocking) 
+           city.place_token(game_start_blocking_corp, token, check_tokenable: false)          
           end
+
+          game_end_blocking_corp = Corporation.new(sym: 'GEB', name: 'Blocking', logo: '1828/blocking', tokens: [0])
         end
 
         def setup
@@ -122,8 +122,8 @@ module Engine
           @nc ||= corporation_by_id('NC')
         end
         
-        def blocking_corp
-          @blocking_corp ||= corporation_by_id('B')
+        def game_end_blocking_corp
+          game_end_blocking_corp ||= corporation_by_id('GEB')
         end
 
         #allows blue tile lays at any time
@@ -371,19 +371,11 @@ module Engine
             cities.first.remove_reservation!(corporation)
           end
 
-          cities.each { |city| place_blocking_token(hex, city: city) }
-        end
-       
-        #TODO: replace blocking token icon with one for each closed corp
-        def place_blocking_token(hex, city: nil)
+          cities.each { |city| 
           @log << "Placing a blocking token on #{hex.name} (#{hex.location_name})"
-          token = Token.new(@blocking_corporation)
-          city ||= hex.tile.cities[0]
-          city.place_token(@blocking_corporation, token, check_tokenable: false)
-        end
-
-        def blocking_token?(token)
-          token&.corporation == @blocking_corporation
+           city ||= hex.tile.cities[0]
+           token = Token.new(game_end_blocking_corp, price: 0, logo: "/logos/18_il/#{corporation.name}_blocking.svg", simple_logo: "/logos/18_il/#{corporation.name}_blocking.svg", type: :blocking)
+           city.place_token(game_end_blocking_corp, token, check_tokenable: false) }
         end
 
         def final_operating_rounds
