@@ -95,7 +95,7 @@ module Engine
         def setup_preround
           super
           #places blocking tokens (phase colors) in STL
-          blocking_logo = ["18_il/yellow_blocking","/logos/18_il/green_blocking.svg","/logos/18_il/brown_blocking.svg","/logos/18_il/gray_blocking.svg"]
+          blocking_logo = ["/logos/18_il/yellow_blocking.svg","/logos/18_il/green_blocking.svg","/logos/18_il/brown_blocking.svg","/logos/18_il/gray_blocking.svg"]
           game_start_blocking_corp = Corporation.new(sym: 'GSB', name: 'game_start_blocking_corp', logo: blocking_logo[0], simple_logo: blocking_logo[0], tokens: [0])
           game_start_blocking_corp.owner = @bank
           city = @hexes.find { |hex| hex.id == 'C18' }.tile.cities.first
@@ -123,7 +123,7 @@ module Engine
           @round =
             case @round
             when Engine::Round::Stock
-              @operating_rounds = @final_operating_rounds || @phase.operating_rounds
+              @operating_rounds = 2
               reorder_players
               new_operating_round
             when Engine::Round::Operating
@@ -224,6 +224,19 @@ module Engine
             @log << "-- Event: Rogers (1+1) train rusts --"
           else
             depot.export!
+          end
+        end
+
+        def or_set_finished
+          if phase.name == 'D'
+            @log << "-- Event: Removing unopened corporations and placing blocking tokens --"
+            #remove unopened corporations and decrement cert limit
+            remove_unparred_corporations!
+            @log << "-- Certificate limit adjusted to #{@cert_limit} --"
+
+            #Pullman Strike
+            @log << "-- Event: Pullman Strike --"
+            pullman_strike
           end
         end
 
@@ -355,27 +368,12 @@ module Engine
           return ['10-Share'] if corp.type == :ten_share
         end
 
-        # TODO copied from 17 
         def event_signal_end_game!
-          # If we're in OR(x).1, play OR(x).2, rules changes, CR(x+1), SR(x+1), OR(x+1).1, OR(x+1).2, end.
-          # If we're in OR(x).2, play OR(x).3, rules changes, CR(x+1), SR(x+1), OR(x+1).1, OR(x+1).2, end.
-          #To test: train export happens at the end of an OR, so if that triggers phase 'D', there should be 1 OR played before CR
+          # Play one more OR, then Pullman Strike and blocking token events occur, then play one final set (CR, SR, 2 ORs)
           @final_operating_rounds = 2
           game_end_check
-          if round.round_num == 2
-             #round.round_num = 3
-          end
-          #@final_turn -= 1 if @round.stock?
-          @log << "First D train bought/exported, game ends at the end of #{@turn - 6}.#{@final_operating_rounds}"
-
-          @log << "-- Event: Removing unopened corporations and placing blocking tokens --"
-          #remove unopened corporations and decrement cert limit
-          remove_unparred_corporations!
-          @log << "-- Certificate limit adjusted to #{@cert_limit} --"
-
-          #Pullman Strike
-          @log << "-- Event: Pullman Strike --"
-          pullman_strike
+          @operating_rounds = 3 if phase.name == 'D' && round.round_num == 2
+          @log << "First D train bought/exported, game ends at the end of #{@turn + 1}.#{@final_operating_rounds}"
         end
 
         def remove_unparred_corporations!
