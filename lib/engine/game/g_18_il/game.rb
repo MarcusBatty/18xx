@@ -50,7 +50,7 @@ module Engine
         STARTING_CASH = { 2 => 10000, 3 => 480, 4 => 420, 5 => 360 }.freeze
 
         EVENTS_TEXT = Base::EVENTS_TEXT.merge(
-          'pullman_strike' => ['4+2P is downgraded to 4', '5+1P is downgraded to 5']
+          'pullman_strike' => ['Pullman Strike','4+2P is downgraded to 4', '5+1P is downgraded to 5']
         ).freeze
 
         POOL_SHARE_DROP = :down_share
@@ -83,7 +83,7 @@ module Engine
         CLOSED_CORP_RESERVATIONS_REMOVED = false
 
         PORT_HEXES = %w[B1 D23 H1 I2].freeze
-        MINE_HEXES = %w[C2 D9 D13 D17 E6 E14 F5 F13 F21 G22 H11].freeze
+        #MINE_HEXES = %w[C2 D9 D13 D17 E6 E14 F5 F13 F21 G22 H11].freeze
         DETROIT = ['I6'].freeze
         CLASS_A_COMPANIES = %w[].freeze
         CLASS_B_COMPANIES = %w[].freeze
@@ -244,21 +244,22 @@ module Engine
           StockMarket.new(self.class::MARKET, [], zigzag: :flip)
         end
 
-        #adds E/W and N/S bonus, and doubles 3P train revenue
+        #adds E/W and N/S bonus, and doubles P train city revenue
         def revenue_for(route, stops)
           revenue = super
-
-          if three_p_train?(route.train)
-            p_bonus_revenue = revenue
-            revenue += p_bonus_revenue
-          end
-
-          revenue += EW_NS_bonus(stops)[:revenue]
-
-          revenue
+          revenue += ew_ns_bonus(stops)[:revenue] + p_bonus(route, stops)
+          return revenue
         end
 
-        def EW_NS_bonus(stops)
+        def p_bonus(route, stops)
+          return 0 unless route.train.name.include? ("P")
+          cities = stops.select { |s| s.city? }
+          count = route.train.name[-2]
+          bonus = cities.map { |stop| stop.route_revenue(route.phase, route.train) }.max(count.to_i)
+          return bonus.sum
+        end
+
+        def ew_ns_bonus(stops)
             bonus = { revenue: 0 }
 
             east = stops.find { |stop| stop.groups.include?('East') }
@@ -276,7 +277,7 @@ module Engine
               bonus[:description] = 'N/S'
             end
 
-            bonus
+            return bonus
         end
 
         def revenue_str(route)
@@ -300,20 +301,13 @@ module Engine
           return if !stl_hex?(visits.first) && !stl_hex?(visits.last)
           raise GameError, 'Train cannot visit St. Louis without a permit token' unless stl_permit?(current_entity)
         end
-
-        def three_p_train?(train)
-          train.name == '3P'
-        end
-
-        def check_three_p_train(route, visits)     
-          raise GameError, 'Cannot visit red areas' if visits.first.tile.color == :red || visits.last.tile.color == :red if three_p_train?(route.train)
-        end
         
         def check_distance(route, visits)
           #checks STL for permit token
           check_stl(visits)
+
           #disallows 3P trains from running to red areas
-          check_three_p_train(route, visits)
+          raise GameError, 'Cannot visit red areas' if visits.first.tile.color == :red || visits.last.tile.color == :red if route.train.name == '3P'
           return super
         end
 
