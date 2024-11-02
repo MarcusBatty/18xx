@@ -145,6 +145,32 @@ module Engine
                 },
               ],
             },
+            #TODO:  regardless of current city color
+            #TODO:  remove other tile
+            {
+              name: 'Central Illinois Boom',
+              value: 5,
+              revenue: 0,
+              desc: 'In phase D, upgrade Peoria or Springfield using the matching gray tile. It does not have to be connected to a station marker, '\
+              ' does not count as a tile lay, and may be upgraded regardless of the current city color. The unused tile is removed from the game. Once'\
+              ' this ability is used, the private company closes.',
+              sym: 'CIB',
+              abilities: [
+                {
+                  type: 'tile_lay',
+                  #tiles: %w[P4 S4],
+                  tiles: %w[P2 S2],
+                  hexes: %w[E8 E12],
+                  when: 'track',
+                  owner_type: 'corporation',
+                  count: 1,
+                  consume_tile_lay: false,
+                  reachable: false,
+                  closed_when_used_up: true,
+                },
+              ],
+            },
+
             {
               name: 'Chicago-Virden Coal Company',
               value: 5,
