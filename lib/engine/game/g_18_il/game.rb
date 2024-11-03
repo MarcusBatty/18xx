@@ -196,21 +196,39 @@ module Engine
           ])
         end
 
-        def issuable_shares(entity)
+        def mine_company?(company)
+          self.class::MINE_COMPANIES.include?(company.id)
+        end
 
+        def port_company?(company)
+          self.class::PORT_COMPANIES.include?(company.id)
+        end
+
+          #TODO: move 'down' # of spaces equal to # of shares issued
+        def emergency_issuable_bundles(entity)
+          train_price = @depot.min_depot_price
+          return [] if entity.cash >= train_price
+          #convert if needed, then issue shares at half price
+          convert(entity) if entity.type == :two_share
+          convert(entity) if emergency_issuable_shares(entity)[-1].share_price + entity.cash < train_price && entity.type == :five_share
+          eligible, remaining = emergency_issuable_shares(entity).partition { |bundle| bundle.price + entity.cash < train_price }
+          remaining.empty? ? eligible.last(1) : remaining.take(1)
+          #TODO: it works correctly, but when undoing after buying a train, it sends an undefined method 'corporation' error
+        end
+
+        def emergency_issuable_shares(entity)
           return [] unless entity.corporation?
-          return [] unless round.steps.find { |step| step.instance_of?(G18IL::Step::IssueShares) }.active?
 
-          num_shares = entity.total_shares - (entity.num_player_shares + entity.num_market_shares)
-          bundles = bundles_for_corporation(entity, entity)
+          bundles = bundles_for_corporation(entity, entity).select { |bundle| @share_pool.fit_in_bank?(bundle) }
+          bundles.each { |b| b.share_price = entity.share_price.price / 2.0 }
+          return bundles
+        end
 
-          #@log << "#{entity.share_price}"
-          #share_price = stock_market.find_share_price(entity, :left).price
+        def issuable_shares(entity)
+          return [] unless entity.corporation?
+          return [] unless entity.num_ipo_shares
 
-          bundles
-            .each { |bundle| bundle.share_price = entity.share_price.price }
-            .reject { |bundle| bundle.num_shares > 1 }
-            #.reject { |bundle| bundle.num_shares > num_shares }
+          bundles_for_corporation(entity, entity).reject { |bundle| bundle.num_shares > 1 }
         end
 
         def or_round_finished

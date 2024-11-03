@@ -196,7 +196,7 @@ module Engine
 
         MINE_COMPANIES = %w[FWC CIB CVCC].freeze
         PORT_COMPANIES = %w[GTL SMBT].freeze
-        #TODO: DC can be either
+        #TODO: DC can be either, SMBT gets two tokens
       end
     end
   end

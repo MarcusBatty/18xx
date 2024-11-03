@@ -22,6 +22,7 @@ module Engine
             return { share_direction: :right, share_times: 1 } if revenue < price * 2
             return { share_direction: :right, share_times: 2 } if revenue < price * 3
             return { share_direction: :right, share_times: 3 } 
+            #TODO: Overwrite 'up' and 'down' text with 'up diag' and 'down diag'
           end
 
         end
