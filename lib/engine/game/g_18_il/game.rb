@@ -89,7 +89,78 @@ module Engine
         PORT_TILES = %w[SPH POM].freeze
         STL_HEXES = %w[B15 B17 C16 C18].freeze
         STL_TOKEN_HEXES = %w[C18].freeze
+
+        IC_LINE_COUNT = 10
+        IC_LINE_ORIENTATION = {
+          'H7' => [1, 3],
+          'G8' => [4, 0],
+          'G10' => [3, 0],
+          'G12' => [3, 0],
+          'G14' => [1, 3],
+          'F15' => [4, 0],
+          'F17' => [3, 0],
+          'F19' => [1, 3],
+          'E20' => [4, 0],
+          'E22' => [3, 0],
+        }
         
+        def ic_line_hex?(hex)
+          IC_LINE_ORIENTATION[hex.name]
+        end
+
+        #TODO:
+        #IC_LINE_ICON 
+
+        # Check if tile lay action improves a main line hex
+        # If it does return the main line name
+        # If not remove nil
+        # Side effect: Remove the main line icon from the hex if improvement is done
+        def ic_line_improvement(action)
+          #ic_line_icon = action.hex.tile.icons.find {IC_LINE_ICON}
+          #return if !ic_line_icon || !connects_ic_line?(action.hex)
+
+          return if !connects_ic_line?(action.hex)
+          @log << "IC line was #{ic_line_completed?() ? 'completed!' : 'improved'}"
+          #remove_icon(action.hex, [main_line_icon_name])
+
+          # $20 subsidy to corporation
+          @log << "#{action.entity.corporation.name} receives $20 subsidy"
+          action.entity.corporation.cash += 20
+
+          true
+        end
+
+        def connects_ic_line?(hex)
+          @log << "connects_ic_line?"
+          return unless (orientation = IC_LINE_ORIENTATION[hex.name])
+          paths = hex.tile.paths
+          exits = [orientation[0], orientation[1]]
+
+          @log << "orientation  #{orientation}"
+          paths.each do |path| 
+            @log << "path #{path.exits}"
+          end
+  
+          paths.any? { |path| (path.exits & exits).size == 2 } ||
+            (path_to_city(paths, orientation[0]) && path_to_city(paths, orientation[1]))
+        end
+
+        def path_to_city(paths, edge)
+          paths.find { |p| p.exits == [edge] }
+        end
+
+        def ic_line_completed?()
+          @ic_line_built += 1
+          @ic_line_built == IC_LINE_COUNT
+        end
+
+        def remove_icon(hex, icon_names)
+          icon_names.each do |name|
+            icons = hex.tile.icons
+            icons.reject! { |i| name == i.name }
+            hex.tile.icons = icons
+          end
+        end
 
         def setup_preround
           super
@@ -108,6 +179,8 @@ module Engine
         end
 
         def setup
+          @ic_line_built = 0
+
           # Northern Cross starts with the 'Rogers' train
           train = @depot.upcoming[0]
           train.buyable = false

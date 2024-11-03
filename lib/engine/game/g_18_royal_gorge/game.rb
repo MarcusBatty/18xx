@@ -644,7 +644,7 @@ module Engine
             if cost == 40
               { text: '∞' }
             elsif @available_steel[color_sym][column].include?(cost)
-              { image: '/icons/18_royal_gorge/gray_cube.svg' }
+              { image: '/icons/18_royal_gorge/.svg' }
             else
               blank = true
               { text: '' }
