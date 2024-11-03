@@ -131,7 +131,8 @@ module Engine
         end
 
         def connects_ic_line?(hex)
-          @log << "connects_ic_line?"
+          #@log << "connects_ic_line?"
+
           return unless (orientation = IC_LINE_ORIENTATION[hex.name])
           paths = hex.tile.paths
           exits = [orientation[0], orientation[1]]
@@ -140,9 +141,15 @@ module Engine
           paths.each do |path| 
             @log << "path #{path.exits}"
           end
+
+          paths.each do |path|
+            return true if (exits.include? path.exits[0]) || (exits.include? path.exits[1])
+          end
+
+          false
   
-          paths.any? { |path| (path.exits & exits).size == 2 } ||
-            (path_to_city(paths, orientation[0]) && path_to_city(paths, orientation[1]))
+          #paths.any? { |path| (path.exits & exits).size == 2 } ||
+           # (path_to_city(paths, orientation[0]) && path_to_city(paths, orientation[1]))
         end
 
         def path_to_city(paths, edge)
