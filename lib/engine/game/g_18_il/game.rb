@@ -8,11 +8,12 @@ require_relative 'tiles'
 require_relative 'trains'
 require_relative 'market'
 require_relative 'phases'
-require_relative '../base'
-require_relative '../cities_plus_towns_route_distance_str'
-require_relative 'step/buy_tokens'
-require_relative 'step/token'
-require_relative 'step/track'
+# require_relative '../base'
+# require_relative 'step/buy_tokens'
+# require_relative 'step/convert'
+# require_relative 'step/token'
+# require_relative 'step/track'
+# it seems these aren't needed
 
 module Engine
   module Game
@@ -26,7 +27,6 @@ module Engine
         include Trains
         include Market
         include Phases
-        include CitiesPlusTownsRouteDistanceStr
 
         attr_accessor :stl_nodes, :blocking_token
 
@@ -50,7 +50,8 @@ module Engine
         STARTING_CASH = { 2 => 10000, 3 => 480, 4 => 420, 5 => 360 }.freeze
 
         EVENTS_TEXT = Base::EVENTS_TEXT.merge(
-          'pullman_strike' => ['Pullman Strike','4+2P is downgraded to 4', '5+1P is downgraded to 5']
+          'pullman_strike' => ['Pullman Strike','4+2P is downgraded to 4', '5+1P is downgraded to 5'], #TODO: not showing up on info page
+          'signal_end_game' => ['Signal End Game','Game Ends 3 ORs after purchase/export of first D train']
         ).freeze
 
         POOL_SHARE_DROP = :down_share
@@ -67,16 +68,14 @@ module Engine
 
         HOME_TOKEN_TIMING = :float
         MUST_BUY_TRAIN = :always
+        DISCARDED_TRAINS = :remove
 
-        # TODO:  first D only
         GAME_END_CHECK = { final_phase: :one_more_full_or_set }.freeze
         SELL_AFTER = :p_any_operate
         SELL_MOVEMENT = :none
         POOL_SHARE_DROP = :down_share
 
-        # TODO:  depends on share type 2 vs 5 vs 10
         SOLD_OUT_INCREASE = true
-
         MUST_EMERGENCY_ISSUE_BEFORE_EBUY = true
         CLOSED_CORP_TRAINS_REMOVED = false
         CLOSED_CORP_TOKENS_REMOVED = false
@@ -236,7 +235,7 @@ module Engine
 
             #Pullman Strike
             @log << "-- Event: Pullman Strike --"
-            pullman_strike
+            event_pullman_strike!
           end
         end
 
@@ -280,13 +279,21 @@ module Engine
             return bonus
         end
 
-        def revenue_str(route)
-          str = super
+         def revenue_str(route)
+           str = super
+           bonus = ew_ns_bonus(route.stops)[:description]
+           str += " + #{bonus}" if bonus
+           return str
+         end
 
-          bonus = EW_NS_bonus(route.stops)[:description]
-          str += " + #{bonus}" if bonus
-
-          str
+        def route_distance_str(route)
+          mines = route.visited_stops.count(&:town?)
+          ports = route.visited_stops.count { |s| s.groups.include?('port') }
+          others = route_distance(route) - mines - ports
+          str = others.to_s
+          str += "+#{mines}m" if mines.positive? #TODO: && has mine token?
+          str += "+#{ports}p" if ports.positive? #TODO: && has port token?
+          return str
         end
 
         def stl_permit?(entity)
@@ -404,7 +411,7 @@ module Engine
         # Pullman Strike: Flip all 5+1P trains over to their 5-train
         # side and flip all 4+2P trains over to their 4-train side.
         # TODO:   illegal access of class variables
-        def pullman_strike
+        def event_pullman_strike!
           downgraded_trains = []
           owners = Hash.new(0)
           self.corporations.each do |cp|

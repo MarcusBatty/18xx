@@ -35,8 +35,8 @@ module Engine
             name: 'Goodrich Transit Line',
             value: 5,
             revenue: 0,
-            desc: 'Place an available station marker in Chicago (H3) in the indicated station slot- GTL. Place a port marker on the charter.'\
-            ' Once this ability is used, the private company closes. If this company is still open when Chicago is upgraded with a brown tile, it closes immediately.',
+            desc: 'Place an available station marker in Chicago (H3) in the indicated GTL station slot. A port marker is placed on the charter. '\
+            'Once this ability is used, the private company closes. If this company is still open when Chicago is upgraded with a brown tile, it closes immediately.',
             sym: 'GTL',
             abilities: [
               {
@@ -52,9 +52,7 @@ module Engine
                 extra_action: true,
                 closed_when_used_up: true,
               },
-              { type: 'reservation', remove: 'sold', hex: 'H3', city: 1},
-              #fix
-              { type: 'close', on_phase: '4' },
+              { type: 'reservation', remove: 'sold', hex: 'H3', city: 1}
             ],
           },
           #TODO:  place port marker
@@ -101,7 +99,7 @@ module Engine
               desc: 'During the tile-laying step of the corporation operating turn, place the G tile in Galena for free, ignoring terrain costs. It '\
               'does not have to be connected to a station marker and does not count as a tile lay. Place a mine marker on the corporation charter. Once'\
               ' this ability is used, the private company closes.',
-              sym: 'FW&C',
+              sym: 'FWC',
               abilities: [
                 {
                 type: 'tile_lay',
@@ -147,6 +145,7 @@ module Engine
             },
             #TODO:  regardless of current city color
             #TODO:  remove other tile
+            #"special: true" tag may be needed
             {
               name: 'Central Illinois Boom',
               value: 5,
@@ -178,7 +177,7 @@ module Engine
               desc: 'During the tile-laying step of the corporation’s operating turn, place a mine tile in a mine hex, paying any terrain costs. '\
               'It must be connected to one of the corporation’s existing station markers but does not count as a tile lay. Place a mine marker '\
               'on the corporation’s charter. Once this ability is used, the private company closes.',
-              sym: 'CV',
+              sym: 'CVCC',
               abilities: [
               {
                   type: 'tile_lay',
@@ -194,6 +193,10 @@ module Engine
               ],
               }
         ].freeze
+
+        MINE_COMPANIES = %w[FWC CIB CVCC].freeze
+        PORT_COMPANIES = %w[GTL SMBT].freeze
+        #TODO: DC can be either
       end
     end
   end
@@ -244,8 +247,8 @@ end
                 value: 5
                 revenue: 0,
                 desc: 'After the “Run Trains” step of the corporation’s operating turn, receive $5 from the bank to the corporation’s treasury per stop that each train visited. '\
-                'Multiple trains visiting the same stop grant $5 per visit. The corporation may choose to receive a mine marker at any time.  When it does, the pri-vate company closes.',
-                sym: 'SS',
+                'Multiple trains visiting the same stop grant $5 per visit. The corporation may choose to receive a mine marker at any time.  When it does, the private company closes.',
+                sym: 'USML',
                 abilities: [
                   {
 
@@ -256,22 +259,9 @@ end
                 name: 'Advanced Track',
                 value: 5,
                 revenue: 0,
-                desc: 'This company starts with two subsidy cubes on it. At any time during the tile-laying step of the corporation's operat-ing turn, discard one cube to lay or upgrade one additional tile for free,'\
+                desc: 'This company starts with two subsidy cubes on it. At any time during the tile-laying step of the corporation's operating turn, discard one cube to lay or upgrade one additional tile for free,'\
                 'except for any terrain costs. Only one cube may be used per turn. Once the second cube has been used, the private company closes.',
-                sym: 'SP',
-                abilities: [
-                  {
-
-                  },            
-                ],
-              },
-              {
-                name: 'Central Illinois Boom',
-                value: 5,
-                revenue: 0,
-                desc: 'In phase D, upgrade Peoria or Springfield using the match-ing gray tile.  It does not have to be connected to a station marker, does not count as a tile lay, and may be upgraded regardless of the current city color. '\
-                'The unused tile is re-moved from the game. Once this ability is used, the private company closes.',
-                sym: 'SP',
+                sym: 'AT',
                 abilities: [
                   {
 
@@ -282,8 +272,8 @@ end
                 name: 'Diverse Cargo',
                 value: 5,
                 revenue: 0,
-                desc: 'Place either a mine or port marker on the corporation’s charter. Once this ability is used, the private company clos-es.',
-                sym: 'SP',
+                desc: 'Place either a mine or port marker on the corporation’s charter. Once this ability is used, the private company closes.',
+                sym: 'DC',
                 abilities: [
                   {
 
@@ -295,7 +285,7 @@ end
                 value: 5,
                 revenue: 0,
                 desc: 'During the tile-laying step of the corporation's operating turn, upgrade two tiles from yellow to green (instead of two lays or one lay and one upgrade), paying the normal $20 fee and any terrain costs.',
-                sym: 'SP',
+                sym: 'EM',
                 abilities: [
                   {
 
@@ -308,7 +298,7 @@ end
                 revenue: 0,
                 desc: 'During the “Run Trains” step of the corporation’s operating turn, one of the corporation’s trains earns an additional $20/$30/$40 for each of the following cities in its route dur-ing a yellow/green/brown phase, '\
                 'respectively: Chicago (H3), Joliet (G6), Bloomington (F9), and Springfield (E12). Once this ability is used, the private company closes.',
-                sym: 'SP',
+                sym: 'LFC',
                 abilities: [
                   {
 

@@ -53,7 +53,7 @@ module Engine
           blue: {
               ['B1'] => 'town=revenue:0;icon=image:port,blocks_lay:1;path=a:5,b:_0',
               ['D23'] => 'town=revenue:0;icon=image:port,blocks_lay:1;path=a:3,b:_0;path=a:5,b:_0',
-              ['H1'] => 'town=revenue:20;path=a:1,b:_0;path=a:5,b:_0;border=edge:5;icon=image:port',
+              ['H1'] => 'town=revenue:20,groups:port;path=a:1,b:_0;path=a:5,b:_0;border=edge:5;icon=image:port',
               ['I2'] => 'offboard=revenue:0;path=a:1,b:2;border=edge:0;border=edge:2',
               ['I4'] => 'offboard=revenue:0;border=edge:3',
           },
@@ -71,7 +71,7 @@ module Engine
               ['C14'] => 'border=edge:1,type:water,cost:20;border=edge:0,type:water,cost:20',
               ['D3'] => 'border=edge:1,type:water',
               ['D5'] => 'border=edge:2,type:water',
-              ['D13'] => 'town=revenue:10;path=a:4,b:_0;icon=image:18_il/mine',
+              ['D13'] => 'town=revenue:10,groups:mine;path=a:4,b:_0;icon=image:18_il/mine',
               ['D15'] => 'city=revenue:0;border=edge:1,type:water,cost:20',
               ['D17'] => 'town=revenue:0;border=edge:1,type:water;border=edge:2,type:water,cost:20;icon=image:18_il/mine',
               ['D19'] => 'border=edge:1,type:water;border=edge:2,type:water;border=edge:0,type:water,cost:20', 

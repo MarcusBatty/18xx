@@ -65,7 +65,7 @@ module Engine
                   on: 'D',
                   train_limit: 2,
                   tiles: %i[yellow green brown gray],
-                  status: ['can_buy_companies','pullman_strike'],
+                  status: ['can_buy_companies'],
                   operating_rounds: 2
                 }
               ].freeze
