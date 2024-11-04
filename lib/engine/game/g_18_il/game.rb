@@ -28,7 +28,7 @@ module Engine
         include Market
         include Phases
 
-        attr_accessor :stl_nodes, :blocking_token, :ic_lines_built
+        attr_accessor :stl_nodes, :blocking_token, :ic_lines_built, :ic_lines_progress
 
         register_colors(red: '#d1232a',
                         orange: '#f58121',
@@ -103,21 +103,16 @@ module Engine
           'E20' => [4, 0],
           'E22' => [3, 0],
         }.freeze
-        
+
         def ic_line_hex?(hex)
           IC_LINE_ORIENTATION[hex.name]
         end
 
-        #TODO:
-        #IC_LINE_ICON 
-
-        # Check if tile lay action improves a main line hex
-        # If it does return the main line name
-        # If not remove nil
-        # Side effect: Remove the main line icon from the hex if improvement is done
         def ic_line_improvement(action)
           #ic_line_icon = action.hex.tile.icons.find {IC_LINE_ICON}
           #return if !ic_line_icon || !connects_ic_line?(action.hex)
+
+          return false if (@ic_line_progress[action.hex] == 1)
 
           result = ic_line_connections(action.hex)
           if (result > 0) then
@@ -127,6 +122,8 @@ module Engine
             action.entity.corporation.cash += 20
             lines = @ic_lines_built
             if (result == 2) then
+
+              @ic_line_progress[action.hex] = 1
 
               #TODO: remove cube and place on charter
               #action.hex.icon = []
@@ -199,6 +196,18 @@ module Engine
 
         def setup
           @ic_lines_built = 0
+          @ic_line_progress = {
+            'H7' => 0,
+            'G8' => 0,
+            'G10' => 0,
+            'G12' => 0,
+            'G14' => 0,
+            'F15' => 0,
+            'F17' => 0,
+            'F19' => 0,
+            'E20' => 0,
+            'E22' => 0,
+          }
 
           # Northern Cross starts with the 'Rogers' train
           train = @depot.upcoming[0]
