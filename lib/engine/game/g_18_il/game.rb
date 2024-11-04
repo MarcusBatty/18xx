@@ -28,7 +28,7 @@ module Engine
         include Market
         include Phases
 
-        attr_accessor :stl_nodes, :blocking_token
+        attr_accessor :stl_nodes, :blocking_token, :ic_lines_built
 
         register_colors(red: '#d1232a',
                         orange: '#f58121',
@@ -102,7 +102,7 @@ module Engine
           'F19' => [1, 3],
           'E20' => [4, 0],
           'E22' => [3, 0],
-        }
+        }.freeze
         
         def ic_line_hex?(hex)
           IC_LINE_ORIENTATION[hex.name]
@@ -119,36 +119,47 @@ module Engine
           #ic_line_icon = action.hex.tile.icons.find {IC_LINE_ICON}
           #return if !ic_line_icon || !connects_ic_line?(action.hex)
 
-          return if !connects_ic_line?(action.hex)
-          @log << "IC line was #{ic_line_completed?() ? 'completed!' : 'improved'}"
-          #remove_icon(action.hex, [main_line_icon_name])
+          result = ic_line_connections(action.hex)
+          if (result > 0) then
+            #@log << "IC line was #{ic_line_completed?() ? 'completed!' : 'improved'}"
+            #remove_icon(action.hex, [main_line_icon_name])
+            @log << "#{action.entity.corporation.name} receives $20 subsidy for IC Line improvement."
+            action.entity.corporation.cash += 20
+            lines = @ic_lines_built
+            if (result == 2) then
 
-          # $20 subsidy to corporation
-          @log << "#{action.entity.corporation.name} receives $20 subsidy"
-          action.entity.corporation.cash += 20
-
-          true
+              #TODO: remove cube and place on charter
+              #action.hex.icon = []
+              @ic_lines_built = lines + 1
+              @log << "IC Line hexes built: #{ic_lines_built} of 10."
+              if (@ic_lines_built == 10) then
+                @log << "IC Line is complete!"
+              end
+            end
+          end
+          result
         end
 
-        def connects_ic_line?(hex)
+        def ic_line_connections(hex)
           #@log << "connects_ic_line?"
 
-          return unless (orientation = IC_LINE_ORIENTATION[hex.name])
+          return 0 unless (orientation = IC_LINE_ORIENTATION[hex.name])
           paths = hex.tile.paths
           exits = [orientation[0], orientation[1]]
 
-          @log << "orientation  #{orientation}"
-          paths.each do |path| 
-            @log << "path #{path.exits}"
-          end
+          #@log << "orientation  #{orientation}"
+          #paths.each do |path| 
+          #  @log << "path #{path.exits}"
+          #end
 
+          count = 0
           paths.each do |path|
             path.exits.each do |exit|
-              return true if exits.include? exit
+              (count += 1) if exits.include? exit
             end
           end
-
-          false
+          #@log << "count #{count}"
+          return count
   
           #paths.any? { |path| (path.exits & exits).size == 2 } ||
            # (path_to_city(paths, orientation[0]) && path_to_city(paths, orientation[1]))
@@ -159,8 +170,7 @@ module Engine
         end
 
         def ic_line_completed?()
-          @ic_line_built += 1
-          @ic_line_built == IC_LINE_COUNT
+          @ic_lines_built == IC_LINE_COUNT
         end
 
         def remove_icon(hex, icon_names)
@@ -188,7 +198,7 @@ module Engine
         end
 
         def setup
-          @ic_line_built = 0
+          @ic_lines_built = 0
 
           # Northern Cross starts with the 'Rogers' train
           train = @depot.upcoming[0]
