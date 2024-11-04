@@ -116,7 +116,7 @@ module Engine
 
           result = ic_line_connections(action.hex)
           if (result > 0) then
-            
+
             if action.hex.tile.color == 'yellow'
               @log << "#{action.entity.corporation.name} receives $20 subsidy for IC Line improvement"
               action.entity.corporation.cash += 20
@@ -128,7 +128,15 @@ module Engine
               @ic_line_progress[action.hex] = 1
 
               #TODO: remove cube and place on charter
-              #action.hex.icon = []
+              action.hex.tile.icons.each do |icon|
+                #@log << "#{icon.sticky}"
+                if (icon.sticky) then 
+                  #@log << "found sticky"
+                  action.hex.tile.icons.delete(icon)
+                  @log << "#{action.entity.corporation.name} receives the option cube from the upgraded tile."
+                end
+              end
+
               @ic_lines_built = lines + 1
               @log << "IC Line hexes built: #{ic_lines_built} of 10."
               if (@ic_lines_built == 10) then
@@ -138,6 +146,18 @@ module Engine
           end
           result
         end
+
+=begin
+        def self.remove_sticky_icon
+          print "remove_sticky_icon"
+          @icons.each do |icon| 
+            if (icon.sticky == 1) then 
+              icons.reject(icon)
+            end
+          end
+        end
+=end
+
 
         def ic_line_connections(hex)
           #@log << "connects_ic_line?"

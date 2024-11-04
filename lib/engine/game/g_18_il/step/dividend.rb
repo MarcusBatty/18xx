@@ -13,9 +13,9 @@ module Engine
           DIVIDEND_TYPES = %i[payout half withhold].freeze
 
           def share_price_change(entity, revenue = 0)
-            print "Dividends"
+            #print "Dividends"
             price = entity.share_price.price
-            print revenue, price
+            #print revenue, price
             return { share_direction: :left, share_times: 1 } if revenue == 0
             return { share_direction: :down, share_times: 1 } if revenue < price / 2
             return { share_direction: :up, share_times: 1 } if revenue < price
