@@ -116,10 +116,12 @@ module Engine
 
           result = ic_line_connections(action.hex)
           if (result > 0) then
-            #@log << "IC line was #{ic_line_completed?() ? 'completed!' : 'improved'}"
-            #remove_icon(action.hex, [main_line_icon_name])
-            @log << "#{action.entity.corporation.name} receives $20 subsidy for IC Line improvement."
-            action.entity.corporation.cash += 20
+            
+            if action.hex.tile.color == 'yellow'
+              @log << "#{action.entity.corporation.name} receives $20 subsidy for IC Line improvement"
+              action.entity.corporation.cash += 20
+            end
+
             lines = @ic_lines_built
             if (result == 2) then
 
