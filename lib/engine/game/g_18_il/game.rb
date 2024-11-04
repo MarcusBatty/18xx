@@ -143,7 +143,9 @@ module Engine
           end
 
           paths.each do |path|
-            return true if (exits.include? path.exits[0]) || (exits.include? path.exits[1])
+            path.exits.each do |exit|
+              return true if exits.include? exit
+            end
           end
 
           false
