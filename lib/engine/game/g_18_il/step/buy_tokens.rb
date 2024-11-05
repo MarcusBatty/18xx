@@ -10,6 +10,7 @@ module Engine
           TOKEN_COST = 40
 
           def actions(entity)
+            return []#TODO: remove
             return [] unless @game.acting_for_entity(@round.buy_tokens) == entity
 
             %w[choose]

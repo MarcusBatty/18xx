@@ -9,26 +9,26 @@ module Engine
         MINE_HEXES = %w[C2 D9 D13 D17 E6 E14 F5 F13 F21 G22 H11].freeze
 
         COMPANIES = [
-          #TODO:  fix
-          {
-            name: 'Extra Station',
-            sym: 'ES',
-            value: 5,
-            revenue: 0,
-            desc: 'Place an additional station marker on the charter for free. Once this ability is used, the private company closes. ',
-            color: nil,
+          # #TODO:  fix
+          # {
+          #   name: 'Extra Station',
+          #   sym: 'ES',
+          #   value: 5,
+          #   revenue: 0,
+          #   desc: 'Place an additional station marker on the charter for free. Once this ability is used, the private company closes. ',
+          #   color: nil,
 
-            abilities: [
-              {
-                type: 'additional_token',
-                count: 1,
-                owner_type: 'corporation',
-                when: 'owning_corp_track',
-                closed_when_used_up: true,
-                extra_slot: true,
-              },
-            ],
-          },
+          #   abilities: [
+          #     {
+          #       type: 'additional_token',
+          #       count: 1,
+          #       owner_type: 'corporation',
+          #       when: 'owning_corp_track',
+          #       closed_when_used_up: true,
+          #       extra_slot: true,
+          #     },
+          #   ],
+          # },
           {
             #TODO:  add port marker to charter
             #TODO:  closes on brown CHI tile

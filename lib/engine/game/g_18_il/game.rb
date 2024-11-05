@@ -8,12 +8,6 @@ require_relative 'tiles'
 require_relative 'trains'
 require_relative 'market'
 require_relative 'phases'
-# require_relative '../base'
-# require_relative 'step/buy_tokens'
-# require_relative 'step/convert'
-# require_relative 'step/token'
-# require_relative 'step/track'
-# it seems these aren't needed
 
 module Engine
   module Game
@@ -73,7 +67,6 @@ module Engine
         GAME_END_CHECK = { final_phase: :one_more_full_or_set }.freeze
         SELL_AFTER = :p_any_operate
         SELL_MOVEMENT = :none
-        POOL_SHARE_DROP = :down_share
 
         SOLD_OUT_INCREASE = true
         MUST_EMERGENCY_ISSUE_BEFORE_EBUY = true
@@ -89,6 +82,12 @@ module Engine
         PORT_TILES = %w[SPH POM].freeze
         STL_HEXES = %w[B15 B17 C16 C18].freeze
         STL_TOKEN_HEXES = %w[C18].freeze
+        EXTRA_STATION_PRIVATE_NAME = 'ES'
+
+        ASSIGNMENT_TOKENS = {
+          'port' => '/icons/18_il/port.svg',
+          'mine' => '/icons/18_il/mine.svg',
+        }.freeze
 
         IC_LINE_COUNT = 10
         IC_LINE_ORIENTATION = {
@@ -103,6 +102,11 @@ module Engine
           'E20' => [4, 0],
           'E22' => [3, 0],
         }.freeze
+
+        
+        def nc
+          @nc ||= corporation_by_id('NC')
+        end
 
         def ic_line_hex?(hex)
           IC_LINE_ORIENTATION[hex.name]
@@ -121,7 +125,6 @@ module Engine
               @log << "#{action.entity.corporation.name} receives $20 subsidy for IC Line improvement"
               action.entity.corporation.cash += 20
             end
-
             lines = @ic_lines_built
             if (result == 2) then
 
@@ -133,14 +136,14 @@ module Engine
                 if (icon.sticky) then 
                   #@log << "found sticky"
                   action.hex.tile.icons.delete(icon)
-                  @log << "#{action.entity.corporation.name} receives the option cube from the upgraded tile."
+                  @log << "#{action.entity.corporation.name} receives the option cube from the upgraded tile"
                 end
               end
 
               @ic_lines_built = lines + 1
-              @log << "IC Line hexes built: #{ic_lines_built} of 10."
+              @log << "IC Line hexes built: #{ic_lines_built} of 10"
               if (@ic_lines_built == 10) then
-                @log << "IC Line is complete!"
+                @log << "IC Line is complete"
               end
             end
           end
@@ -200,9 +203,12 @@ module Engine
           end
         end
 
+
+
         def setup_preround
           super
-          #places blocking tokens (phase colors) in STL
+
+          #creates corp that places blocking tokens (phase colors) in STL
           blocking_logo = ["/logos/18_il/yellow_blocking.svg","/logos/18_il/green_blocking.svg","/logos/18_il/brown_blocking.svg","/logos/18_il/gray_blocking.svg"]
           game_start_blocking_corp = Corporation.new(sym: 'GSB', name: 'game_start_blocking_corp', logo: blocking_logo[0], simple_logo: blocking_logo[0], tokens: [0])
           game_start_blocking_corp.owner = @bank
@@ -241,6 +247,10 @@ module Engine
           end
         end
 
+        def ipo_name(_entity = nil)
+          'Treasury'
+        end
+
         def next_round!
           @round =
             case @round
@@ -263,24 +273,19 @@ module Engine
             end
         end
 
-
-        def nc
-          @nc ||= corporation_by_id('NC')
-        end
-        
         def game_end_blocking_corp
           game_end_blocking_corp ||= corporation_by_id('GEB')
         end
 
         #allows blue tile lays at any time
         def tile_valid_for_phase?(tile, hex: nil, phase_color_cache: nil)
-          return true if tile.name == 'SPH' or 'POM'
+          return true if tile.name == 'SPH' || tile.name == 'POM'
           super
         end
 
         #allows blue-on-blue tile lays
         def upgrades_to?(from, to, special = false, selected_company: nil)
-         if from.hex.name == 'B1' or 'D23'
+         if from.hex.name == 'B1' || from.hex.name =='D23'
           return true if from.color == :blue && to.color == :blue
          end
           super
@@ -295,19 +300,21 @@ module Engine
             Engine::Step::BuyCompany,
             Engine::Step::HomeToken,
             G18IL::Step::Convert,
+          #  G18IL::Step::PostConversion,
             G18IL::Step::IssueShares,
             G18IL::Step::Track,
             G18IL::Step::Token,
+           # Engine::Step::DiscardTrain,
             Engine::Step::Route,
             G18IL::Step::Dividend,
-            Engine::Step::DiscardTrain,
+           # G18IL::Step::EmergencyMoneyRaising,
             Engine::Step::BuyTrain,
             [Engine::Step::BuyCompany, { blocks: true }],
           ], round_num: round_num)
         end
 
         def trade_assets
-         #@log << "#{current_entity.name} skips Trade Assets."
+         #@log << "#{current_entity.name} skips Trade Assets"
         end
 
         def stock_round
@@ -319,6 +326,12 @@ module Engine
           ])
         end
 
+        def tokens_needed(corporation)
+          tokens_needed = { 2 => 1, 5 => 2, 10 => 4 }[corporation.total_shares] - corporation.tokens.size
+         # tokens_needed += 1 if corporation.companies.any? { |c| c.id == EXTRA_STATION_PRIVATE_NAME } #will need adjusted based on when private ability is used
+          tokens_needed
+        end
+
         def mine_company?(company)
           self.class::MINE_COMPANIES.include?(company.id)
         end
@@ -327,31 +340,34 @@ module Engine
           self.class::PORT_COMPANIES.include?(company.id)
         end
 
-          #TODO: move 'down' # of spaces equal to # of shares issued
-        def emergency_issuable_bundles(entity)
-          train_price = @depot.min_depot_price
-          return [] if entity.cash >= train_price
-          #convert if needed, then issue shares at half price
-          convert(entity) if entity.type == :two_share
-          convert(entity) if emergency_issuable_shares(entity)[-1].share_price + entity.cash < train_price && entity.type == :five_share
-          eligible, remaining = emergency_issuable_shares(entity).partition { |bundle| bundle.price + entity.cash < train_price }
-          remaining.empty? ? eligible.last(1) : remaining.take(1)
-          #TODO: it works correctly, but when undoing after buying a train, it sends an undefined method 'corporation' error
-        end
-
         def emergency_issuable_shares(entity)
-          return [] unless entity.corporation?
-
           bundles = bundles_for_corporation(entity, entity).select { |bundle| @share_pool.fit_in_bank?(bundle) }
           bundles.each { |b| b.share_price = entity.share_price.price / 2.0 }
           return bundles
         end
 
+        def emergency_issuable_bundles(entity)
+          return [] unless entity.corporation?
+          return [] if entity.num_ipo_shares.zero? && entity.total_shares == 10
+          if entity.total_shares == 2
+            convert(entity)
+            @converted = true
+          end
+
+          if emergency_issuable_shares(entity)[-1].share_price + entity.cash < @depot.min_depot_price && entity.total_shares == 5
+             convert(entity) 
+             @log << "#{entity.name} is forced to convert from a #{@converted ? "2-share to a 10-share" : "5-share to a 10-share"} corporation"
+          end
+          return [] unless entity.cash < @depot.min_depot_price
+          eligible, remaining = emergency_issuable_shares(entity).partition { |bundle| bundle.price + entity.cash < @depot.min_depot_price }
+          eligible_shares = eligible.each { |n| n.price }
+          return remaining.empty? ? eligible.last(1) : remaining.take(1)
+        end
+
         def issuable_shares(entity)
           return [] unless entity.corporation?
-          return [] unless entity.num_ipo_shares
-
-          bundles_for_corporation(entity, entity).reject { |bundle| bundle.num_shares > 1 }
+          return [] if entity.num_ipo_shares.zero?
+          return bundles_for_corporation(entity, entity).take(1)
         end
 
         def or_round_finished
@@ -460,54 +476,31 @@ module Engine
         end
 
         def convert(corporation)
-          #@log << "convert in game.rb"
-          before = corporation.total_shares
           shares = @_shares.values.select { |share| share.corporation == corporation }
-
           corporation.share_holders.clear
-
-          case corporation.type
-          when :five_share
+          case corporation.total_shares
+          when 2
+            shares[0].percent = 40
+            new_shares = Array.new(3) { |i| Share.new(corporation, percent: 20, index: i + 1) }
+          when 5
             shares.each { |share| share.percent = 10 }
             shares[0].percent = 20
             new_shares = Array.new(5) { |i| Share.new(corporation, percent: 10, index: i + 4) }
-            corporation.type = :ten_share
-            corporation.float_percent = 20
-            2.times { corporation.tokens << Engine::Token.new(corporation, price: 0) }
-          when :two_share
-            shares.each { |share| share.percent = 20 }
-            shares[0].percent = 40
-            new_shares = Array.new(3) { |i| Share.new(corporation, percent: 20, index: i + 1) }
-            corporation.type = :five_share
-            corporation.float_percent = 20
-            1.times { corporation.tokens << Engine::Token.new(corporation, price: 0) }
           else
-            raise GameError, 'Cannot convert 10 share corporation'
+            raise GameError, 'Cannot convert 10-share corporation'
           end
-
+          corporation.max_ownership_percent = 60
           shares.each { |share| corporation.share_holders[share.owner] += share.percent }
-
-          new_shares.each do |share|
-            add_new_share(share)
-          end
-
-          after = corporation.total_shares
-          @log << "#{corporation.name} converts from #{before} to #{after} shares"
-
+          new_shares.each do |share| add_new_share(share) end
           new_shares
         end
-
+        
         def add_new_share(share)
           owner = share.owner
           corporation = share.corporation
           corporation.share_holders[owner] += share.percent if owner
           owner.shares_by_corporation[corporation] << share
           @_shares[share.id] = share
-        end
-
-        def status_array(corp)
-          return ['5-Share'] if corp.type == :five_share
-          return ['10-Share'] if corp.type == :ten_share
         end
 
         def event_signal_end_game!

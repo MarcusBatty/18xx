@@ -45,7 +45,6 @@ module Engine
           def process_lay_tile(action)
             super
             return if action.entity.company?
-
             improvement = @game.ic_line_improvement(action)
             #@log << "#{improvement}"
             @ic_line_improvement = improvement if improvement
@@ -61,6 +60,7 @@ module Engine
 
           def available_hex(entity, hex, normal: false)
             return nil if @game.class::STL_HEXES.include?(hex.id) && !@game.stl_permit?(current_entity) # highlight the STL hexes only when corp has permit token
+            return nil if hex.id != 'E12' && @game.hex_by_id(entity.coordinates).tile.color == :white && entity == @game.nc #forces NC to lay in its home hex first if it's not yellow
             super
           end
           

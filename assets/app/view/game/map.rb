@@ -66,9 +66,6 @@ module View
         routes = @historical_routes if routes.none?
 
         @hexes.map! do |hex|
-          #print "map loop"
-          #print hex.x
-          #print hex.y
           clickable = @show_starting_map ? false : step&.available_hex(entity_or_entities, hex)
           opacity = clickable ? 1.0 : 0.5
           h(
