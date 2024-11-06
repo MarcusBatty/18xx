@@ -15,6 +15,7 @@ module Engine
               '14' => 6,
               '15' => 6,
               '57' => 4,
+              '58' => 9,
               '80' => 5,
               '81' => 5,
               '82' => 8,
@@ -24,18 +25,11 @@ module Engine
               '546' => 4,
               '611' => 6,
               '619' => 6,
-              'M1' => 
-              {
-                'count' => 9,
-                'color' => 'yellow',
-                'code' => 'town=revenue:10;path=a:0,b:_0;path=a:2,b:_0;icon=image:18_il/mine',
-              },
-    
               'G1' => 
               {
                 'count' => 1,
                 'color' => 'yellow',
-                'code' => 'town=revenue:30,groups:mine;path=a:1,b:_0;path=a:2,b:_0;path=a:4,b:_0;path=a:5,b:_0;icon=image:18_il/mine;label=G',
+                'code' => 'town=revenue:30;path=a:1,b:_0;path=a:2,b:_0;path=a:4,b:_0;path=a:5,b:_0;label=G',
               },
               
               'S1' => 

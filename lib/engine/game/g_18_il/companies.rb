@@ -6,7 +6,7 @@ module Engine
       module Companies
 
         #TODO: reference game.rb's version instead of having redundancy (dunno how...)
-        MINE_HEXES = %w[C2 D9 D13 D17 E6 E14 F5 F13 F21 G22 H11].freeze
+        MINE_HEXES = %w[D9 D13 D17 E6 E14 F5 F13 F21 G22 H11].freeze
 
         COMPANIES = [
           # #TODO:  fix
@@ -174,7 +174,7 @@ module Engine
               name: 'Chicago-Virden Coal Company',
               value: 5,
               revenue: 0,
-              desc: 'During the tile-laying step of the corporation’s operating turn, place a mine tile in a mine hex, paying any terrain costs. '\
+              desc: 'During the tile-laying step of the corporation’s operating turn, place a mine tile in a mine hex (except Galena), paying any terrain costs. '\
               'It must be connected to one of the corporation’s existing station markers but does not count as a tile lay. Place a mine marker '\
               'on the corporation’s charter. Once this ability is used, the private company closes.',
               sym: 'CVCC',

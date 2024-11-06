@@ -75,8 +75,12 @@ module Engine
         CLOSED_CORP_RESERVATIONS_REMOVED = false
 
         PORT_HEXES = %w[B1 D23 H1 I2].freeze
-        MINE_HEXES = %w[C2 D9 D13 D17 E6 E14 F5 F13 F21 G22 H11].freeze
+        MINE_HEXES = %w[D9 D13 D17 E6 E14 F5 F13 F21 G22 H11].freeze
+        GALENA = ['C2'].freeze
         DETROIT = ['I6'].freeze
+        ST_PAUL = ['B1'].freeze
+        PORT_OF_MEMPHIS = ['D23'].freeze
+        LAKE_MICHIGAN = ['H1'].freeze
         CLASS_A_COMPANIES = %w[].freeze
         CLASS_B_COMPANIES = %w[].freeze
         PORT_TILES = %w[SPH POM].freeze
@@ -207,13 +211,7 @@ module Engine
           end
         end
 
-        def port_corporations
-          @port_corporations.each { |c| corporation_by_id(c) }
-        end
 
-        def mine_corporations
-          @mine_corporations.each { |c| corporation_by_id(c) }
-        end
 
         def setup_preround
           super
@@ -241,7 +239,8 @@ module Engine
           @option_cube_ability =
           Engine::Ability::Description.new(type: 'description', description: 'Option cube', desc_detail: 'When IC forms, the corporation may trade this cube for a share of IC')
 
-          @port_marker_count = 4
+          @port_corporations ||= @corporations.shuffle.take(4)
+          @mine_corporations ||= @corporations - @port_corporations
 
         end
 
@@ -265,16 +264,13 @@ module Engine
           train.buyable = false
           buy_train(nc, train, :free)
           
-           #assigns port markers to corporations
-          @port_corporations = @corporations.shuffle.take(4)
-          port_corporations.each { |c| assign_port_marker(c) }
-          @mine_corporations = @corporations - @port_corporations
-          mine_corporations.each { |c| assign_mine_marker(c) }
-          #assign_port_marker(nc)
-
           @stl_nodes = STL_HEXES.map do |h| 
             hex_by_id(h).tile.nodes.find { |n| n.offboard? && n.groups.include?('STL') }
           end
+
+          #assigns port and mine markers to corporations
+          port_corporations.each { |c| assign_port_marker(c) }
+          mine_corporations.each { |c| assign_mine_marker(c) }
 
         end
 
@@ -302,6 +298,14 @@ module Engine
               reorder_players
               new_stock_round
             end
+        end
+
+        def port_corporations
+          @port_corporations.each { |c| corporation_by_id(c) }
+        end
+
+        def mine_corporations
+          @mine_corporations.each { |c| corporation_by_id(c) }
         end
 
         def game_end_blocking_corp
@@ -431,11 +435,28 @@ module Engine
           StockMarket.new(self.class::MARKET, [], zigzag: :flip)
         end
 
-        #adds E/W and N/S bonus, and doubles P train city revenue
         def revenue_for(route, stops)
           revenue = super
           revenue += ew_ns_bonus(stops)[:revenue] + p_bonus(route, stops)
+          revenue = revenue - mine_revenue_removal(route, stops) - port_revenue_removal(route, stops)
           return revenue
+        end
+
+        def mine_revenue_removal(route, stops)
+          return 0 if @mine_corporations.include?(route.train.owner)
+          stop_hexes = stops.map(&:hex).map { |hex| hex.name}
+          mines = stop_hexes & MINE_HEXES
+          galena = stop_hexes & GALENA
+          return mines.count * 10 + galena.count * 30
+        end
+
+        def port_revenue_removal(route, stops)
+          return 0 if @port_corporations.include?(route.train.owner)
+          stop_hexes = stops.map(&:hex).map { |hex| hex.name}
+          st_paul = stop_hexes & ST_PAUL
+          port_of_memphis = stop_hexes & PORT_OF_MEMPHIS
+          lake_michigan = stop_hexes & LAKE_MICHIGAN
+          return st_paul.count * 50 + port_of_memphis.count * 30 + lake_michigan.count * 20
         end
 
         def p_bonus(route, stops)
@@ -475,12 +496,14 @@ module Engine
          end
 
         def route_distance_str(route)
-          mines = route.visited_stops.count(&:town?)
-          ports = route.visited_stops.count { |s| s.groups.include?('port') }
-          others = route_distance(route) - mines - ports
+          stop_hexes = route.stops.map(&:hex).map { |hex| hex.name}
+          mines = (stop_hexes & MINE_HEXES).count
+          galena = (stop_hexes & GALENA).count
+          ports = (stop_hexes & PORT_HEXES).count
+          others = route_distance(route) - mines - ports- galena
           str = others.to_s
-          str += "+#{mines}m" if mines.positive? #TODO: && has mine token?
-          str += "+#{ports}p" if ports.positive? #TODO: && has port token?
+          str += "+#{mines}m" if (mines.positive? || galena.positive?) && @mine_corporations.include?(route.train.owner)
+          str += "+#{ports}p" if ports.positive? && @port_corporations.include?(route.train.owner)
           return str
         end
 
