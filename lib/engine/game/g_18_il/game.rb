@@ -75,14 +75,18 @@ module Engine
         CLOSED_CORP_RESERVATIONS_REMOVED = false
 
         PORT_HEXES = %w[B1 D23 H1 I2].freeze
-        #MINE_HEXES = %w[C2 D9 D13 D17 E6 E14 F5 F13 F21 G22 H11].freeze
+        MINE_HEXES = %w[C2 D9 D13 D17 E6 E14 F5 F13 F21 G22 H11].freeze
         DETROIT = ['I6'].freeze
         CLASS_A_COMPANIES = %w[].freeze
         CLASS_B_COMPANIES = %w[].freeze
         PORT_TILES = %w[SPH POM].freeze
         STL_HEXES = %w[B15 B17 C16 C18].freeze
         STL_TOKEN_HEXES = %w[C18].freeze
-        EXTRA_STATION_PRIVATE_NAME = 'ES'
+        EXTRA_STATION_PRIVATE_NAME = 'ES'.freeze
+        PORT_MARKER_ICON = 'port'.freeze
+        MINE_MARKER_ICON = 'mine'.freeze
+        SPRINGFIELD_HEX = 'E12'.freeze
+       # CORPORATIONS = %w[P&BV NC G&CU RI C&A V WAB C&EI].freeze
 
         ASSIGNMENT_TOKENS = {
           'port' => '/icons/18_il/port.svg',
@@ -136,7 +140,7 @@ module Engine
                 if (icon.sticky) then 
                   #@log << "found sticky"
                   action.hex.tile.icons.delete(icon)
-                  @log << "#{action.entity.corporation.name} receives the option cube from the upgraded tile"
+                  assign_option_cube(action.entity)
                 end
               end
 
@@ -203,7 +207,13 @@ module Engine
           end
         end
 
+        def port_corporations
+          @port_corporations.each { |c| corporation_by_id(c) }
+        end
 
+        def mine_corporations
+          @mine_corporations.each { |c| corporation_by_id(c) }
+        end
 
         def setup_preround
           super
@@ -220,6 +230,19 @@ module Engine
 
           #creates corp that adds blocking tokens at the start of the final cycle
           game_end_blocking_corp = Corporation.new(sym: 'GEB', name: 'game_end_blocking_corp', logo: '18_il/yellow_blocking', tokens: [0])
+
+         
+          @port_marker_ability =
+          Engine::Ability::Description.new(type: 'description', description: 'Port marker', desc_detail: 'Gains revenue from ports')
+
+          @mine_marker_ability =
+          Engine::Ability::Description.new(type: 'description', description: 'Mine marker', desc_detail: 'Gains revenue from mines')
+
+          @option_cube_ability =
+          Engine::Ability::Description.new(type: 'description', description: 'Option cube', desc_detail: 'When IC forms, the corporation may trade this cube for a share of IC')
+
+          @port_marker_count = 4
+
         end
 
         def setup
@@ -241,10 +264,18 @@ module Engine
           train = @depot.upcoming[0]
           train.buyable = false
           buy_train(nc, train, :free)
+          
+           #assigns port markers to corporations
+          @port_corporations = @corporations.shuffle.take(4)
+          port_corporations.each { |c| assign_port_marker(c) }
+          @mine_corporations = @corporations - @port_corporations
+          mine_corporations.each { |c| assign_mine_marker(c) }
+          #assign_port_marker(nc)
 
           @stl_nodes = STL_HEXES.map do |h| 
             hex_by_id(h).tile.nodes.find { |n| n.offboard? && n.groups.include?('STL') }
           end
+
         end
 
         def ipo_name(_entity = nil)
@@ -561,10 +592,27 @@ module Engine
                 train.name = '5'
                 train.distance = [{'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
                                   {'nodes' => %w[city offboard], 'pay' => 5, 'visit' => 5 }]
+                                  
               end
             end
           end
-        end  
+        end 
+        
+        def assign_port_marker(entity)
+          entity.add_ability(@port_marker_ability.dup)
+          @log << "#{entity.name} gains a port marker"
+        end
+
+        def assign_mine_marker(entity)
+           entity.add_ability(@mine_marker_ability.dup)
+           @log << "#{entity.name} gains a mine marker"
+        end
+
+        def assign_option_cube(entity)
+          entity.add_ability(@option_cube_ability.dup)
+          @log << "#{entity.name} gains an option cube"
+       end
+
       end
     end
   end
