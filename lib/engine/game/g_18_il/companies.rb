@@ -181,7 +181,7 @@ module Engine
               abilities: [
               {
                   type: 'tile_lay',
-                  tiles: ['M1'],
+                  tiles: ['58'],
                   hexes: MINE_HEXES,
                   when: 'track',
                   owner_type: 'corporation',
