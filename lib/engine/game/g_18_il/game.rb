@@ -305,6 +305,29 @@ module Engine
           'Reserve'
         end
 
+        def status_str(corp)
+          str = ''
+            company = @companies.find { |c| !c.closed? && c.sym == corp.name }
+            str += if company&.owner&.player?
+                     "Concession: #{company.owner.name} "
+                   else
+                     ''
+                   end
+            str.strip
+        end
+
+        def can_par?(corporation, entity)
+          return false unless concession_ok?(entity, corporation)
+
+          super
+        end
+
+        def concession_ok?(player, corp)
+          return false unless player.player?
+
+          player.companies.any? { |c| c.sym == corp.name }
+        end
+
         #TODO: add stuff to this
         def timeline
           []
