@@ -278,26 +278,17 @@ module Engine
           'Treasury'
         end
 
-        def next_round!
-          @round =
-            case @round
-            when Engine::Round::Stock
-              @operating_rounds = 2
-              reorder_players
-              new_operating_round
-            when Engine::Round::Operating
-              or_round_finished
-              if @round.round_num < @operating_rounds
-                new_operating_round(@round.round_num + 1)
-              else
-                @turn += 1
-                or_set_finished
-                new_stock_round
-              end
-            when init_round.class
-              reorder_players
-              new_stock_round
-            end
+        def ipo_verb(_entity = nil)
+          'starts'
+        end
+
+        def ipo_reserved_name(_entity = nil)
+          'Reserve'
+        end
+
+        #TODO: add stuff to this
+        def timeline
+          []
         end
 
         def port_corporations
@@ -325,7 +316,54 @@ module Engine
          end
           super
         end
-        
+
+        def next_round!
+          @round =
+            case @round
+            when Engine::Round::Auction
+              reorder_players
+              new_stock_round
+            when Engine::Round::Stock
+              @operating_rounds = 2
+              reorder_players
+              new_operating_round
+            when Engine::Round::Operating
+              or_round_finished
+              if @round.round_num < @operating_rounds
+                new_operating_round(@round.round_num + 1)
+              else
+                @turn += 1
+                or_set_finished
+                new_auction_round
+              end
+            when init_round.class
+              
+              new_auction_round
+              reorder_players
+            end
+        end
+ 
+        def initial_auction_companies
+          companies
+        end
+
+        def new_auction_round
+          @log << "-- Auction Round #{@turn} --"
+            Engine::Round::Auction.new(self, [
+              G18IL::Step::ConcessionAuction,
+            ])
+        end
+
+        def stock_round
+          G18IL::Round::Stock.new(self, [
+            G18IL::Step::BuyNewTokens,
+            #Engine::Step::DiscardTrain,
+            #Engine::Step::Exchange,
+            #Engine::Step::SpecialTrack,
+            G18IL::Step::BaseBuySellParShares,
+          ])
+        end
+
         def operating_round(round_num)
           Engine::Round::Operating.new(self, [
             #Engine::Step::Bankrupt,
@@ -334,15 +372,15 @@ module Engine
             Engine::Step::SpecialToken,
             Engine::Step::BuyCompany,
             Engine::Step::HomeToken,
+            Engine::Step::DiscardTrain,
             G18IL::Step::Convert,
-          #  G18IL::Step::PostConversion,
+          # G18IL::Step::PostConversion,
             G18IL::Step::IssueShares,
             G18IL::Step::Track,
             G18IL::Step::Token,
-           # Engine::Step::DiscardTrain,
-            Engine::Step::Route,
+            G18IL::Step::Route,
             G18IL::Step::Dividend,
-           # G18IL::Step::EmergencyMoneyRaising,
+          # G18IL::Step::EmergencyMoneyRaising,
             Engine::Step::BuyTrain,
             [Engine::Step::BuyCompany, { blocks: true }],
           ], round_num: round_num)
@@ -350,21 +388,6 @@ module Engine
 
         def trade_assets
          #@log << "#{current_entity.name} skips Trade Assets"
-        end
-
-        def stock_round
-          G18IL::Round::Stock.new(self, [
-            #Engine::Step::DiscardTrain,
-            #Engine::Step::Exchange,
-            #Engine::Step::SpecialTrack,
-            G18IL::Step::BuySellParShares,
-          ])
-        end
-
-        def tokens_needed(corporation)
-          tokens_needed = { 2 => 1, 5 => 2, 10 => 4 }[corporation.total_shares] - corporation.tokens.size
-         # tokens_needed += 1 if corporation.companies.any? { |c| c.id == EXTRA_STATION_PRIVATE_NAME } #will need adjusted based on when private ability is used
-          tokens_needed
         end
 
         def mine_company?(company)
@@ -381,28 +404,57 @@ module Engine
           return bundles
         end
 
-        def emergency_issuable_bundles(entity)
-          return [] unless entity.corporation?
-          return [] if entity.num_ipo_shares.zero? && entity.total_shares == 10
-          if entity.total_shares == 2
-            convert(entity)
-            @converted = true
-          end
-
-          if emergency_issuable_shares(entity)[-1].share_price + entity.cash < @depot.min_depot_price && entity.total_shares == 5
-             convert(entity) 
-             @log << "#{entity.name} is forced to convert from a #{@converted ? "2-share to a 10-share" : "5-share to a 10-share"} corporation"
-          end
-          return [] unless entity.cash < @depot.min_depot_price
-          eligible, remaining = emergency_issuable_shares(entity).partition { |bundle| bundle.price + entity.cash < @depot.min_depot_price }
-          eligible_shares = eligible.each { |n| n.price }
-          return remaining.empty? ? eligible.last(1) : remaining.take(1)
+        def purchase_tokens!(corporation, count, total_cost)
+          min = corporation.total_shares == 10 ? 3 : 6
+          (count - min).times { corporation.tokens << Token.new(corporation, price: 0) }
+          auto_emr(corporation, total_cost) if corporation.cash < total_cost
+          corporation.spend(total_cost, @bank) unless total_cost == 0
+          @log << "#{corporation.name} buys #{count-1} #{count-1 == 1 ? "token" : "tokens"} for #{format_currency(total_cost)}"
         end
+
+        # sell IPO shares to make up shortfall
+        def auto_emr(corp, total_cost)
+          diff = total_cost - corp.cash
+          return unless diff.positive?
+
+          num_shares = ((2.0 * diff) / corp.share_price.price).ceil
+          raise GameError, 'Assumption about starting token EMR is wrong' if num_shares > corp.shares_of(corp).size
+
+          bundle = ShareBundle.new(corp.shares_of(corp).take(num_shares))
+          bundle.share_price = corp.share_price.price / 2.0
+          sell_shares_and_change_price(bundle)
+          @log << "#{corp.name} raises #{format_currency(bundle.price)} and completes EMR"
+          @round.recalculate_order if @round.respond_to?(:recalculate_order)
+        end
+        
+        # def emergency_issuable_bundles(entity)
+        #   return [] unless entity.corporation?
+        #   return [] if entity.num_ipo_shares.zero? && entity.total_shares == 10
+        #   if entity.total_shares == 2
+        #     convert(entity)
+        #     @converted = true
+        #   end
+
+        #   if emergency_issuable_shares(entity)[-1].share_price + entity.cash < @depot.min_depot_price && entity.total_shares == 5
+        #      convert(entity) 
+        #      @log << "#{entity.name} is forced to convert from a #{@converted ? "2-share to a 10-share" : "5-share to a 10-share"} corporation"
+        #   end
+        #   return [] unless entity.cash < @depot.min_depot_price
+        #   eligible, remaining = emergency_issuable_shares(entity).partition { |bundle| bundle.price + entity.cash < @depot.min_depot_price }
+        #   eligible_shares = eligible.each { |n| n.price }
+        #   return remaining.empty? ? eligible.last(1) : remaining.take(1)
+        # end
 
         def issuable_shares(entity)
           return [] unless entity.corporation?
           return [] if entity.num_ipo_shares.zero?
           return bundles_for_corporation(entity, entity).take(1)
+        end
+
+        def scrap_train(train)
+          owner = train.owner
+          @log << "#{owner.name} scraps a #{train.name} train"
+          @depot.reclaim_train(train)
         end
 
         def or_round_finished
@@ -444,7 +496,7 @@ module Engine
 
         def mine_revenue_removal(route, stops)
           return 0 if @mine_corporations.include?(route.train.owner)
-          stop_hexes = stops.map(&:hex).map { |hex| hex.name}
+          stop_hexes = stops.map(&:hex).map { |hex| hex.name }
           mines = stop_hexes & MINE_HEXES
           galena = stop_hexes & GALENA
           return mines.count * 10 + galena.count * 30
@@ -452,11 +504,13 @@ module Engine
 
         def port_revenue_removal(route, stops)
           return 0 if @port_corporations.include?(route.train.owner)
-          stop_hexes = stops.map(&:hex).map { |hex| hex.name}
+          stop_hexes = stops.map(&:hex).map { |hex| hex.name }
           st_paul = stop_hexes & ST_PAUL
-          port_of_memphis = stop_hexes & PORT_OF_MEMPHIS
+          pom = stops.map(&:hex).find { |hex| hex.name == PORT_OF_MEMPHIS }
+         # @log << "#{pom}"
+         # pom.revenue == 0 ? 0 : port_of_memphis = stop_hexes & PORT_OF_MEMPHIS
           lake_michigan = stop_hexes & LAKE_MICHIGAN
-          return st_paul.count * 50 + port_of_memphis.count * 30 + lake_michigan.count * 20
+          return st_paul.count * 50 #+ port_of_memphis.count * 30 + lake_michigan.count * 20
         end
 
         def p_bonus(route, stops)
