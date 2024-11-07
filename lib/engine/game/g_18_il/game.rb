@@ -318,7 +318,6 @@ module Engine
 
         def can_par?(corporation, entity)
           return false unless concession_ok?(entity, corporation)
-
           super
         end
 
@@ -326,6 +325,19 @@ module Engine
           return false unless player.player?
 
           player.companies.any? { |c| c.sym == corp.name }
+        end
+
+        def return_concessions!
+          companies.each do |c|
+            next unless c&.owner&.player?
+            player = c.owner
+            player.companies.delete(c)
+            @log << "#{c.name} (#{c.sym}) has not been used by #{player.name} and is returned to the bank"
+          end
+        end
+
+        def finish_stock_round
+          return_concessions!
         end
 
         #TODO: add stuff to this

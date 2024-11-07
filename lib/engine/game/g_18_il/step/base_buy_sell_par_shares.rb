@@ -64,6 +64,7 @@ module Engine
             buy_shares(action.purchase_for || action.entity, action.bundle,
                        swap: action.swap, borrow_from: action.borrow_from,
                        allow_president_change: true)
+                       
             track_action(action, action.bundle.corporation)
           end
 
@@ -79,6 +80,9 @@ module Engine
           def process_par(action)
             @round.corp_started = action.corporation
             super
+            company = @game.company_by_id(action.corporation.name)
+            @game.companies.delete(company)
+            company.close!
           end
 
         end

@@ -16,28 +16,28 @@ module Engine
           {
             name: '1 Peoria and Bureau Valley Railroad',
             sym: 'P&BV',
-            value: 50,
+            value: 0,
             revenue: 0,
             desc: 'Can start P&BV',
             corporation: 'P&BV',
             color: '#4682B4',
             text_color: 'white',
           },
-        ]
-        companies << {
+          {
             name: '2 Northern Cross Railroad',
             sym: 'NC',
-            value: 50,
+            value: 0,
             revenue: 0,
             desc: 'Can start NC',
-            corporation: 'NC',
+            corporation: 'P&BV',
             color: '#2600AA',
             text_color: 'white',
-          }
+          },
+        ]
           companies << {
             name: '3 Galena and Chicago Union Railroad',
             sym: 'G&CU',
-            value: 50,
+            value: 0,
             revenue: 0,
             desc: 'Can start G&CU',
             corporation: 'G&CU',
@@ -47,7 +47,7 @@ module Engine
           companies << {
             name: '4 Rock Island Line',
             sym: 'RI',
-            value: 50,
+            value: 0,
             revenue: 0,
             desc: 'Can start RI',
             corporation: 'RI',
@@ -57,7 +57,7 @@ module Engine
           companies << {
             name: '5 Chicago and Alton Railroad',
             sym: 'C&A',
-            value: 50,
+            value: 0,
             revenue: 0,
             desc: 'Can start C&A',
             corporation: 'C&A',
@@ -67,7 +67,7 @@ module Engine
           companies << {
             name: '6 Vandalia Railroad',
             sym: 'V',
-            value: 50,
+            value: 0,
             revenue: 0,
             desc: 'Can start V',
             corporation: 'V',
@@ -77,7 +77,7 @@ module Engine
           companies << {
             name: '7 Wabash Railroad',
             sym: 'WAB',
-            value: 50,
+            value: 0,
             revenue: 0,
             desc: 'Can start WAB',
             corporation: 'WAB',
@@ -87,7 +87,7 @@ module Engine
           companies << {
             name: '8 Chicago and Eastern Illinois Railroad',
             sym: 'C&EI',
-            value: 50,
+            value: 0,
             revenue: 0,
             desc: 'Can start C&EI',
             corporation: 'C&EI',

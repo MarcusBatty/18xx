@@ -10,6 +10,15 @@ module Engine
           
           MIN_BID = 0
 
+          def setup
+            setup_auction    
+            if @game.turn == 1
+              @companies = @game.initial_auction_companies.dup 
+            else
+              @companies = @game.companies
+            end
+          end
+
           def description
             if @auctioning
               'Bid on Selected Concession'
