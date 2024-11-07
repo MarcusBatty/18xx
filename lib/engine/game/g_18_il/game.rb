@@ -111,6 +111,9 @@ module Engine
           'E22' => [3, 0],
         }.freeze
       
+        @port_log = []
+        @mine_log = []
+
         def nc
           @nc ||= corporation_by_id('NC')
         end
@@ -232,7 +235,7 @@ module Engine
           Engine::Ability::Description.new(type: 'description', description: 'Mine marker', desc_detail: 'Gains revenue from mines')
 
           @option_cube_ability =
-          Engine::Ability::Description.new(type: 'description', description: 'Option cube', desc_detail: 'When IC forms, the corporation may trade this cube for a share of IC')
+           Engine::Ability::Description.new(type: 'description', description: 'Option cube', desc_detail: 'When IC forms, the corporation may trade this cube for a share of IC', count: 1)
 
           @port_corporations ||= @corporations.min_by(4) { rand }
           @mine_corporations ||= @corporations - @port_corporations
@@ -264,9 +267,30 @@ module Engine
           end
 
           #assigns port and mine markers to corporations
-          port_corporations.each { |c| assign_port_marker(c) }
-          mine_corporations.each { |c| assign_mine_marker(c) }
+          assign_port_markers(port_corporations)
+          assign_mine_markers(mine_corporations)
+        end
 
+        def assign_port_markers(entity)
+          port_log = []
+          port_corporations.each { |c| 
+          c.add_ability(@port_marker_ability.dup)
+          port_log << c.name
+          port_log << ", " if port_log.count < 6
+          port_log << 'and ' if port_log.count == 6
+        }
+        @log << "#{port_log.join} receive port markers"
+        end
+
+        def assign_mine_markers(entity)
+          mine_log = []
+          mine_corporations.each { |c| 
+          c.add_ability(@mine_marker_ability.dup)
+          mine_log << c.name
+          mine_log << ", " if mine_log.count < 6
+          mine_log << 'and ' if mine_log.count == 6
+        }
+        @log << "#{mine_log.join} receive mine markers"
         end
 
         def ipo_name(_entity = nil)
@@ -681,22 +705,23 @@ module Engine
             end
           end
         end 
-        
-        def assign_port_marker(entity)
-          entity.add_ability(@port_marker_ability.dup)
-          @log << "#{entity.name} gains a port marker"
-        end
-
-        def assign_mine_marker(entity)
-           entity.add_ability(@mine_marker_ability.dup)
-           @log << "#{entity.name} gains a mine marker"
-        end
 
         def assign_option_cube(entity)
-          entity.add_ability(@option_cube_ability.dup)
-          @log << "#{entity.name} gains an option cube"
-       end
+          if has_option_cube?(entity) #TODO: if corp has auction cube, increment count rather than adding additional cube (if possible)
+            @log << "#{entity.name} gains an option cube"
+            entity.add_ability(@option_cube_ability.dup)
+          else
+            entity.add_ability(@option_cube_ability.dup)
+           @log << "#{entity.name} gains an option cube"
+          end
+        end
 
+        def has_option_cube?(entity)
+        #  ability = abilities(entity)        #TODO: figure out how to check if corp already has option cube
+        #  @log << "#{ability.type}"
+        #  @log << "#{@option_cube_ability}"
+         # ability.include?(@option_cube_ability)
+        end
       end
     end
   end
