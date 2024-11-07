@@ -239,7 +239,7 @@ module Engine
           @option_cube_ability =
           Engine::Ability::Description.new(type: 'description', description: 'Option cube', desc_detail: 'When IC forms, the corporation may trade this cube for a share of IC')
 
-          @port_corporations ||= @corporations.shuffle.take(4)
+          @port_corporations ||= @corporations.min_by(4) { rand }
           @mine_corporations ||= @corporations - @port_corporations
 
         end
