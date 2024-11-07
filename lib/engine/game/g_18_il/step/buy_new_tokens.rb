@@ -64,13 +64,7 @@ module Engine
             type = pending_type
             entity = pending_entity
             @round.buy_tokens.shift
-
-            case type
-            when :start
-              @game.purchase_tokens!(entity, num, total)
-            when :convert
-              @game.purchase_additional_tokens!(entity, num, total)
-            end
+            @game.purchase_tokens!(entity, num, total)
           end
 
           def choice_available?(entity)
@@ -97,7 +91,7 @@ module Engine
 
               emr = total > pending_corp.cash ? ' - EMR' : ''
               if pending_type == :start
-              [num, "#{num-1} (#{@game.format_currency(total)}#{emr})"]
+              [num, "#{num} (#{@game.format_currency(total)}#{emr})"]
               else
                [num, "#{num} (#{@game.format_currency(total)}#{emr})"]
               end

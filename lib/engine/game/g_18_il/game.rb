@@ -110,8 +110,7 @@ module Engine
           'E20' => [4, 0],
           'E22' => [3, 0],
         }.freeze
-
-        
+      
         def nc
           @nc ||= corporation_by_id('NC')
         end
@@ -169,7 +168,6 @@ module Engine
         end
 =end
 
-
         def ic_line_connections(hex)
           #@log << "connects_ic_line?"
 
@@ -211,8 +209,6 @@ module Engine
           end
         end
 
-
-
         def setup_preround
           super
 
@@ -228,7 +224,6 @@ module Engine
 
           #creates corp that adds blocking tokens at the start of the final cycle
           game_end_blocking_corp = Corporation.new(sym: 'GEB', name: 'game_end_blocking_corp', logo: '18_il/yellow_blocking', tokens: [0])
-
          
           @port_marker_ability =
           Engine::Ability::Description.new(type: 'description', description: 'Port marker', desc_detail: 'Gains revenue from ports')
@@ -414,15 +409,7 @@ module Engine
         end
 
         def purchase_tokens!(corporation, count, total_cost)
-          count.times { corporation.tokens << Token.new(corporation, price: 0) }
-          auto_emr(corporation, total_cost) if corporation.cash < total_cost
-          corporation.spend(total_cost, @bank) unless total_cost == 0
-          count -= 1
-          @log << "#{corporation.name} buys #{count} #{count == 1 ? "token" : "tokens"} for #{format_currency(total_cost)}"
-        end
-
-        def purchase_additional_tokens!(corporation, count, total_cost)
-          count.times { corporation.tokens << Token.new(corporation, price: 0) }
+          (count).times { corporation.tokens << Token.new(corporation, price: 0) }
           auto_emr(corporation, total_cost) if corporation.cash < total_cost
           corporation.spend(total_cost, @bank) unless total_cost == 0
           @log << "#{corporation.name} buys #{count} #{count == 1 ? "token" : "tokens"} for #{format_currency(total_cost)}"

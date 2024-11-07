@@ -49,7 +49,7 @@ module Engine
           end
 
           def choices
-            Array.new(6) do |i|
+            Array.new(5) do |i|
               next unless (i + 2) * TOKEN_COST <= @round.buy_tokens.cash
 
               [i + 2, "#{i + 2} (#{@game.format_currency((i + 2) * TOKEN_COST)})"]
