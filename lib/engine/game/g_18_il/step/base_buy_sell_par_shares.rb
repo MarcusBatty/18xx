@@ -13,7 +13,7 @@ module Engine
         class BaseBuySellParShares < Engine::Step::BuySellParShares
           include CorpStart
           def description
-            'Sell then Buy Shares or Concessions'
+            'Sell then Buy Shares'
           end
 
           def round_state
@@ -33,7 +33,7 @@ module Engine
             return unless bundle
             return unless bundle.buyable
             return if bundle.owner.corporation? && bundle.owner != bundle.corporation # can't buy non-IPO shares in treasury
-            return if bundle.owner.player? && entity.player?
+            return if bundle.owner.player? && entity.player? # && !@game.allow_player2player_sales?
             return if bundle.owner.player? && entity.corporation?
 
             super
@@ -51,12 +51,6 @@ module Engine
           def pass!
             super
             post_share_pass_step! if @round.corp_started
-          end
-
-          def log_pass(entity)
-            return super unless @round.corp_started
-
-            @log << "#{entity.name} declines to purchase additional shares of #{@round.corp_started.name}"
           end
 
           def can_sell_any_of_corporation?(entity, corporation)

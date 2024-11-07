@@ -6,37 +6,35 @@ module Engine
   module Game
     module G18IL
       module Step
-        module CorpStart
+        module CorpConvert
           
-          def post_share_pass_step!
-            return unless @round.corp_started
+          def post_convert_pass_step!
+            return unless @round.converted
 
-              corp = @round.corp_started
+              corp = @round.converted
               case corp.total_shares
               when 10
                 min = 3
-                max = 6
-                @log << "#{corp.name} must buy between #{min-1} and #{max-1} tokens"
+                max = 3
+                @log << "#{corp.name} must buy 3 tokens"
               when 5
-                min = 2
-                max = 2
+                min = 1
+                max = 1
                 @log << "#{corp.name} must buy 1 token"
-              when 2
-                @log << "#{corp.name} does not buy tokens"
-                return
               end
-            
+ 
             price = 40
             @log << "Each token costs $40"
             @round.buy_tokens << {
               entity: corp,
-              type: :start,
-              first_price: 0,
+              type: :convert,
+              first_price: price,
               price: price,
               min: min,
               max: max,
             }
           end
+
         end
       end
     end

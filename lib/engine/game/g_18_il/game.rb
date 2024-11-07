@@ -346,6 +346,14 @@ module Engine
         def initial_auction_companies
           companies
         end
+        
+        def company_header(_company)
+          'CONCESSION'
+        end
+
+        def allow_player2player_sales?
+          @player2player ||= true #@optional_rules&.include?(:p2p_purchases)
+        end
 
         def new_auction_round
           @log << "-- Auction Round #{@turn} --"
@@ -370,6 +378,7 @@ module Engine
             Engine::Step::Exchange,
             Engine::Step::SpecialTrack,
             Engine::Step::SpecialToken,
+            G18IL::Step::BuyNewTokens,
             Engine::Step::BuyCompany,
             Engine::Step::HomeToken,
             Engine::Step::DiscardTrain,
@@ -405,11 +414,18 @@ module Engine
         end
 
         def purchase_tokens!(corporation, count, total_cost)
-          min = corporation.total_shares == 10 ? 3 : 6
-          (count - min).times { corporation.tokens << Token.new(corporation, price: 0) }
+          count.times { corporation.tokens << Token.new(corporation, price: 0) }
           auto_emr(corporation, total_cost) if corporation.cash < total_cost
           corporation.spend(total_cost, @bank) unless total_cost == 0
-          @log << "#{corporation.name} buys #{count-1} #{count-1 == 1 ? "token" : "tokens"} for #{format_currency(total_cost)}"
+          count -= 1
+          @log << "#{corporation.name} buys #{count} #{count == 1 ? "token" : "tokens"} for #{format_currency(total_cost)}"
+        end
+
+        def purchase_additional_tokens!(corporation, count, total_cost)
+          count.times { corporation.tokens << Token.new(corporation, price: 0) }
+          auto_emr(corporation, total_cost) if corporation.cash < total_cost
+          corporation.spend(total_cost, @bank) unless total_cost == 0
+          @log << "#{corporation.name} buys #{count} #{count == 1 ? "token" : "tokens"} for #{format_currency(total_cost)}"
         end
 
         # sell IPO shares to make up shortfall
@@ -418,12 +434,16 @@ module Engine
           return unless diff.positive?
 
           num_shares = ((2.0 * diff) / corp.share_price.price).ceil
-          raise GameError, 'Assumption about starting token EMR is wrong' if num_shares > corp.shares_of(corp).size
+          raise GameError, 'Corporation cannot raise enough money to convert - please undo' if num_shares > corp.shares_of(corp).size #TODO: move this to convert step
 
           bundle = ShareBundle.new(corp.shares_of(corp).take(num_shares))
           bundle.share_price = corp.share_price.price / 2.0
           sell_shares_and_change_price(bundle)
+          old = bundle.corporation.share_price.price
+          stock_market.move_down(bundle.corporation) 
+          new = bundle.corporation.share_price.price
           @log << "#{corp.name} raises #{format_currency(bundle.price)} and completes EMR"
+          @log << "#{bundle.corporation.name}'s share price moves left diagonally from $#{old} to $#{new}"
           @round.recalculate_order if @round.respond_to?(:recalculate_order)
         end
         

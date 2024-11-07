@@ -20,14 +20,9 @@ module Engine
 =begin
         OPTIONAL_RULES = [
           {
-            sym: :multiple_brown_from_ipo,
-            short_name: 'Buy Multiple Brown Shares From IPO',
-            desc: 'Multiple brown shares may be bought from IPO as well as from pool',
-          },
-          {
-            sym: :optional_6_train,
-            short_name: 'Optional extra 6-Train',
-            desc: 'Adds a 3rd 6-train',
+            sym: :p2p_purchases,
+            short_name: 'Player to player purchases',
+            desc: 'Allow players to buy stock/concessions directly from other players',
           },
         ].freeze
 =end

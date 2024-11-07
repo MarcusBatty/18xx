@@ -67,15 +67,9 @@ module Engine
 
             case type
             when :start
-              @game.purchase_tokens!(entity, num, total) # should never need token_emegency_money
-            when :transform
-              if entity.cash < total
-                sweep_cash(entity, entity.player, total)
-                raise GameError, "#{entity.name} does not have #{format_currency(total)} for token" if entity.cash < total
-              end
-
+              @game.purchase_tokens!(entity, num, total)
+            when :convert
               @game.purchase_additional_tokens!(entity, num, total)
-              @game.transform_finish
             end
           end
 
@@ -84,7 +78,7 @@ module Engine
           end
 
           def choice_name
-            return "Number of Additional Tokens to Buy for #{pending_corp.name}" if pending_type != :start
+            return "Number of Additional Tokens to Buy for #{pending_corp.name}" unless pending_type == :start
 
             "Number of Tokens to Buy for #{pending_corp.name}"
           end
@@ -102,8 +96,11 @@ module Engine
               next if (num > pending_min) && (total > pending_corp.cash)
 
               emr = total > pending_corp.cash ? ' - EMR' : ''
-
+              if pending_type == :start
               [num, "#{num-1} (#{@game.format_currency(total)}#{emr})"]
+              else
+               [num, "#{num} (#{@game.format_currency(total)}#{emr})"]
+              end
             end.compact.to_h
           end
 
