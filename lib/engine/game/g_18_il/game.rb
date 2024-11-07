@@ -332,6 +332,7 @@ module Engine
             next unless c&.owner&.player?
             player = c.owner
             player.companies.delete(c)
+            c.owner = nil
             @log << "#{c.name} (#{c.sym}) has not been used by #{player.name} and is returned to the bank"
           end
         end
