@@ -163,9 +163,11 @@ module Engine
           @option_cube_ability =
            Engine::Ability::Description.new(type: 'description', description: 'Option cube', desc_detail: 'When IC forms, the corporation may trade this cube for a share of IC', count: 1)
 
-          @port_corporations ||= @corporations.min_by(4) { rand }
-          @mine_corporations ||= @corporations - @port_corporations
-          @port_tile_for_hex ||= PORT_TILE_FOR_HEX.min_by(1) { rand }
+          if optional_rules.include?(:intro_game) then
+            @port_corporations ||= @corporations.min_by(4) { rand }
+            @mine_corporations ||= @corporations - @port_corporations
+            @port_tile_for_hex ||= PORT_TILE_FOR_HEX.min_by(1) { rand }
+          end
 
         end
 
@@ -194,13 +196,15 @@ module Engine
           end
 
           #assigns port and mine markers to corporations
-          assign_port_markers(port_corporations)
-          assign_mine_markers(mine_corporations)
+          if optional_rules.include?(:intro_game) then
+            assign_port_markers(port_corporations)
+            assign_mine_markers(mine_corporations)
 
-          #place random port tile on map and remove the other
-          hex = @hexes.find { |h| h.id == PORT_TILE_HEXES.min_by { rand } }
-          assign_port_tile(hex)
-          remove_port_tiles
+            #place random port tile on map and remove the other
+            hex = @hexes.find { |h| h.id == PORT_TILE_HEXES.min_by { rand } }
+            assign_port_tile(hex)
+            remove_port_tiles
+          end
         end
 
         def assign_port_tile(hex)
