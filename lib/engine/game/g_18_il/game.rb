@@ -91,6 +91,7 @@ module Engine
         PORT_MARKER_ICON = 'port'.freeze
         MINE_MARKER_ICON = 'mine'.freeze
         SPRINGFIELD_HEX = 'E12'.freeze
+        CORPORATION_SIZES = { 2 => :small, 5 => :medium, 10 => :large }.freeze
        # CORPORATIONS = %w[P&BV NC G&CU RI C&A V WAB C&EI].freeze
 
        PORT_TILE_FOR_HEX = {
@@ -120,7 +121,19 @@ module Engine
         @port_log = []
         @mine_log = []
         
+        def corporation_size(entity)
+          # For display purposes is a corporation small, medium or large
+          CORPORATION_SIZES[entity.total_shares]
+        end
 
+        def corporation_size_name(entity)
+          entity.total_shares.to_s
+        end
+
+        def float_str(entity)
+          "2 shares to start"
+        end
+        
         def nc
           @nc ||= corporation_by_id('NC')
         end
