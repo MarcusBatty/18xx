@@ -84,7 +84,7 @@ module Engine
         CLASS_A_COMPANIES = %w[].freeze
         CLASS_B_COMPANIES = %w[].freeze
         PORT_TILES = %w[SPH POM].freeze
-        
+        PORT_TILE_HEXES = %w[B1 D13].freeze
         STL_HEXES = %w[B15 B17 C16 C18].freeze
         STL_TOKEN_HEXES = %w[C18].freeze
         EXTRA_STATION_PRIVATE_NAME = 'ES'.freeze
@@ -183,9 +183,9 @@ module Engine
           #assigns port and mine markers to corporations
           assign_port_markers(port_corporations)
           assign_mine_markers(mine_corporations)
-         # assign_port_tile(port_tile)
-          hex = @hexes.find { |h| h.id == 'B1' }
-          tile = tile_by_id('SPH')
+
+          #place random port tile on map and remove the other
+          hex = @hexes.find { |h| h.id == PORT_TILE_HEXES.min_by { rand } }
           assign_port_tile(hex)
           remove_port_tiles
         end
