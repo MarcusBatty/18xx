@@ -84,6 +84,7 @@ module Engine
         CLASS_A_COMPANIES = %w[].freeze
         CLASS_B_COMPANIES = %w[].freeze
         PORT_TILES = %w[SPH POM].freeze
+        
         STL_HEXES = %w[B15 B17 C16 C18].freeze
         STL_TOKEN_HEXES = %w[C18].freeze
         EXTRA_STATION_PRIVATE_NAME = 'ES'.freeze
@@ -91,6 +92,11 @@ module Engine
         MINE_MARKER_ICON = 'mine'.freeze
         SPRINGFIELD_HEX = 'E12'.freeze
        # CORPORATIONS = %w[P&BV NC G&CU RI C&A V WAB C&EI].freeze
+
+       PORT_TILE_FOR_HEX = {
+        'B1' => ['SPH', 0],
+        'D13' => ['POM', 0],
+        }.freeze
 
         ASSIGNMENT_TOKENS = {
           'port' => '/icons/18_il/port.svg',
@@ -113,106 +119,13 @@ module Engine
       
         @port_log = []
         @mine_log = []
+        
 
         def nc
           @nc ||= corporation_by_id('NC')
         end
 
-        def ic_line_hex?(hex)
-          IC_LINE_ORIENTATION[hex.name]
-        end
-
-        def ic_line_improvement(action)
-          #ic_line_icon = action.hex.tile.icons.find {IC_LINE_ICON}
-          #return if !ic_line_icon || !connects_ic_line?(action.hex)
-
-          return false if (@ic_line_progress[action.hex] == 1)
-
-          result = ic_line_connections(action.hex)
-          if (result > 0) then
-
-            if action.hex.tile.color == 'yellow'
-              @log << "#{action.entity.corporation.name} receives $20 subsidy for IC Line improvement"
-              action.entity.corporation.cash += 20
-            end
-            lines = @ic_lines_built
-            if (result == 2) then
-
-              @ic_line_progress[action.hex] = 1
-
-              #TODO: remove cube and place on charter
-              action.hex.tile.icons.each do |icon|
-                #@log << "#{icon.sticky}"
-                if (icon.sticky) then 
-                  #@log << "found sticky"
-                  action.hex.tile.icons.delete(icon)
-                  assign_option_cube(action.entity)
-                end
-              end
-
-              @ic_lines_built = lines + 1
-              @log << "IC Line hexes built: #{ic_lines_built} of 10"
-              if (@ic_lines_built == 10) then
-                @log << "IC Line is complete"
-              end
-            end
-          end
-          result
-        end
-
-=begin
-        def self.remove_sticky_icon
-          print "remove_sticky_icon"
-          @icons.each do |icon| 
-            if (icon.sticky == 1) then 
-              icons.reject(icon)
-            end
-          end
-        end
-=end
-
-        def ic_line_connections(hex)
-          #@log << "connects_ic_line?"
-
-          return 0 unless (orientation = IC_LINE_ORIENTATION[hex.name])
-          paths = hex.tile.paths
-          exits = [orientation[0], orientation[1]]
-
-          #@log << "orientation  #{orientation}"
-          #paths.each do |path| 
-          #  @log << "path #{path.exits}"
-          #end
-
-          count = 0
-          paths.each do |path|
-            path.exits.each do |exit|
-              (count += 1) if exits.include? exit
-            end
-          end
-          #@log << "count #{count}"
-          return count
-  
-          #paths.any? { |path| (path.exits & exits).size == 2 } ||
-           # (path_to_city(paths, orientation[0]) && path_to_city(paths, orientation[1]))
-        end
-
-        def path_to_city(paths, edge)
-          paths.find { |p| p.exits == [edge] }
-        end
-
-        def ic_line_completed?()
-          @ic_lines_built == IC_LINE_COUNT
-        end
-
-        def remove_icon(hex, icon_names)
-          icon_names.each do |name|
-            icons = hex.tile.icons
-            icons.reject! { |i| name == i.name }
-            hex.tile.icons = icons
-          end
-        end
-
-        def setup_preround
+         def setup_preround
           super
 
           #creates corp that places blocking tokens (phase colors) in STL
@@ -239,6 +152,7 @@ module Engine
 
           @port_corporations ||= @corporations.min_by(4) { rand }
           @mine_corporations ||= @corporations - @port_corporations
+          @port_tile_for_hex ||= PORT_TILE_FOR_HEX.min_by(1) { rand }
 
         end
 
@@ -269,6 +183,21 @@ module Engine
           #assigns port and mine markers to corporations
           assign_port_markers(port_corporations)
           assign_mine_markers(mine_corporations)
+         # assign_port_tile(port_tile)
+          hex = @hexes.find { |h| h.id == 'B1' }
+          tile = tile_by_id('SPH')
+          assign_port_tile(hex)
+          remove_port_tiles
+        end
+
+        def assign_port_tile(hex)
+          tile_name, rotation = PORT_TILE_FOR_HEX[hex.id]
+          hex.lay(@tiles.find { |t| t.name == tile_name }.rotate!(rotation))
+          @log << "#{tile_name} tile is placed on #{hex.id}"
+        end
+
+        def remove_port_tiles
+            @all_tiles.each { |tile| tile.hide if tile.color == :blue }
         end
 
         def assign_port_markers(entity)
@@ -307,7 +236,7 @@ module Engine
 
         def status_str(corp)
           str = ''
-            company = @companies.find { |c| !c.closed? && c.sym == corp.name }
+            company = @companies.find { |c| c.sym == corp.name }
             
             str += if company&.owner&.player?
                      "Concession: #{company.owner.name} "
@@ -315,31 +244,6 @@ module Engine
                      ''
                    end
             str.strip
-        end
-
-        def can_par?(corporation, entity)
-          return false unless concession_ok?(entity, corporation)
-          super
-        end
-
-        def concession_ok?(player, corp)
-          return false unless player.player?
-
-          player.companies.any? { |c| c.sym == corp.name }
-        end
-
-        def return_concessions!
-          @companies.each do |c|
-            next unless c&.owner&.player?
-            player = c.owner
-            player.companies.delete(c)
-            c.owner = nil
-            @log << "#{c.name} (#{c.sym}) has not been used by #{player.name} and is returned to the bank"
-          end
-        end
-
-        def finish_stock_round
-          return_concessions!
         end
 
         #TODO: add stuff to this
@@ -402,26 +306,7 @@ module Engine
             end
         end
  
-        def init_round
-          new_auction_round
-        end
-
-
-        def form_ic; end
-
-        def initial_auction_companies
-          companies
-        end
-        
-        def company_header(_company)
-          'CONCESSION'
-        end
-
-        def allow_player2player_sales?
-          @player2player ||= true #@optional_rules&.include?(:p2p_purchases)
-        end
-
-        def new_auction_round
+          def new_auction_round
           @log << "-- Auction Round #{@turn} --"
             Engine::Round::Auction.new(self, [
               G18IL::Step::ConcessionAuction,
@@ -461,6 +346,93 @@ module Engine
           ], round_num: round_num)
         end
 
+        def init_round
+          new_auction_round
+        end
+
+        def can_par?(corporation, entity)
+          return false unless concession_ok?(entity, corporation)
+          super
+        end
+
+        def concession_ok?(player, corp)
+          return false unless player.player?
+
+          player.companies.any? { |c| c.sym == corp.name }
+        end
+
+        def return_concessions!
+          @companies.each do |c|
+            next unless c&.owner&.player?
+            player = c.owner
+            player.companies.delete(c)
+            c.owner = nil
+            @log << "#{c.name} (#{c.sym}) has not been used by #{player.name} and is returned to the bank"
+          end
+        end
+
+        def finish_stock_round
+          return_concessions!
+        end
+
+        def form_ic; end
+
+        def initial_auction_companies
+          companies
+        end
+        
+        def company_header(_company)
+          'CONCESSION'
+        end
+
+        def allow_player2player_sales?
+          @player2player ||= true #@optional_rules&.include?(:p2p_purchases)
+        end
+
+        def close_corporation(corp)
+          return if corp.closed?
+          @closed_corporations ||= []
+          @closed_corporations << corp
+          @log << "#{corp.name} closes"
+
+          # un-IPO the corporation
+          corp.share_price.corporations.delete(corp)
+          corp.share_price = nil
+          corp.par_price = nil
+          corp.ipoed = false
+          corp.unfloat!
+
+          # return shares to IPO
+          corp.share_holders.keys.each do |share_holder| #TODO: place reserve shares in open market
+            next if share_holder == corp
+
+            shares = share_holder.shares_by_corporation[corp].compact
+            corp.share_holders.delete(share_holder)
+            shares.each do |share|
+              share_holder.shares_by_corporation[corp].delete(share)
+              share.owner = corp
+              corp.shares_by_corporation[corp] << share
+            end
+          end
+          corp.shares_by_corporation[corp].sort_by!(&:index)
+          corp.share_holders[corp] = 100
+          corp.owner = nil
+
+          # remove home station and flip any other tokens for corporation placed on map
+          #TODO: considering a rules change to also flip home token. Upon par, corp flips any one flipped token it has on the map. If it has none, it instead places one in any free token slot.
+          corp.tokens.first.remove!
+          corp.tokens.each do |token|
+          token.status = :flipped if token.used
+          end
+          hex_by_id(corp.coordinates).tile.add_reservation!(corp, 0)
+          company = company_by_id(corp.name)
+          company.owner = nil
+          @companies << company
+          @companies = @companies.sort
+
+          @round.force_next_entity! if @round.operating?
+        end
+
         def trade_assets
          #@log << "#{current_entity.name} skips Trade Assets"
         end
@@ -471,6 +443,99 @@ module Engine
 
         def port_company?(company)
           self.class::PORT_COMPANIES.include?(company.id)
+        end
+
+        def ic_line_hex?(hex)
+          IC_LINE_ORIENTATION[hex.name]
+        end
+
+        def ic_line_improvement(action)
+          #ic_line_icon = action.hex.tile.icons.find {IC_LINE_ICON}
+          #return if !ic_line_icon || !connects_ic_line?(action.hex)
+          hex = action.hex
+          tile = action.hex.tile
+          icons = action.hex.tile.icons
+          corp = action.entity.corporation
+
+          return false if (@ic_line_progress[hex] == 1)
+
+          result = ic_line_connections(hex)
+          if (result > 0) then
+            if tile.color == 'yellow'
+              @log << "#{corp.name} receives $20 subsidy for IC Line improvement"
+              corp.cash += 20
+            end
+            lines = @ic_lines_built
+            if (result == 2) then
+              @ic_line_progress[hex] = 1
+              icons.each do |icon|
+                if (icon.sticky) then 
+                  icons.delete(icon)
+                  assign_option_cube(corp)
+                end
+              end
+
+              @ic_lines_built = lines + 1
+              @log << "IC Line hexes built: #{ic_lines_built} of 10"
+              if (@ic_lines_built == 10) then
+                @log << "IC Line is complete"
+                @log << "The Illinois Central Railroad will form at the end of this operating round"
+              end
+            end
+          end
+          result
+        end
+
+=begin
+        def self.remove_sticky_icon
+          print "remove_sticky_icon"
+          @icons.each do |icon| 
+            if (icon.sticky == 1) then 
+              icons.reject(icon)
+            end
+          end
+        end
+=end
+
+        def ic_line_connections(hex)
+          #@log << "connects_ic_line?"
+
+          return 0 unless (orientation = IC_LINE_ORIENTATION[hex.name])
+          paths = hex.tile.paths
+          exits = [orientation[0], orientation[1]]
+
+          #@log << "orientation  #{orientation}"
+          #paths.each do |path| 
+          #  @log << "path #{path.exits}"
+          #end
+
+          count = 0
+          paths.each do |path|
+            path.exits.each do |exit|
+              (count += 1) if exits.include? exit
+            end
+          end
+          #@log << "count #{count}"
+          return count
+  
+          #paths.any? { |path| (path.exits & exits).size == 2 } ||
+           # (path_to_city(paths, orientation[0]) && path_to_city(paths, orientation[1]))
+        end
+
+        def path_to_city(paths, edge)
+          paths.find { |p| p.exits == [edge] }
+        end
+
+        def ic_line_completed?()
+          @ic_lines_built == IC_LINE_COUNT
+        end
+
+        def remove_icon(hex, icon_names)
+          icon_names.each do |name|
+            icons = hex.tile.icons
+            icons.reject! { |i| name == i.name }
+            hex.tile.icons = icons
+          end
         end
 
         def emergency_issuable_shares(entity)
@@ -698,12 +763,19 @@ module Engine
         end
 
         def remove_unparred_corporations!
+          @blocking_log = []
+          @removed_corp_log = []
           @corporations.reject(&:ipoed).reject(&:closed?).each do |corporation|
             place_home_blocking_token(corporation)
-            @log << "#{corporation.name} removed from the game"
+            @removed_corp_log << corporation.name
             @corporations.delete(corporation)
+            company = company_by_id(corporation.name)
+            @companies.delete(company)
             @cert_limit -= 1
           end
+          @log << "#{@removed_corp_log.join(', ')} removed from the game"
+          @log << "Blocking #{@blocking_log.count == 1 ? "token" : "tokens"} placed on #{@blocking_log.join(', ')}"
+          @log << "Concessions removed from the game"
         end
 
         def place_home_blocking_token(corporation)
@@ -716,11 +788,11 @@ module Engine
             cities << hex.tile.cities.find { |city| city.reserved_by?(corporation) }
             cities.first.remove_reservation!(corporation)
           end
-
           cities.each { |city| 
-          @log << "Blocking token placed on #{hex.name} (#{hex.location_name})"
+          @blocking_log << "#{hex.name} (#{hex.location_name})"
            city ||= hex.tile.cities[0]
-           token = Token.new(game_end_blocking_corp, price: 0, logo: "/logos/18_il/#{corporation.name}_blocking.svg", simple_logo: "/logos/18_il/#{corporation.name}_blocking.svg", type: :blocking)
+           token = Token.new(game_end_blocking_corp, price: 0, logo: "/logos/18_il/#{corporation.name}.svg", simple_logo: "/logos/18_il/#{corporation.name}.svg", type: :blocking)
+           token.status = :flipped
            city.place_token(game_end_blocking_corp, token, check_tokenable: false) }
         end
 

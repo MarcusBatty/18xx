@@ -33,11 +33,9 @@ module Engine
                                'available and cannot spend '\
                                "#{@game.format_currency(price)}"
             end
-            @log << "hello"
             company.owner = player
             player.companies << company
             player.spend(price, @game.bank) if price.positive?
-           # @companies.delete(company)
             @log << "#{player.name} wins the auction for #{company.name} "\
                     "with a bid of #{@game.format_currency(price)}"
           end

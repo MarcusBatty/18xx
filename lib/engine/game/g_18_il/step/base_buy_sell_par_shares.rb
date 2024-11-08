@@ -39,15 +39,6 @@ module Engine
             super
           end
 
-          def can_gain?(entity, bundle, exchange: false)
-            return if !bundle || !entity
-
-            corporation = bundle.corporation
-
-            # can't exceed cert limit
-            (!corporation.counts_for_limit || exchange || @game.num_certs(entity) < @game.cert_limit(entity))
-          end
-
           def pass!
             super
             post_share_pass_step! if @round.corp_started

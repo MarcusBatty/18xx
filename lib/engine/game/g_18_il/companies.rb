@@ -370,7 +370,8 @@ end
                 name: 'Engineering Mastery',
                 value: 5,
                 revenue: 0,
-                desc: 'During the tile-laying step of the corporation's operating turn, upgrade two tiles from yellow to green (instead of two lays or one lay and one upgrade), paying the normal $20 fee and any terrain costs.',
+                desc: 'During the tile-laying step of the corporation's operating turn, upgrade two tiles from yellow to green (instead of two lays or one lay and one upgrade), '\
+                'paying the normal $20 fee and any terrain costs. This may not be done in any of the IC Line hexes',
                 sym: 'EM',
                 abilities: [
                   {

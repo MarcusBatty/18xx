@@ -32,30 +32,29 @@ module Engine
           end
 
           def upgradeable_tiles(entity, ui_hex)
-            print "step.upgradeable_tiles"
             real_tiles = super
             tiles = real_tiles
             if !IC_LINE_HEXES.include?([ui_hex.x, ui_hex.y]) then
-              print "removing future path tiles from tile selector"
               tiles.delete_if {|t| (FUTURE_PATH_TILES.include?(t.name))}
             end
             tiles
           end
 
           def process_lay_tile(action)
-            super
+            lay_tile_action(action)
             return if action.entity.company?
             improvement = @game.ic_line_improvement(action)
             #@log << "#{improvement}"
             @ic_line_improvement = improvement if improvement
+            pass! unless can_lay_tile?(action.entity)
+          end
 
-=begin
-            return if (@tile_lays += 1) == 1
-            unless @main_line_improvement
-              raise GameError, 'Second tile lay or upgrade only allowed if first or second improves main lines!'
-            end
-            @log << "#{action.entity.name} did get the 2nd tile lay/upgrade due to a main line upgrade"
-=end
+          def can_lay_tile?(entity)
+            return true if tile_lay_abilities_should_block?(entity)
+            return true if can_buy_tile_laying_company?(entity, time: type)
+            action = get_tile_lay(entity)
+            return false unless action
+            !entity.tokens.empty? && (buying_power(entity) >= action[:cost]) && (action[:lay] || action[:upgrade])
           end
 
           def available_hex(entity, hex, normal: false)
