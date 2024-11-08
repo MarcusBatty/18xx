@@ -81,7 +81,7 @@ module Engine
               ['E22'] => 'label=C;city=revenue:0;path=a:3,b:_0,track:future;path=a:0,b:_0,track:future;border=edge:0,type:water,cost:20;border=edge:2,type:water,cost:20;border=edge:5,type:water;icon=image:18_il/ic_cube,sticky:1',
               ['F5'] => 'town=revenue:0,groups:mine;upgrade=cost:20,terrain:water;icon=image:18_il/mine,sticky:1',
               ['F15'] => 'path=a:4,b:0,track:future;icon=image:18_il/ic_cube,sticky:1',
-              ['F17'] => 'city=revenue:0;path=a:3,b:_0,track:future;path=a:0,b:_0,track:future;icon=image:18_il/ic_cube,sticky:1;upgrade=cost:20,terrain:water',
+              ['F17'] => 'label=C;city=revenue:0;path=a:3,b:_0,track:future;path=a:0,b:_0,track:future;icon=image:18_il/ic_cube,sticky:1;upgrade=cost:20,terrain:water',
               ['F19'] => 'path=a:1,b:3,track:future;upgrade=cost:20,terrain:water;icon=image:18_il/ic_cube,sticky:1',
               ['F21'] => 'town=revenue:0,groups:mine;border=edge:0,type:water,cost:20;icon=image:18_il/mine,sticky:1',           
               ['G6'] => 'city=revenue:0;upgrade=cost:20,terrain:water',
