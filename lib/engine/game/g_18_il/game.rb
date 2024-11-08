@@ -308,6 +308,7 @@ module Engine
         def status_str(corp)
           str = ''
             company = @companies.find { |c| !c.closed? && c.sym == corp.name }
+            
             str += if company&.owner&.player?
                      "Concession: #{company.owner.name} "
                    else
@@ -328,7 +329,7 @@ module Engine
         end
 
         def return_concessions!
-          companies.each do |c|
+          @companies.each do |c|
             next unless c&.owner&.player?
             player = c.owner
             player.companies.delete(c)
@@ -384,6 +385,10 @@ module Engine
               new_operating_round
             when Engine::Round::Operating
               or_round_finished
+              if @ic_formation_triggered
+                @ic_formation_triggered = false
+                form_ic
+              end
               if @round.round_num < @operating_rounds
                 new_operating_round(@round.round_num + 1)
               else
@@ -392,12 +397,18 @@ module Engine
                 new_auction_round
               end
             when init_round.class
-              
-              new_auction_round
-              reorder_players
+              init_round_finished
+              new_stock_round
             end
         end
  
+        def init_round
+          new_auction_round
+        end
+
+
+        def form_ic; end
+
         def initial_auction_companies
           companies
         end

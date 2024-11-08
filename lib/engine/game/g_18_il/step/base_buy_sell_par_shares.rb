@@ -68,15 +68,6 @@ module Engine
             track_action(action, action.bundle.corporation)
           end
 
-          def get_par_prices(entity, corp)
-            return super if corp.type == :major
-
-            @game
-              .stock_market
-              .par_prices
-              .select { |p| p.type == :par && p.price * 2 <= entity.cash }
-          end
-
           def process_par(action)
             @round.corp_started = action.corporation
             super
