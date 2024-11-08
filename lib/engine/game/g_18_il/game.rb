@@ -308,7 +308,7 @@ module Engine
  
           def new_auction_round
           @log << "-- Auction Round #{@turn} --"
-            Engine::Round::Auction.new(self, [
+            G18IL::Round::Auction.new(self, [
               G18IL::Step::ConcessionAuction,
             ])
         end
