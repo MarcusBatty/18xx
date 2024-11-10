@@ -65,6 +65,7 @@ module Engine
             company = @game.company_by_id(action.corporation.name)
             @game.companies.delete(company)
             company.close!
+            @log << "#{action.corporation.ipoed}"
           end
 
         end

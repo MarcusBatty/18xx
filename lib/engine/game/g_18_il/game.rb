@@ -167,7 +167,11 @@ module Engine
             @port_corporations ||= @corporations.min_by(4) { rand }
             @mine_corporations ||= @corporations - @port_corporations
             @port_tile_for_hex ||= PORT_TILE_FOR_HEX.min_by(1) { rand }
+          else
+            @port_corporations ||= []
+            @mine_corporations ||= []
           end
+
 
         end
 
@@ -315,7 +319,7 @@ module Engine
               else
                 @turn += 1
                 or_set_finished
-                new_auction_round
+                new_concession_round
               end
             when init_round.class
               init_round_finished
@@ -323,11 +327,10 @@ module Engine
             end
         end
  
-          def new_auction_round
-          @log << "-- Auction Round #{@turn} --"
-            G18IL::Round::Auction.new(self, [
-              G18IL::Step::ConcessionAuction,
-            ])
+        def concession_round
+          G18IL::Round::Auction.new(self, [
+            G18IL::Step::ConcessionAuction,
+          ])
         end
 
         def stock_round
@@ -342,29 +345,33 @@ module Engine
 
         def operating_round(round_num)
           Engine::Round::Operating.new(self, [
-            #Engine::Step::Bankrupt,
+            Engine::Step::Bankrupt,
             Engine::Step::Exchange,
             Engine::Step::SpecialTrack,
             Engine::Step::SpecialToken,
-            G18IL::Step::BuyNewTokens,
-            Engine::Step::BuyCompany,
             Engine::Step::HomeToken,
             Engine::Step::DiscardTrain,
-            G18IL::Step::Convert,
-          # G18IL::Step::PostConversion,
-            G18IL::Step::IssueShares,
+            G18IL::Step::Conversion,
+            G18IL::Step::PostConversionShares,
+            #G18IL::Step::BuyNewTokens,
+            #G18IL::Step::IssueShares,
             G18IL::Step::Track,
             G18IL::Step::Token,
             G18IL::Step::Route,
             G18IL::Step::Dividend,
-          # G18IL::Step::EmergencyMoneyRaising,
+            #G18IL::Step::EmergencyMoneyRaising,
             Engine::Step::BuyTrain,
             [Engine::Step::BuyCompany, { blocks: true }],
           ], round_num: round_num)
         end
 
         def init_round
-          new_auction_round
+          new_concession_round
+        end
+
+        def new_concession_round
+          @log << "-- Concession Round #{@turn} --"
+          concession_round
         end
 
         def can_par?(corporation, entity)
@@ -379,7 +386,7 @@ module Engine
         end
 
         def return_concessions!
-          @companies.each do |c|
+          companies.each do |c|
             next unless c&.owner&.player?
             player = c.owner
             player.companies.delete(c)
@@ -390,6 +397,7 @@ module Engine
 
         def finish_stock_round
           return_concessions!
+          @log << "#{companies}"
         end
 
         def form_ic; end
@@ -402,8 +410,14 @@ module Engine
           'CONCESSION'
         end
 
-        def allow_player2player_sales?
-          @player2player ||= true #@optional_rules&.include?(:p2p_purchases)
+        # def allow_player2player_sales?
+        #   @player2player ||= true #@optional_rules&.include?(:p2p_purchases)
+        # end
+
+        def tokens_needed(corporation)
+          tokens_needed = { 2 => 1, 5 => 2, 10 => 5 }[corporation.total_shares] - corporation.tokens.size
+          tokens_needed += 1 if corporation.companies.any? { |c| c.id == EXTRA_STATION_PRIVATE_NAME }
+          tokens_needed
         end
 
         def close_corporation(corp)
@@ -674,7 +688,7 @@ module Engine
         end
 
         def p_bonus(route, stops)
-          return 0 unless route.train.name.include? ("P")
+          return 0 unless route.train.name.include?("P")
           cities = stops.select { |s| s.city? }
           count = route.train.name[-2]
           bonus = cities.map { |stop| stop.route_revenue(route.phase, route.train) }.max(count.to_i)
@@ -843,7 +857,7 @@ module Engine
         end 
 
         def assign_option_cube(entity)
-          if has_option_cube?(entity) #TODO: if corp has auction cube, increment count rather than adding additional cube (if possible)
+          if has_option_cube?(entity) #TODO: if corp has action cube, increment count rather than adding additional cube (if possible)
             @log << "#{entity.name} gains an option cube"
             entity.add_ability(@option_cube_ability.dup)
           else

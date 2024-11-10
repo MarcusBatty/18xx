@@ -13,9 +13,10 @@ module Engine
           def setup
             setup_auction    
             if @game.turn == 1
-              @companies = @game.initial_auction_companies.dup 
+              @companies = @game.initial_auction_companies
             else
               @companies = @game.companies
+              @log << "#{@companies}"
             end
           end
 
@@ -35,6 +36,7 @@ module Engine
             end
             company.owner = player
             player.companies << company
+            @companies.delete(company)
             player.spend(price, @game.bank) if price.positive?
             @log << "#{player.name} wins the auction for #{company.name} "\
                     "with a bid of #{@game.format_currency(price)}"

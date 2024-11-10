@@ -9,7 +9,7 @@ module Engine
         class Auction < Engine::Round::Auction
 
           def name
-            'Auction Round'
+            'Concession Round'
           end
 
           def self.short_name

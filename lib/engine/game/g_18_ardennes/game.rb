@@ -33,7 +33,7 @@ module Engine
         MIN_BID_INCREMENT = 5
         MUST_BID_INCREMENT_MULTIPLE = true
         COMPANY_SALE_FEE = 0 # Fee for selling Guillaume-Luxembourg to the bank.
-
+        STARTING_CASH = { 2 => 10000, 3 => 10000, 4 => 420, 5 => 360 }.freeze
         SELL_BUY_ORDER = :sell_buy
         SELL_AFTER = :operate
         SELL_MOVEMENT = :left_block_pres
@@ -215,6 +215,12 @@ module Engine
           bankrupt_transfer_cash(player, cash_target)
           declare_bankrupt(player)
         end
+
+        GAME_END_CHECK = {
+          bankrupt: :immediate,
+          #bank: :full_or,
+          all_closed: :immediate,
+        }.freeze
 
         # If a player has gone above 60% holding in a major (by exchanging
         # minors for shares) they don't have to sell back down.

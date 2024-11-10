@@ -70,6 +70,11 @@ module Engine
                 close: :black,
               }.freeze
     
+              MARKET_TEXT = {
+                par: 'Par values',
+                close: 'Corporation closes',
+              }.freeze
+
             def price_movement_chart
             [
                 ['Action', 'Share Price Change'],
@@ -81,7 +86,6 @@ module Engine
                 ['Dividend ≥ 3X stock price', '3 →'],
                 ['Voluntary Issue','Full Amount, then 1 ←'],
                 ['Emergency Issue','Half Amount, then ⤪ for each'],
-                # ['Corporation director sells any number of shares', '1 ←'],
                 ['Corporation is sold out at end of an SR', '1 ⤨ (5 share) or 1 → (10 share)'],
                 ['Corporation has any shares in the Market at end of an SR', '⤪ for each'],
             ]

@@ -1,17 +1,16 @@
 # frozen_string_literal: true
 
 require_relative '../../../step/base'
-require_relative 'corp_convert'
+require_relative '../../../token'
 
 module Engine
   module Game
     module G18IL
       module Step
-        class Convert < Engine::Step::Base
-          include CorpConvert
+        class Conversion < Engine::Step::Base
 
           def actions(entity)
-            return [] if !entity.corporation? || entity != current_entity || @round.converts[-1] == entity
+            return [] if !entity.corporation? || entity != current_entity || entity == @round.converts[-1]
 
             actions = []
             actions << 'convert' if [2, 5].include?(entity.total_shares)
@@ -19,13 +18,8 @@ module Engine
             actions
           end
 
-          #TODO: fix padding?
           def description
             'Convert'
-          end
-
-          def pass_description
-            'Skip (Convert)'
           end
 
           def others_acted?
@@ -38,30 +32,34 @@ module Engine
             @game.convert(corporation)
             after = corporation.total_shares
             @log << "#{corporation.name} converts from a #{before}-share to a #{after}-share corporation"
+
+            tokens = corporation.tokens.size
+
+            @round.tokens_needed =
+              case after
+              when 5
+                1
+              when 10
+                3
+              else
+                0
+              end
+              
             @round.converts << corporation
             @round.converted = corporation
-            pass!
           end
 
-
+          def show_other_players
+            false
+          end
 
           def round_state
             {
               converted: nil,
+              tokens_needed: nil,
               converts: [],
             }
           end
-
-          def setup
-            super
-            @round.converted = nil
-          end
-          
-          def pass!
-            super
-            post_convert_pass_step! if @round.converted
-          end
-
         end
       end
     end

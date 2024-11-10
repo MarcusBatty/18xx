@@ -26,7 +26,6 @@ module Engine
 
           def setup
             super
-
             @ic_line_improvement = nil
             #@tile_lays = 0
           end
