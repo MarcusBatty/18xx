@@ -10,7 +10,7 @@ module Engine
 
           def actions(entity)
             return [] unless entity == pending_entity
-
+            @log << "buy tokens action" #remove
             %w[choose]
           end
 

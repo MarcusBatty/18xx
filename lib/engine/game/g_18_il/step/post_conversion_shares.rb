@@ -11,7 +11,6 @@ module Engine
           
           def actions(entity)
             return [] if !entity.player? || !@round.converted
-
             actions = []
             actions << 'buy_shares' if can_buy_any?(entity)
             actions << 'sell_shares' if can_sell?(entity, nil)
@@ -25,9 +24,9 @@ module Engine
 
           def active_entities
             return [] unless corporation
-
-            [@game.players.rotate(@game.players.index(corporation.owner))
-            .find { |p| p.active? && (can_buy_any?(p) || can_sell?(p, nil)) }].compact
+            @game.players
+           # [@game.players.rotate(@game.players.index(corporation.owner))
+           # .find { |p| p.active? && (can_buy_any?(p) || can_sell?(p, nil)) }].compact
           end
 
           def visible_corporations
@@ -48,8 +47,11 @@ module Engine
 
           def process_pass(action)
             log_pass(action.entity)
-            action.entity.pass! 
-            #@round.converted = nil #this needs to be called or the auction round is skipped
+            action.entity.pass!
+          end
+
+          def log_pass(entity)
+            @log << "#{entity.name} passes buy/sell shares"
           end
 
           def can_sell?(entity, _bundle)

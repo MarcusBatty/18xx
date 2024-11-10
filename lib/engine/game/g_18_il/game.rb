@@ -258,7 +258,6 @@ module Engine
         def status_str(corp)
           str = ''
             company = @companies.find { |c| c.sym == corp.name }
-            
             str += if company&.owner&.player?
                      "Concession: #{company.owner.name} "
                    else
@@ -353,8 +352,8 @@ module Engine
             Engine::Step::DiscardTrain,
             G18IL::Step::Conversion,
             G18IL::Step::PostConversionShares,
-            #G18IL::Step::BuyNewTokens,
-            #G18IL::Step::IssueShares,
+            G18IL::Step::BuyNewTokens,
+            G18IL::Step::IssueShares,
             G18IL::Step::Track,
             G18IL::Step::Token,
             G18IL::Step::Route,
@@ -397,7 +396,6 @@ module Engine
 
         def finish_stock_round
           return_concessions!
-          @log << "#{companies}"
         end
 
         def form_ic; end
