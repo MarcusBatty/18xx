@@ -45,6 +45,22 @@ module Engine
             improvement = @game.ic_line_improvement(action)
             #@log << "#{improvement}"
             @ic_line_improvement = improvement if improvement
+
+            hex = action.hex
+            tile = action.hex.tile
+            if @game.ic_line_hex?(hex) then
+              # if yellow, then one must match
+              if tile.color == 'yellow' then
+                if @game.ic_line_connections(hex) < 1 then
+                  raise GameError, "Yellow tile must connect IC line for at least one neighboring IC line hex."
+                end
+              # else if green, both must match
+              elsif tile.color == 'green' then
+                if @game.ic_line_connections(hex) < 2 then
+                  raise GameError, "Green tile must complete IC line in this hex for both neighboring IC line hexes."
+                end
+              end
+            end
             pass! unless can_lay_tile?(action.entity)
           end
 
