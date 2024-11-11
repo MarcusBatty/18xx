@@ -244,6 +244,10 @@ module Engine
             else
               "Class B"
             end
+          elsif _company.meta[:type] == :concession
+            (@corporations.select { |c| c.name == _company.sym }).each do |corp|
+              return sprintf("A: %s B: %s", corp.companies[0].name, corp.companies[1].name)
+            end
           end
         end
 
@@ -284,7 +288,7 @@ module Engine
           @nc ||= corporation_by_id('NC')
         end
 
-         def setup_preround
+        def setup_preround
           super
 
           #creates corp that places blocking tokens (phase colors) in STL
@@ -319,10 +323,13 @@ module Engine
           end
 
           if !optional_rules.include?(:intro_game) then
-            classA = [8,9,10,11,12,13,14,15]
-            classB = [16,17,18,19,20,21,22,23]
-            classA.shuffle
-            classB.shuffle
+            _classA = [8,9,10,11,12,13,14,15]
+            _classB = [16,17,18,19,20,21,22,23]
+            classA = _classA.min_by(8) {rand}
+            classB = _classB.min_by(8) {rand}
+            @log << "Random privates order"
+            @log << "Class A: #{classA}"
+            @log << "Class B: #{classB}"
             8.times do |i|
                 entity = @corporations[i]
                 c = companies[classA[i]]
@@ -337,38 +344,6 @@ module Engine
                 entity.companies << c
             end
           end
-=begin
-          if !optional_rules.include?(:intro_game) then
-            classA = companies[8..15]
-            classB = companies[16..23]
-            @corporations.each do |entity|
-                #c = classA.min_by(1) { rand }
-                c = classA.sample(1)
-                @log << "#{c}"
-                #c.owner = entity
-                #entity.assign!(c.id)
-                #entity.companies << c
-                classA.delete(c)
-            end
-          end
-          if !optional_rules.include?(:intro_game) then
-            #i = rand()
-            classA = companies[8..15]
-            classB = companies[16..23]
-            i = 2
-            @log << "#{i}"
-            entity = @corporations[i]
-            classB.each do |c|
-              if c.meta[:type] == :private
-                c.owner = entity
-                entity.assign!(c.id)
-                #ability = @game.abilities(c, :assign_corporation)
-                #ability.use!
-                entity.companies << c
-                #companies.delete(c)
-              end
-            end
-=end
         end
 
         def setup
