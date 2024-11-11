@@ -236,6 +236,17 @@ module Engine
         def initial_auction_companies
           companies
         end
+
+        def company_status_str(_company)
+          if _company.meta[:type] == :private
+            if _company.meta[:class] == :A   
+              "Class A"
+            else
+              "Class B"
+            end
+          end
+        end
+
         
         def company_header(_company)
           if _company.meta[:type] == :concession
@@ -307,7 +318,57 @@ module Engine
             @mine_corporations ||= []
           end
 
-
+          if !optional_rules.include?(:intro_game) then
+            classA = [8,9,10,11,12,13,14,15]
+            classB = [16,17,18,19,20,21,22,23]
+            classA.shuffle
+            classB.shuffle
+            8.times do |i|
+                entity = @corporations[i]
+                c = companies[classA[i]]
+                #@log << "#{c}"
+                c.owner = entity
+                entity.assign!(c.id)
+                entity.companies << c
+                c = companies[classB[i]]
+                #@log << "#{c}"
+                c.owner = entity
+                entity.assign!(c.id)
+                entity.companies << c
+            end
+          end
+=begin
+          if !optional_rules.include?(:intro_game) then
+            classA = companies[8..15]
+            classB = companies[16..23]
+            @corporations.each do |entity|
+                #c = classA.min_by(1) { rand }
+                c = classA.sample(1)
+                @log << "#{c}"
+                #c.owner = entity
+                #entity.assign!(c.id)
+                #entity.companies << c
+                classA.delete(c)
+            end
+          end
+          if !optional_rules.include?(:intro_game) then
+            #i = rand()
+            classA = companies[8..15]
+            classB = companies[16..23]
+            i = 2
+            @log << "#{i}"
+            entity = @corporations[i]
+            classB.each do |c|
+              if c.meta[:type] == :private
+                c.owner = entity
+                entity.assign!(c.id)
+                #ability = @game.abilities(c, :assign_corporation)
+                #ability.use!
+                entity.companies << c
+                #companies.delete(c)
+              end
+            end
+=end
         end
 
         def setup

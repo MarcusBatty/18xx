@@ -173,6 +173,77 @@ module Engine
             ],
           },
           {
+            name: 'Train Subsidy',
+            value: 5,
+            revenue: 0,
+            desc: 'Receive a 25% discount on non-permanent trains and a 20% discount on permanent trains. Once this ability is used, the private company closes.',
+            sym: 'TS',
+            meta: {type: :private, class: :A},
+            #TODO:  fix
+            abilities: [
+              {
+                type: 'train_discount',
+                discount: 0.25,
+                owner_type: 'corporation',
+                use_across_ors: false,
+                trains: %w[2 3 4 3P],
+                count: 4,
+                closed_when_used_up: true,
+                when: 'buy_train',
+              },
+              {
+                type: 'train_discount',
+                discount: 0.2,
+                owner_type: 'corporation',
+                use_across_ors: false,
+                trains: %w[4+2P 5+1P 6 D],
+                count: 4,
+                closed_when_used_up: true,
+                when: 'buy_train',
+              },
+            ],
+          },
+
+          {
+            name: 'Rush Delivery',
+            value: 5,
+            revenue: 0,
+            desc: 'Buy one train from the bank prior to the Run Trains step during this operating round. The corporation may use emergency money raising if'\
+            ' it does not own a train. Once this ability is used, the private company closes.',
+            sym: 'RD',
+            meta: {type: :private, class: :A},
+          },
+
+          {
+            name: 'Station Subsidy',
+  
+            value: 5,
+            revenue: 0,
+            desc: 'This company starts with four subsidy cubes on it.',
+            # When starting or converting a corporation, one, two, three, or four cubes may be discarded to receive a discount of $40,'\ 
+            #' $80, $120, or $160 respectively, when buying station markers. Once the fourth cube has been used, the private company closes.',
+            sym: 'SS',
+            meta: {type: :private, class: :A},
+          },
+          {
+            name: 'Share Premium',
+            value: 5,
+            revenue: 0,
+            desc: 'When issuing a share during the Issue a Share step, receive double the current share price from the bank to the corporation treasury.'\
+                  ' Once this ability is used, the private company closes.',
+            sym: 'SP',
+            meta: {type: :private, class: :A},            
+          },
+          {
+            name: 'U.S. Mail Line',
+            value: 5,
+            revenue: 0,
+            desc: 'After the “Run Trains” step of the corporation’s operating turn, receive $5 from the bank to the corporation’s treasury per stop that each train visited. '\
+            'Multiple trains visiting the same stop grant $5 per visit. The corporation may choose to receive a mine marker at any time.  When it does, the private company closes.',
+            sym: 'USML',
+            meta: {type: :private, class: :A},
+          },
+          {
             name: 'Illinois Steel Bridge Company',
             value: 5,
             revenue: 0,
@@ -211,77 +282,7 @@ module Engine
                 },
               ],
             },
-            {
-              name: 'Train Subsidy',
-              value: 5,
-              revenue: 0,
-              desc: 'Receive a 25% discount on non-permanent trains and a 20% discount on permanent trains. Once this ability is used, the private company closes.',
-              sym: 'TS',
-              meta: {type: :private, class: :A},
-              #TODO:  fix
-              abilities: [
-                {
-                  type: 'train_discount',
-                  discount: 0.25,
-                  owner_type: 'corporation',
-                  use_across_ors: false,
-                  trains: %w[2 3 4 3P],
-                  count: 4,
-                  closed_when_used_up: true,
-                  when: 'buy_train',
-                },
-                {
-                  type: 'train_discount',
-                  discount: 0.2,
-                  owner_type: 'corporation',
-                  use_across_ors: false,
-                  trains: %w[4+2P 5+1P 6 D],
-                  count: 4,
-                  closed_when_used_up: true,
-                  when: 'buy_train',
-                },
-              ],
-            },
 
-            {
-              name: 'Rush Delivery',
-              value: 5,
-              revenue: 0,
-              desc: 'Buy one train from the bank prior to the Run Trains step during this operating round. The corporation may use emergency money raising if'\
-              ' it does not own a train. Once this ability is used, the private company closes.',
-              sym: 'RD',
-              meta: {type: :private, class: :A},
-            },
-
-            {
-              name: 'Station Subsidy',
-    
-              value: 5,
-              revenue: 0,
-              desc: 'This company starts with four subsidy cubes on it.',
-              # When starting or converting a corporation, one, two, three, or four cubes may be discarded to receive a discount of $40,'\ 
-              #' $80, $120, or $160 respectively, when buying station markers. Once the fourth cube has been used, the private company closes.',
-              sym: 'SS',
-              meta: {type: :private, class: :A},
-            },
-            {
-              name: 'Share Premium',
-              value: 5,
-              revenue: 0,
-              desc: 'When issuing a share during the Issue a Share step, receive double the current share price from the bank to the corporation treasury.'\
-                    ' Once this ability is used, the private company closes.',
-              sym: 'SP',
-              meta: {type: :private, class: :A},            
-            },
-            {
-              name: 'U.S. Mail Line',
-              value: 5,
-              revenue: 0,
-              desc: 'After the “Run Trains” step of the corporation’s operating turn, receive $5 from the bank to the corporation’s treasury per stop that each train visited. '\
-              'Multiple trains visiting the same stop grant $5 per visit. The corporation may choose to receive a mine marker at any time.  When it does, the private company closes.',
-              sym: 'USML',
-              meta: {type: :private, class: :A},
-            },
 
             #TODO:  regardless of current city color
             #TODO:  remove other tile
