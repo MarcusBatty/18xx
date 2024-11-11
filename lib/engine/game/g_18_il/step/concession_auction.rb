@@ -15,6 +15,12 @@ module Engine
               'Bid on Concession'
             end
           end
+
+          def setup
+            setup_auction   
+            #@companies = @game.companies
+            @companies = @game.companies.select { |company| company.meta[:type] == :concession }
+          end
           
         end
       end

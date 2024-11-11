@@ -238,7 +238,18 @@ module Engine
         end
         
         def company_header(_company)
-          'CONCESSION'
+          if _company.meta[:type] == :concession
+            'CONCESSION'
+          elsif _company.meta[:type] == :private
+            if _company.meta[:class] == :A   
+              'CLASS A'
+            else
+              'CLASS B'
+            end
+          else
+            'IC SHARE'
+          end
+          
         end
 
         # def allow_player2player_sales?
