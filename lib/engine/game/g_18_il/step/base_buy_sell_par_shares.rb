@@ -17,7 +17,7 @@ module Engine
           end
 
           def round_state
-            super.merge({ corp_started: nil })
+            super.merge({ corp_started: nil})
           end
 
           def setup

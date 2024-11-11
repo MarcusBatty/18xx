@@ -2,12 +2,15 @@
 
 require_relative '../../../step/base'
 require_relative '../../../token'
+require_relative 'corp_convert'
 
 module Engine
   module Game
     module G18IL
       module Step
         class Conversion < Engine::Step::Base
+          include CorpConvert
+
 
           def actions(entity)
             return [] if !entity.corporation? || entity != current_entity || entity == @round.converts[-1]
@@ -33,18 +36,6 @@ module Engine
             after = corporation.total_shares
             @log << "#{corporation.name} converts from a #{before}-share to a #{after}-share corporation"
 
-            tokens = corporation.tokens.size
-
-            @round.tokens_needed =
-              case after
-              when 5
-                1
-              when 10
-                3
-              else
-                0
-              end
-              
             @round.converts << corporation
             @round.converted = corporation
           end
@@ -56,7 +47,6 @@ module Engine
           def round_state
             {
               converted: nil,
-              tokens_needed: nil,
               converts: [],
             }
           end

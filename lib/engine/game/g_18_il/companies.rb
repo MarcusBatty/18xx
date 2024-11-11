@@ -14,86 +14,86 @@ module Engine
         def game_companies
         companies = [
           {
-            name: '1 Peoria and Bureau Valley Railroad',
+            name: 'Peoria and Bureau Valley Railroad',
             sym: 'P&BV',
             value: 0,
             revenue: 0,
-            desc: 'Can start P&BV',
+            desc: 'Can start P&BV in stock round',
             corporation: 'P&BV',
             color: '#4682B4',
             text_color: 'white',
           },
           {
-            name: '2 Northern Cross Railroad',
+            name: 'Northern Cross Railroad',
             sym: 'NC',
             value: 0,
             revenue: 0,
-            desc: 'Can start NC',
+            desc: 'Can start NC in stock round',
             corporation: 'P&BV',
             color: '#2600AA',
             text_color: 'white',
           },
-        ]
-          companies << {
-            name: '3 Galena and Chicago Union Railroad',
+          {
+            name: 'Galena and Chicago Union Railroad',
             sym: 'G&CU',
             value: 0,
             revenue: 0,
-            desc: 'Can start G&CU',
+            desc: 'Can start G&CU in stock round',
             corporation: 'G&CU',
             color: '#F40006',
             text_color: 'white',
-          }
-          companies << {
-            name: '4 Rock Island Line',
+          },
+          {
+            name: 'Rock Island Line',
             sym: 'RI',
             value: 0,
             revenue: 0,
-            desc: 'Can start RI',
+            desc: 'Can start RI in stock round',
             corporation: 'RI',
             color: '#FF9007',
             text_color: 'black',
-          }
-          companies << {
-            name: '5 Chicago and Alton Railroad',
+          },
+          {
+            name: 'Chicago and Alton Railroad',
             sym: 'C&A',
             value: 0,
             revenue: 0,
-            desc: 'Can start C&A',
+            desc: 'Can start C&A in stock round',
             corporation: 'C&A',
             color: '#45DF00',
             text_color: 'black',
-          }
-          companies << {
-            name: '6 Vandalia Railroad',
+          },
+          {
+            name: 'Vandalia Railroad',
             sym: 'V',
             value: 0,
             revenue: 0,
-            desc: 'Can start V',
+            desc: 'Can start V in stock round',
             corporation: 'V',
             color: '#FFFD44',
             text_color: 'black',
-          }
-          companies << {
-            name: '7 Wabash Railroad',
+          },
+          {
+            name: 'Wabash Railroad',
             sym: 'WAB',
             value: 0,
             revenue: 0,
-            desc: 'Can start WAB',
+            desc: 'Can start WAB in stock round',
             corporation: 'WAB',
             color: '#ABABAB',
             text_color: 'black',
-          }
-          companies << {
-            name: '8 Chicago and Eastern Illinois Railroad',
+          },
+          {
+            name: 'Chicago and Eastern Illinois Railroad',
             sym: 'C&EI',
             value: 0,
             revenue: 0,
-            desc: 'Can start C&EI',
+            desc: 'Can start C&EI in stock round',
             corporation: 'C&EI',
             color: '#740013',
             text_color: 'white',
           }
+        ]
           # #TODO:  fix
           # {
           #   name: 'Extra Station',

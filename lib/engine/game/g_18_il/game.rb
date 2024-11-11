@@ -120,7 +120,129 @@ module Engine
       
         @port_log = []
         @mine_log = []
+    
+        def next_round!
+          @round =
+            case @round
+            when Engine::Round::Auction
+              reorder_players
+              new_stock_round
+            when Engine::Round::Stock
+              @operating_rounds = 2
+              reorder_players
+              new_operating_round
+            when Engine::Round::Operating
+              or_round_finished
+              if @ic_formation_triggered
+                @ic_formation_triggered = false
+                form_ic
+              end
+              if @round.round_num < @operating_rounds
+                new_operating_round(@round.round_num + 1)
+              else
+                @turn += 1
+                or_set_finished
+                new_concession_round
+              end
+            when init_round.class
+              init_round_finished
+              new_stock_round
+            end
+        end
+ 
+        def concession_round
+          G18IL::Round::Auction.new(self, [
+            G18IL::Step::ConcessionAuction
+          ])
+        end
+
+        def stock_round
+          G18IL::Round::Stock.new(self, [
+            G18IL::Step::BuyNewTokens,
+            #Engine::Step::DiscardTrain,
+            #Engine::Step::Exchange,
+            #Engine::Step::SpecialTrack,
+            G18IL::Step::BaseBuySellParShares,
+          ])
+        end
+
+        def operating_round(round_num)
+          Engine::Round::Operating.new(self, [
+            Engine::Step::Bankrupt,
+            Engine::Step::Exchange,
+            Engine::Step::SpecialTrack,
+            Engine::Step::SpecialToken,
+            Engine::Step::HomeToken,
+            Engine::Step::DiscardTrain,
+            G18IL::Step::Conversion,
+            G18IL::Step::PostConversionShares,
+            G18IL::Step::BuyNewTokens,
+            G18IL::Step::IssueShares,
+            G18IL::Step::Track,
+            G18IL::Step::Token,
+            G18IL::Step::Route,
+            G18IL::Step::Dividend,
+            #G18IL::Step::EmergencyMoneyRaising,
+            Engine::Step::BuyTrain,
+            [Engine::Step::BuyCompany, { blocks: true }],
+          ], round_num: round_num)
+        end
         
+        def status_str(corp)
+          str = ''
+          company = @companies.find { |c| !c.closed? && c.sym == corp.name }
+          str += "Concession: #{company.owner.name} " if company&.owner&.player?
+          str.strip
+        end
+
+        def init_round
+          new_concession_round
+        end
+
+        def new_concession_round
+          @log << "-- Concession Round #{@turn} --"
+          concession_round
+        end
+
+        def can_par?(corporation, entity)
+          return false unless concession_ok?(entity, corporation)
+          super
+        end
+
+        def concession_ok?(player, corp)
+          return false unless player.player?
+
+          player.companies.any? { |c| c.sym == corp.name }
+        end
+
+        def return_concessions!
+          companies.each do |c|
+            next unless c&.owner&.player?
+            player = c.owner
+            player.companies.delete(c)
+            c.owner = nil
+            @log << "#{c.name} (#{c.sym}) has not been used by #{player.name} and is returned to the bank"
+          end
+        end
+
+        def finish_stock_round
+          return_concessions!
+        end
+
+        def form_ic; end
+
+        def initial_auction_companies
+          companies
+        end
+        
+        def company_header(_company)
+          'CONCESSION'
+        end
+
+        # def allow_player2player_sales?
+        #   @player2player ||= true #@optional_rules&.include?(:p2p_purchases)
+        # end
+
         def corporation_size(entity)
           # For display purposes is a corporation small, medium or large
           CORPORATION_SIZES[entity.total_shares]
@@ -255,17 +377,6 @@ module Engine
           'Reserve'
         end
 
-        def status_str(corp)
-          str = ''
-            company = @companies.find { |c| c.sym == corp.name }
-            str += if company&.owner&.player?
-                     "Concession: #{company.owner.name} "
-                   else
-                     ''
-                   end
-            str.strip
-        end
-
         #TODO: add stuff to this
         def timeline
           []
@@ -296,121 +407,6 @@ module Engine
          end
           super
         end
-
-        def next_round!
-          @round =
-            case @round
-            when Engine::Round::Auction
-              reorder_players
-              new_stock_round
-            when Engine::Round::Stock
-              @operating_rounds = 2
-              reorder_players
-              new_operating_round
-            when Engine::Round::Operating
-              or_round_finished
-              if @ic_formation_triggered
-                @ic_formation_triggered = false
-                form_ic
-              end
-              if @round.round_num < @operating_rounds
-                new_operating_round(@round.round_num + 1)
-              else
-                @turn += 1
-                or_set_finished
-                new_concession_round
-              end
-            when init_round.class
-              init_round_finished
-              new_stock_round
-            end
-        end
- 
-        def concession_round
-          G18IL::Round::Auction.new(self, [
-            G18IL::Step::ConcessionAuction,
-          ])
-        end
-
-        def stock_round
-          G18IL::Round::Stock.new(self, [
-            G18IL::Step::BuyNewTokens,
-            #Engine::Step::DiscardTrain,
-            #Engine::Step::Exchange,
-            #Engine::Step::SpecialTrack,
-            G18IL::Step::BaseBuySellParShares,
-          ])
-        end
-
-        def operating_round(round_num)
-          Engine::Round::Operating.new(self, [
-            Engine::Step::Bankrupt,
-            Engine::Step::Exchange,
-            Engine::Step::SpecialTrack,
-            Engine::Step::SpecialToken,
-            Engine::Step::HomeToken,
-            Engine::Step::DiscardTrain,
-            G18IL::Step::Conversion,
-            G18IL::Step::PostConversionShares,
-            G18IL::Step::BuyNewTokens,
-            G18IL::Step::IssueShares,
-            G18IL::Step::Track,
-            G18IL::Step::Token,
-            G18IL::Step::Route,
-            G18IL::Step::Dividend,
-            #G18IL::Step::EmergencyMoneyRaising,
-            Engine::Step::BuyTrain,
-            [Engine::Step::BuyCompany, { blocks: true }],
-          ], round_num: round_num)
-        end
-
-        def init_round
-          new_concession_round
-        end
-
-        def new_concession_round
-          @log << "-- Concession Round #{@turn} --"
-          concession_round
-        end
-
-        def can_par?(corporation, entity)
-          return false unless concession_ok?(entity, corporation)
-          super
-        end
-
-        def concession_ok?(player, corp)
-          return false unless player.player?
-
-          player.companies.any? { |c| c.sym == corp.name }
-        end
-
-        def return_concessions!
-          companies.each do |c|
-            next unless c&.owner&.player?
-            player = c.owner
-            player.companies.delete(c)
-            c.owner = nil
-            @log << "#{c.name} (#{c.sym}) has not been used by #{player.name} and is returned to the bank"
-          end
-        end
-
-        def finish_stock_round
-          return_concessions!
-        end
-
-        def form_ic; end
-
-        def initial_auction_companies
-          companies
-        end
-        
-        def company_header(_company)
-          'CONCESSION'
-        end
-
-        # def allow_player2player_sales?
-        #   @player2player ||= true #@optional_rules&.include?(:p2p_purchases)
-        # end
 
         def tokens_needed(corporation)
           tokens_needed = { 2 => 1, 5 => 2, 10 => 5 }[corporation.total_shares] - corporation.tokens.size

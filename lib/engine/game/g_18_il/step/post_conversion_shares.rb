@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../../../step/base'
+require_relative 'corp_convert'
 
 module Engine
   module Game
@@ -8,6 +9,7 @@ module Engine
       module Step
         class PostConversionShares < Engine::Step::Base
           include Engine::Step::ShareBuying
+          include CorpConvert
           
           def actions(entity)
             return [] if !entity.player? || !@round.converted
@@ -24,9 +26,9 @@ module Engine
 
           def active_entities
             return [] unless corporation
-            @game.players
-           # [@game.players.rotate(@game.players.index(corporation.owner))
-           # .find { |p| p.active? && (can_buy_any?(p) || can_sell?(p, nil)) }].compact
+           # @game.players.rotate(@game.players.index(corporation.owner))
+            [@game.players.rotate(@game.players.index(corporation.owner))
+            .find { |p| p.active? && (can_buy_any?(p) || can_sell?(p, nil)) }].compact
           end
 
           def visible_corporations
@@ -54,6 +56,12 @@ module Engine
             @log << "#{entity.name} passes buy/sell shares"
           end
 
+          def pass!
+            super
+            post_convert_pass_step! if @round.converted
+            @round.converted = nil
+          end
+
           def can_sell?(entity, _bundle)
             !corporation.president?(entity) &&
               entity.shares_of(corporation).any? { |share| share.percent.positive? }
@@ -74,6 +82,10 @@ module Engine
 
           def corporation
             @round.converted
+          end
+
+          def active?
+            corporation
           end
 
         end
