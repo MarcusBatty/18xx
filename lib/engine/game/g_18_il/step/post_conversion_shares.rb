@@ -10,6 +10,11 @@ module Engine
         class PostConversionShares < Engine::Step::Base
           include Engine::Step::ShareBuying
           include CorpConvert
+
+          def setup
+            super
+            @game.players.each(&:unpass!)
+          end
           
           def actions(entity)
             return [] if !entity.player? || !@round.converted
@@ -20,15 +25,14 @@ module Engine
             actions
           end
 
-          def description
-            'Buy/Sell Shares Post Conversion'
+          def pass!
+            super
+            post_convert_pass_step! if @round.converted
+            @round.converted = nil
           end
 
-          def active_entities
-            return [] unless corporation
-           # @game.players.rotate(@game.players.index(corporation.owner))
-            [@game.players.rotate(@game.players.index(corporation.owner))
-            .find { |p| p.active? && (can_buy_any?(p) || can_sell?(p, nil)) }].compact
+          def log_pass(entity)
+            @log << "#{entity.name} passes buy/sell shares"
           end
 
           def visible_corporations
@@ -52,22 +56,11 @@ module Engine
             action.entity.pass!
           end
 
-          def log_pass(entity)
-            @log << "#{entity.name} passes buy/sell shares"
+          def can_buy_any?(entity)
+            can_buy?(entity, corporation.shares[0])
           end
 
-          def pass!
-            super
-            post_convert_pass_step! if @round.converted
-            @round.converted = nil
-          end
-
-          def can_sell?(entity, _bundle)
-            !corporation.president?(entity) &&
-              entity.shares_of(corporation).any? { |share| share.percent.positive? }
-          end
-
-           def can_buy?(entity, bundle)
+          def can_buy?(entity, bundle)
             return unless bundle
 
             corporation == bundle.corporation &&
@@ -76,8 +69,13 @@ module Engine
               can_gain?(entity, bundle)
           end
 
-          def can_buy_any?(entity)
-            can_buy?(entity, corporation.shares[0])
+          def can_sell?(entity, _bundle)
+            !corporation.president?(entity) &&
+              entity.shares_of(corporation).any? { |share| share.percent.positive? }
+          end
+
+          def description
+            'Buy/Sell Shares Post Conversion'
           end
 
           def corporation
@@ -86,6 +84,12 @@ module Engine
 
           def active?
             corporation
+          end
+
+          def active_entities
+            return [] unless corporation
+           [@game.players.rotate(@game.players.index(corporation.owner))
+           .find { |p| p.active? && (can_buy_any?(p) || can_sell?(p, nil)) }].compact
           end
 
         end

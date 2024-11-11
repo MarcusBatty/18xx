@@ -17,6 +17,7 @@ module Engine
           end
 
           def setup
+            @game.players.each(&:unpass!)
             setup_auction   
             #@companies = @game.companies
             @companies = @game.companies.select { |company| company.meta[:type] == :concession }

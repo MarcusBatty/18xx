@@ -325,12 +325,12 @@ module Engine
           if !optional_rules.include?(:intro_game) then
             _classA = [8,9,10,11,12,13,14,15]
             _classB = [16,17,18,19,20,21,22,23]
-            classA = _classA.min_by(8) {rand}
-            classB = _classB.min_by(8) {rand}
+            classA = _classA.min_by(_classA.count) {rand}
+            classB = _classB.min_by(_classB.count) {rand}
             @log << "Random privates order"
             @log << "Class A: #{classA}"
             @log << "Class B: #{classB}"
-            8.times do |i|
+            classA.count.times do |i|
                 entity = @corporations[i]
                 c = companies[classA[i]]
                 #@log << "#{c}"

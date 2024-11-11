@@ -2,14 +2,12 @@
 
 require_relative '../../../step/base'
 require_relative '../../../token'
-require_relative 'corp_convert'
 
 module Engine
   module Game
     module G18IL
       module Step
         class Conversion < Engine::Step::Base
-          include CorpConvert
 
 
           def actions(entity)
