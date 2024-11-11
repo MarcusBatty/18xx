@@ -22,7 +22,7 @@ module Engine
         include Market
         include Phases
 
-        attr_accessor :stl_nodes, :blocking_token, :ic_lines_built, :ic_lines_progress
+        attr_accessor :stl_nodes, :blocking_token, :ic_lines_built, :ic_lines_progress, :mine_corp, :port_corp
 
         register_colors(red: '#d1232a',
                         orange: '#f58121',
@@ -93,6 +93,8 @@ module Engine
         SPRINGFIELD_HEX = 'E12'.freeze
         CORPORATION_SIZES = { 2 => :small, 5 => :medium, 10 => :large }.freeze
        # CORPORATIONS = %w[P&BV NC G&CU RI C&A V WAB C&EI].freeze
+        PORT_ICON = 'port'
+        MINE_ICON = 'mine'
 
        PORT_TILE_FOR_HEX = {
         'B1' => ['SPH', 0],
@@ -188,7 +190,7 @@ module Engine
           ], round_num: round_num)
         end
         
-        def status_str(corp)
+          def status_str(corp)
           str = ''
           company = @companies.find { |c| !c.closed? && c.sym == corp.name }
           str += "Concession: #{company.owner.name} " if company&.owner&.player?
@@ -343,10 +345,21 @@ module Engine
             @all_tiles.each { |tile| tile.hide if tile.color == :blue }
         end
 
+        # def assign_port_markers(entity) #old version
+        #   port_log = []
+        #   port_corporations.each { |c| 
+        #   c.add_ability(@port_marker_ability.dup)
+        #   port_log << c.name
+        #   port_log << ", " if port_log.count < 6
+        #   port_log << 'and ' if port_log.count == 6
+        # }
+        # @log << "#{port_log.join} receive port markers"
+        # end
+
         def assign_port_markers(entity)
           port_log = []
           port_corporations.each { |c| 
-          c.add_ability(@port_marker_ability.dup)
+          c.assign!(PORT_ICON)
           port_log << c.name
           port_log << ", " if port_log.count < 6
           port_log << 'and ' if port_log.count == 6
@@ -357,7 +370,7 @@ module Engine
         def assign_mine_markers(entity)
           mine_log = []
           mine_corporations.each { |c| 
-          c.add_ability(@mine_marker_ability.dup)
+          c.assign!(MINE_ICON)
           mine_log << c.name
           mine_log << ", " if mine_log.count < 6
           mine_log << 'and ' if mine_log.count == 6
