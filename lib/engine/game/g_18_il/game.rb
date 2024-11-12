@@ -944,6 +944,13 @@ module Engine
                 _corp = get_owner("GTL")
               end
             end
+          when Action::LayTile
+            if action.entity.kind_of? Company
+              if (action.entity.sym == "SMBT") 
+                 #@log << "SMBT"
+                _corp = get_owner("SMBT")
+              end
+            end
           end
   
           @round.process_action(action)
@@ -960,9 +967,17 @@ module Engine
                 log << "#{_corp.name} receives Port marker."
               end
             end
+          when Action::LayTile
+          if action.entity.kind_of? Company
+            if (action.entity.sym == "SMBT") 
+               #@log << "SMBT"
+               _corp.assign!(PORT_ICON) if _corp
+               _corp.assign!(PORT_ICON) if _corp
+              log << "#{_corp.name} receives two Port markers."
+            end
           end
-  
-  
+        end
+      
           end_timing = game_end_check&.last
           end_game! if end_timing == :immediate
   
