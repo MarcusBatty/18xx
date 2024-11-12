@@ -936,21 +936,21 @@ module Engine
           preprocess_action(action)
 
           case action
-          when Action::PlaceToken
-            #@log << "action processed ****** #{action}  #{action.class} #{action.entity}"
-            if action.entity.kind_of? Company
-              if (action.entity.sym == "GTL") 
-                #@log << "GTL"
-                _corp = get_owner("GTL")
+            when Action::PlaceToken
+              #@log << "action processed ****** #{action}  #{action.class} #{action.entity}"
+              if action.entity.kind_of? Company
+                if (action.entity.sym == "GTL") 
+                  _corp = get_owner("GTL")
+                end
               end
-            end
-          when Action::LayTile
-            if action.entity.kind_of? Company
-              if (action.entity.sym == "SMBT") 
-                 #@log << "SMBT"
-                _corp = get_owner("SMBT")
+            when Action::LayTile
+              if action.entity.kind_of? Company
+                if ((action.entity.sym == "SMBT") ||
+                    (action.entity.sym == "FWC") ||
+                    (action.entity.sym == "CVCC")) 
+                    _corp = get_owner(action.entity.sym)
+                end
               end
-            end
           end
   
           @round.process_action(action)
@@ -958,25 +958,28 @@ module Engine
           action_processed(action)
 
           case action
-          when Action::PlaceToken
-            #@log << "action processed ****** #{action}  #{action.class} #{action.entity}"
+            when Action::PlaceToken
+              #@log << "action processed ****** #{action}  #{action.class} #{action.entity}"
+              if action.entity.kind_of? Company
+                if (action.entity.sym == "GTL") 
+                  _corp.assign!(PORT_ICON) if _corp
+                  log << "#{_corp.name} receives Port marker."
+                end
+              end
+            when Action::LayTile
             if action.entity.kind_of? Company
-              if (action.entity.sym == "GTL") 
-                #@log << "GTL"
+              if (action.entity.sym == "SMBT") 
                 _corp.assign!(PORT_ICON) if _corp
-                log << "#{_corp.name} receives Port marker."
+                _corp.assign!(PORT_ICON) if _corp
+                log << "#{_corp.name} receives two Port markers."
+              elsif
+                if ((action.entity.sym == "FWC") || 
+                    (action.entity.sym == "CVCC"))
+                  _corp.assign!(MINE_ICON) if _corp
+                end
               end
             end
-          when Action::LayTile
-          if action.entity.kind_of? Company
-            if (action.entity.sym == "SMBT") 
-               #@log << "SMBT"
-               _corp.assign!(PORT_ICON) if _corp
-               _corp.assign!(PORT_ICON) if _corp
-              log << "#{_corp.name} receives two Port markers."
-            end
           end
-        end
       
           end_timing = game_end_check&.last
           end_game! if end_timing == :immediate
