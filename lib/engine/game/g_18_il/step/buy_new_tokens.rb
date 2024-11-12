@@ -80,7 +80,11 @@ module Engine
           def price(num)
             return 0 if num.zero?
 
-            pending_first_price + ((num - 1) * pending_price)
+            price = pending_first_price + ((num - 1) * pending_price)
+            #discount on 4th and 5th token
+            price -= 10 if num == 4
+            price -= 20 if num == 5
+            return price
           end
 
           def choices

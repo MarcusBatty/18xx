@@ -778,7 +778,7 @@ module Engine
           ports = (stop_hexes & PORT_HEXES).count
           others = route_distance(route) - mines - ports- galena
           str = others.to_s
-          str += "+#{mines}m" if (mines.positive? || galena.positive?) && route.corporation.assignments.include?(MINE_ICON)
+          str += "+#{mines + galena}m" if (mines.positive? || galena.positive?) && route.corporation.assignments.include?(MINE_ICON)
           str += "+#{ports}p" if ports.positive? && route.corporation.assignments.include?(PORT_ICON)
           return str
         end
