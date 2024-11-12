@@ -710,13 +710,6 @@ module Engine
           StockMarket.new(self.class::MARKET, [], zigzag: :flip)
         end
 
-        def revenue_for(route, stops)
-          revenue = super
-          revenue += ew_ns_bonus(stops)[:revenue] + p_bonus(route, stops)
-          revenue = revenue - mine_revenue_removal(route, stops) - port_revenue_removal(route, stops)
-          return revenue
-        end
-
         def mine_revenue_removal(route, stops)
           return 0 if route.corporation.assignments.include?(MINE_ICON)
           stop_hexes = stops.map(&:hex).map { |hex| hex.name }
@@ -742,8 +735,6 @@ module Engine
           return bonus.sum
         end
 
-        #submit_revenue_str; end #TODO?
-
         def ew_ns_bonus(stops)
             bonus = { revenue: 0 }
 
@@ -765,6 +756,14 @@ module Engine
             return bonus
         end
 
+        def revenue_for(route, stops)
+          revenue = super
+          revenue += ew_ns_bonus(stops)[:revenue] + p_bonus(route, stops)
+          revenue = revenue - mine_revenue_removal(route, stops) - port_revenue_removal(route, stops)
+          return revenue
+        end
+
+
          def revenue_str(route)
            str = super
            bonus = ew_ns_bonus(route.stops)[:description]
@@ -779,8 +778,8 @@ module Engine
           ports = (stop_hexes & PORT_HEXES).count
           others = route_distance(route) - mines - ports- galena
           str = others.to_s
-          str += "+#{mines}m" if (mines.positive? || galena.positive?) && @mine_corporations.include?(route.train.owner)
-          str += "+#{ports}p" if ports.positive? && @port_corporations.include?(route.train.owner)
+          str += "+#{mines}m" if (mines.positive? || galena.positive?) && route.corporation.assignments.include?(MINE_ICON)
+          str += "+#{ports}p" if ports.positive? && route.corporation.assignments.include?(PORT_ICON)
           return str
         end
 
@@ -958,7 +957,7 @@ module Engine
               if action.entity.kind_of? Company
                 if (action.entity.sym == "GTL") 
                   _corp.assign!(PORT_ICON) if _corp
-                  log << "#{_corp.name} receives Port marker."
+                  log << "#{_corp.name} receives a port marker"
                 end
               end
             when Action::LayTile
@@ -966,11 +965,12 @@ module Engine
               if (action.entity.sym == "SMBT") 
                 _corp.assign!(PORT_ICON) if _corp
                 _corp.assign!(PORT_ICON) if _corp
-                log << "#{_corp.name} receives two Port markers."
+                log << "#{_corp.name} receives two port markers"
               elsif
                 if ((action.entity.sym == "FWC") || 
                     (action.entity.sym == "CVCC"))
                   _corp.assign!(MINE_ICON) if _corp
+                  log << "#{_corp.name} receives a mine marker"
                 end
               end
             end
