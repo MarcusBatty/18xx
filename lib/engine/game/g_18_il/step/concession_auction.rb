@@ -45,8 +45,10 @@ module Engine
             company.owner = player
             player.companies << company
             player.spend(price, @game.bank) if price.positive?
+            #removes company from the auction
             @companies.delete(company)
             @log << "#{player.name} wins the auction for #{company.name} with a bid of #{@game.format_currency(price)}"
+            #moves auction winner to the back of the line and starts again from the front of the line
             @game.players.insert((@round.entity_index - 1), @game.players.delete_at(@game.players.index(player)))
             @round.entity_index = @game.players.index(player)
           end

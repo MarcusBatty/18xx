@@ -127,7 +127,7 @@ module Engine
           @round =
             case @round
             when Engine::Round::Auction
-              reorder_players
+              #reorder_players
               new_stock_round
             when Engine::Round::Stock
               @operating_rounds = 2
@@ -179,6 +179,7 @@ module Engine
             G18IL::Step::Conversion,
             G18IL::Step::PostConversionShares,
             G18IL::Step::BuyNewTokens,
+            #G18IL::Step::CorporateBuySellShares,
             G18IL::Step::IssueShares,
             G18IL::Step::Track,
             G18IL::Step::Token,
@@ -290,7 +291,7 @@ module Engine
 
         def setup_preround
           super
-
+          @ic_formation_triggered = nil
           #creates corp that places blocking tokens (phase colors) in STL
           blocking_logo = ["/logos/18_il/yellow_blocking.svg","/logos/18_il/green_blocking.svg","/logos/18_il/brown_blocking.svg","/logos/18_il/gray_blocking.svg"]
           game_start_blocking_corp = Corporation.new(sym: 'GSB', name: 'game_start_blocking_corp', logo: blocking_logo[0], simple_logo: blocking_logo[0], tokens: [0])
@@ -327,22 +328,21 @@ module Engine
             _classB = [16,17,18,19,20,21,22,23]
             classA = _classA.min_by(_classA.count) {rand}
             classB = _classB.min_by(_classB.count) {rand}
-            @log << "Random privates order"
-            @log << "Class A: #{classA}"
-            @log << "Class B: #{classB}"
-            classA.count.times do |i|
+            @log << "-- Auction Lot Formation --"
+            8.times do |i|
+                str = []
                 entity = @corporations[i]
                 c = companies[classA[i]]
-                #@log << "#{c}"
                 c.owner = entity
-                entity.assign!(c.id)
+                str << "#{c.name} and "
                 entity.companies << c
                 c = companies[classB[i]]
-                #@log << "#{c}"
                 c.owner = entity
-                entity.assign!(c.id)
+                str << "#{c.name} assigned to #{entity.name} concession"
                 entity.companies << c
+              @log << str.join
             end
+
           end
         end
 
@@ -468,12 +468,6 @@ module Engine
           super
         end
 
-        def tokens_needed(corporation)
-          tokens_needed = { 2 => 1, 5 => 2, 10 => 5 }[corporation.total_shares] - corporation.tokens.size
-          tokens_needed += 1 if corporation.companies.any? { |c| c.id == EXTRA_STATION_PRIVATE_NAME }
-          tokens_needed
-        end
-
         def close_corporation(corp)
           return if corp.closed?
           @closed_corporations ||= []
@@ -565,6 +559,7 @@ module Engine
               if (@ic_lines_built == 10) then
                 @log << "IC Line is complete"
                 @log << "The Illinois Central Railroad will form at the end of this operating round"
+                @ic_formation_triggered = true
               end
             end
           end
@@ -723,7 +718,7 @@ module Engine
         end
 
         def mine_revenue_removal(route, stops)
-          return 0 if @mine_corporations.include?(route.train.owner)
+          return 0 if route.corporation.assignments.include?(MINE_ICON)
           stop_hexes = stops.map(&:hex).map { |hex| hex.name }
           mines = stop_hexes & MINE_HEXES
           galena = stop_hexes & GALENA
@@ -731,14 +726,12 @@ module Engine
         end
 
         def port_revenue_removal(route, stops)
-          return 0 if @port_corporations.include?(route.train.owner)
+          return 0 if route.corporation.assignments.include?(PORT_ICON)
           stop_hexes = stops.map(&:hex).map { |hex| hex.name }
           st_paul = stop_hexes & ST_PAUL
-          pom = stops.map(&:hex).find { |hex| hex.name == PORT_OF_MEMPHIS }
-         # @log << "#{pom}"
-         # pom.revenue == 0 ? 0 : port_of_memphis = stop_hexes & PORT_OF_MEMPHIS
+          port_of_memphis = stop_hexes & PORT_OF_MEMPHIS
           lake_michigan = stop_hexes & LAKE_MICHIGAN
-          return st_paul.count * 50 #+ port_of_memphis.count * 30 + lake_michigan.count * 20
+          return ((st_paul.count * 50) + (port_of_memphis.count * 30) + (lake_michigan.count * 20))
         end
 
         def p_bonus(route, stops)
@@ -748,6 +741,8 @@ module Engine
           bonus = cities.map { |stop| stop.route_revenue(route.phase, route.train) }.max(count.to_i)
           return bonus.sum
         end
+
+        #submit_revenue_str; end #TODO?
 
         def ew_ns_bonus(stops)
             bonus = { revenue: 0 }
