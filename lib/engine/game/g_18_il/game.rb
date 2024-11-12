@@ -926,6 +926,74 @@ module Engine
         #  @log << "#{@option_cube_ability}"
          # ability.include?(@option_cube_ability)
         end
+
+
+        def process_single_action(action)
+          if action.user && action.user != acting_for_player(action.entity&.player)&.id && action.type != 'message'
+            @log << "• Action(#{action.type}) via Master Mode by: #{player_by_id(action.user)&.name || 'Owner'}"
+          end
+  
+          preprocess_action(action)
+
+          case action
+          when Action::PlaceToken
+            #@log << "action processed ****** #{action}  #{action.class} #{action.entity}"
+            if action.entity.kind_of? Company
+              if (action.entity.sym == "GTL") 
+                #@log << "GTL"
+                _corp = get_owner("GTL")
+              end
+            end
+          end
+  
+          @round.process_action(action)
+  
+          action_processed(action)
+
+          case action
+          when Action::PlaceToken
+            #@log << "action processed ****** #{action}  #{action.class} #{action.entity}"
+            if action.entity.kind_of? Company
+              if (action.entity.sym == "GTL") 
+                #@log << "GTL"
+                _corp.assign!(PORT_ICON) if _corp
+                log << "#{_corp.name} receives Port marker."
+              end
+            end
+          end
+  
+  
+          end_timing = game_end_check&.last
+          end_game! if end_timing == :immediate
+  
+          while @round.finished? && !@finished
+            @round.entities.each(&:unpass!)
+  
+            if end_now?(end_timing) || @turn >= 100
+              end_game!
+            else
+              transition_to_next_round!
+            end
+          end
+          # rescue Engine::GameError => e
+          #  rescue_exception(e, action)
+        end
+
+        def get_owner(sym)
+          corporations.each do |corp|
+            corp.companies.each do |c|
+              #@log << "#{c.sym}  #{sym}"
+              if (c.sym == sym) 
+                #log << "match"
+                return corp
+              end
+            end
+          end
+          nil
+        end
+
+
+
       end
     end
   end
