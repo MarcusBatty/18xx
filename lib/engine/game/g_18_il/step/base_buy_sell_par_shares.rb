@@ -25,6 +25,12 @@ module Engine
             @round.corp_started = nil
           end
 
+          def visible_corporations
+            started_corps = @game.corporations.select(&:ipoed)
+            potential_corps = @game.corporations.select { |corp| @game.players.find { |player| @game.can_par?(corp, player)}}
+            return (started_corps + potential_corps)
+          end
+
           def can_buy_any_from_player?(_entity)
             false
           end
