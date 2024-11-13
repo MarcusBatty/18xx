@@ -12,6 +12,53 @@ module Engine
       module Step
         class BaseBuySellParShares < Engine::Step::BuySellParShares
           include CorpStart
+
+          def actions(entity)
+            return corporate_actions(entity) if !entity.player? && entity.owned_by?(current_entity)
+            return [] unless entity.player?
+
+            if @corporate_action
+              return [] unless entity.owner == current_entity
+              return ['pass'] if any_corporate_actions?(entity)
+              return []
+            end
+
+            return [] unless entity == current_entity
+            actions = super
+  
+            if (actions.any? || any_corporate_actions?(entity)) && !actions.include?('pass') && !must_sell?(entity)
+              actions << 'pass'
+            end
+
+            actions
+          end
+
+          def log_pass(entity)
+            if @corporate_action
+              @log << "#{entity.name} finishes acting for #{@corporate_action.entity.name}"
+            else
+              super
+            end
+          end
+
+          def can_sell_order?
+            !bought?
+          end
+
+          def corporate_actions(entity)
+            return [] if @corporate_action && @corporate_action.entity != entity
+
+            actions = []
+            if @round.current_actions.none?
+              actions << 'buy_shares' unless @game.redeemable_shares(entity).empty?
+            end
+            actions
+          end
+
+          def any_corporate_actions?(entity)
+            @game.corporations.any? { |corp| corp.owner == entity && !corporate_actions(corp).empty? }
+          end
+
           def description
             'Sell then Buy Shares'
           end
@@ -23,6 +70,7 @@ module Engine
           def setup
             super
             @round.corp_started = nil
+            @corporate_action = nil
           end
 
           def visible_corporations
@@ -38,13 +86,16 @@ module Engine
           def can_buy?(entity, bundle)
             return unless bundle
             return unless bundle.buyable
-            return if bundle.owner.corporation? && bundle.owner != bundle.corporation # can't buy non-IPO shares in treasury
-            return if bundle.owner.player? && entity.player? # && !@game.allow_player2player_sales?
-            return if bundle.owner.player? && entity.corporation?
-            super
+
+            if entity.corporation?
+              entity.cash >= bundle.price && redeemable_shares(entity).include?(bundle)
+            else
+              super
+            end
           end
 
           def pass!
+            @round.current_actions << @corporate_action
             super
             post_share_pass_step! if @round.corp_started
           end
@@ -54,11 +105,29 @@ module Engine
             bundles.any? { |bundle| can_sell?(entity, bundle) }
           end
 
+          def can_sell?(entity, bundle)
+            super && !@corporate_action
+          end
+
           def process_buy_shares(action)
-            @round.players_bought[action.entity][action.bundle.corporation] += action.bundle.percent
-            @round.bought_from_ipo = true if action.bundle.owner.corporation?
-            buy_shares(action.purchase_for || action.entity, action.bundle, swap: action.swap, borrow_from: action.borrow_from, allow_president_change: true)      
-            track_action(action, action.bundle.corporation)
+            entity = action.entity
+            bundle = action.bundle
+            corporation = bundle.corporation
+
+            if entity.player?
+             super
+            else
+              buy_shares(entity, bundle)
+              track_action(action, corporation, false)
+              @corporate_action = action
+            end
+          end
+          
+          def redeemable_shares(entity)
+            return [] if @corporate_action && entity != @corporate_action.entity
+
+            # Done via Buy Shares
+            @game.redeemable_shares(entity)
           end
 
           def process_par(action)

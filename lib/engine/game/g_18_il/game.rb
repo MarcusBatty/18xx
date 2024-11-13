@@ -1043,7 +1043,14 @@ module Engine
           nil
         end
 
+        def redeemable_shares(entity)
+          return [] unless entity.corporation?
+          return [] unless round.steps.find { |step| step.is_a?(Engine::Step::BuySellParShares) }.active?
+          return [] if entity.share_price.acquisition? || entity.share_price.liquidation?
 
+          bundles_for_corporation(share_pool, entity)
+            .reject { |bundle| entity.cash < bundle.price }
+        end
 
       end
     end
