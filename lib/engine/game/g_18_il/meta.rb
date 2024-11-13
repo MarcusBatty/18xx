@@ -13,10 +13,10 @@ module Engine
         GAME_SUBTITLE = 'The Formation of the Illinois Central Railroad'
         GAME_DESIGNER = 'Scott Ninmer'
         GAME_LOCATION = 'Illinois, USA'
-        #GAME_RULES_URL = 'https://boardgamegeek.com/filepage/268508/rules-english'
-        #GAME_INFO_URL = 'https://github.com/tobymao/18xx/wiki/1850jr'
-
-        PLAYER_RANGE = [2, 5].freeze
+        GAME_RULES_URL = 'https://www.dropbox.com/scl/fi/icbibjic7tg0khd20xal5/18IL_Rulebook_v0.7.3.pdf?rlkey=bd3ockc6xe8rsrvkwg9lt5x18&dl=0'
+        #GAME_INFO_URL = 'https://github.com/tobymao/18xx/wiki/18SJ'
+        #TODO: make wiki entry once in alpha
+        PLAYER_RANGE = [2, 5].freeze #TODO: change to 3, 5
 
         OPTIONAL_RULES = [
           {
@@ -25,15 +25,6 @@ module Engine
             desc: 'No private companies or asset trading. Each corporation randomly receives a port or mine marker. One random port tile is placed on the map; the other is removed from the game.'
           },
         ].freeze
-
-=begin
-        def self.check_options(options, _min_players, _max_players)
-          optional_rules = (options || []).map(&:to_sym)
-          return
-          #return unless (optional_rules & %i[first_ed second_ed_co]).length == 2
-          #{ error: 'Cannot guarantee 2nd Edition companies if using 1st Edition' }
-        end
-=end
 
       end
     end
