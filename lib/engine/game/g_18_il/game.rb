@@ -179,13 +179,15 @@ module Engine
             G18IL::Step::Conversion,
             G18IL::Step::PostConversionShares,
             G18IL::Step::BuyNewTokens,
-            #G18IL::Step::CorporateBuySellShares,
             G18IL::Step::IssueShares,
+            G18IL::Step::CorporateBuyShares,
+          #  G18IL::Step::CorporateBuySellShares,
+          # G18IL::Step::Corporate41BuyShares,
             G18IL::Step::Track,
             G18IL::Step::Token,
             G18IL::Step::Route,
             G18IL::Step::Dividend,
-            #G18IL::Step::EmergencyMoneyRaising,
+          #  G18IL::Step::EmergencyMoneyRaising,
             Engine::Step::BuyTrain,
             [Engine::Step::BuyCompany, { blocks: true }],
           ], round_num: round_num)
@@ -232,13 +234,38 @@ module Engine
           return_concessions!
         end
 
-        def form_ic; end
+        def form_ic
+          # corporations << {
+          #   float_percent: 20,
+          #   sym: 'IC',
+          #   name: 'Illinois Central Railroad',
+          #   logo: '18_il/IC',
+          #   simple_logo: '18_il/IC.alt',
+          #   shares: [20,10,10,10,10,10,10,10,10],
+          #   tokens: [0,0,0,0,0,0,0],
+          #   coordinates: 'H3',
+          #   city: 2,
+          #   color: "#006A14",
+          #   type: 'ten_share',
+          #   always_market_price: true,
+          #   startable: false,
+          #   abilities: [
+          #     { type:'close',when: 'never' },
+          #     {
+          #       type: 'borrow_train',
+          #       train_types: %w[2 3 4 3P 4+2P 5+1P 6 D],
+          #       description: 'May borrow a train when trainless',
+          #     },
+          #   ],
+          # }
+        end
 
         def initial_auction_companies
           companies
         end
 
         def company_status_str(_company)
+          return if @optional_rules&.include?(:intro_game)
           if _company.meta[:type] == :private
             if _company.meta[:class] == :A   
               "Class A"
@@ -305,25 +332,17 @@ module Engine
           #creates corp that adds blocking tokens at the start of the final cycle
           game_end_blocking_corp = Corporation.new(sym: 'GEB', name: 'game_end_blocking_corp', logo: '18_il/yellow_blocking', tokens: [0])
          
-          @port_marker_ability =
-          Engine::Ability::Description.new(type: 'description', description: 'Port marker', desc_detail: 'Gains revenue from ports')
-
-          @mine_marker_ability =
-          Engine::Ability::Description.new(type: 'description', description: 'Mine marker', desc_detail: 'Gains revenue from mines')
-
           @option_cube_ability =
            Engine::Ability::Description.new(type: 'description', description: 'Option cube', desc_detail: 'When IC forms, the corporation may trade this cube for a share of IC', count: 1)
 
-          if optional_rules.include?(:intro_game) then
-            @port_corporations ||= @corporations.min_by(4) { rand }
-            @mine_corporations ||= @corporations - @port_corporations
-            @port_tile_for_hex ||= PORT_TILE_FOR_HEX.min_by(1) { rand }
-          else
-            @port_corporations ||= []
-            @mine_corporations ||= []
-          end
+          @port_corporations = []
+          @mine_corporations = []
 
-          if !optional_rules.include?(:intro_game) then
+          if @optional_rules&.include?(:intro_game)
+            @port_corporations = @corporations.min_by(4) { rand }
+            @mine_corporations = @corporations - @port_corporations
+            @port_tile_for_hex = PORT_TILE_FOR_HEX.min_by(1) { rand }
+          else
             _classA = [8,9,10,11,12,13,14,15]
             _classB = [16,17,18,19,20,21,22,23]
             classA = _classA.min_by(_classA.count) {rand}
@@ -342,7 +361,6 @@ module Engine
                 entity.companies << c
               @log << str.join
             end
-
           end
         end
 
@@ -361,6 +379,15 @@ module Engine
             'E22' => 0,
           }
 
+          # # adjust parameters for corps to allow both IPO and treasury stock
+          # @corporations.each do |corp|
+          #   corp.ipo_owner = @bank
+          #   corp.share_holders.keys.each do |sh|
+          #     next if sh == @bank
+          #     sh.shares_by_corporation[corp].dup.each { |share| transfer_share(share, @bank) }
+          #   end
+          # end
+
           # Northern Cross starts with the 'Rogers' train
           train = @depot.upcoming[0]
           train.buyable = false
@@ -371,37 +398,27 @@ module Engine
           end
 
           #assigns port and mine markers to corporations
-          if optional_rules.include?(:intro_game) then
-            assign_port_markers(port_corporations)
-            assign_mine_markers(mine_corporations)
+          if @optional_rules&.include?(:intro_game)
+             assign_port_markers(port_corporations)
+             assign_mine_markers(mine_corporations)
 
             #place random port tile on map and remove the other
-            hex = @hexes.find { |h| h.id == PORT_TILE_HEXES.min_by { rand } }
-            assign_port_tile(hex)
-            remove_port_tiles
+             hex = @hexes.find { |h| h.id == PORT_TILE_HEXES.min_by { rand } }
+             assign_port_tile(hex)
+             remove_port_tiles
           end
+          
         end
 
         def assign_port_tile(hex)
           tile_name, rotation = PORT_TILE_FOR_HEX[hex.id]
           hex.lay(@tiles.find { |t| t.name == tile_name }.rotate!(rotation))
-          @log << "#{tile_name} tile is placed on #{hex.id}"
+          @log << "Port tile is placed on #{hex.id}"
         end
 
         def remove_port_tiles
             @all_tiles.each { |tile| tile.hide if tile.color == :blue }
         end
-
-        # def assign_port_markers(entity) #old version
-        #   port_log = []
-        #   port_corporations.each { |c| 
-        #   c.add_ability(@port_marker_ability.dup)
-        #   port_log << c.name
-        #   port_log << ", " if port_log.count < 6
-        #   port_log << 'and ' if port_log.count == 6
-        # }
-        # @log << "#{port_log.join} receive port markers"
-        # end
 
         def assign_port_markers(entity)
           port_log = []
@@ -410,8 +427,8 @@ module Engine
           port_log << c.name
           port_log << ", " if port_log.count < 6
           port_log << 'and ' if port_log.count == 6
-        }
-        @log << "#{port_log.join} receive port markers"
+          }
+          @log << "#{port_log.join} receive port markers"
         end
 
         def assign_mine_markers(entity)
@@ -421,10 +438,19 @@ module Engine
           mine_log << c.name
           mine_log << ", " if mine_log.count < 6
           mine_log << 'and ' if mine_log.count == 6
-        }
-        @log << "#{mine_log.join} receive mine markers"
+          }
+          @log << "#{mine_log.join} receive mine markers"
         end
 
+        def transfer_share(share, new_owner)
+          corp = share.corporation
+          corp.share_holders[share.owner] -= share.percent
+          corp.share_holders[new_owner] += share.percent
+          share.owner.shares_by_corporation[corp].delete(share)
+          new_owner.shares_by_corporation[corp] << share
+          share.owner = new_owner
+        end
+        
         def ipo_name(_entity = nil)
           'Treasury'
         end
@@ -617,11 +643,34 @@ module Engine
             hex.tile.icons = icons
           end
         end
-
-        def emergency_issuable_shares(entity)
-          bundles = bundles_for_corporation(entity, entity).select { |bundle| @share_pool.fit_in_bank?(bundle) }
-          bundles.each { |b| b.share_price = entity.share_price.price / 2.0 }
-          return bundles
+        
+        def convert(corporation)
+          return unless corporation == current_entity
+          shares = @_shares.values.select { |share| share.corporation == corporation }
+          corporation.share_holders.clear
+          case corporation.total_shares
+          when 2
+            shares[0].percent = 40
+            new_shares = Array.new(3) { |i| Share.new(corporation, percent: 20, index: i + 1) }
+          when 5
+            shares.each { |share| share.percent = 10 }
+            shares[0].percent = 20
+            new_shares = Array.new(5) { |i| Share.new(corporation, percent: 10, index: i + 4) }
+          else
+            raise GameError, 'Cannot convert 10-share corporation'
+          end
+          corporation.max_ownership_percent = 60
+          shares.each { |share| corporation.share_holders[share.owner] += share.percent }
+          new_shares.each do |share| add_new_share(share) end
+          new_shares
+        end
+        
+        def add_new_share(share)
+          owner = share.owner
+          corporation = share.corporation
+          corporation.share_holders[owner] += share.percent if owner
+          owner.shares_by_corporation[corporation] << share
+          @_shares[share.id] = share
         end
 
         def purchase_tokens!(corporation, count, total_cost)
@@ -650,29 +699,30 @@ module Engine
           @round.recalculate_order if @round.respond_to?(:recalculate_order)
         end
         
-        # def emergency_issuable_bundles(entity)
-        #   return [] unless entity.corporation?
-        #   return [] if entity.num_ipo_shares.zero? && entity.total_shares == 10
-        #   if entity.total_shares == 2
-        #     convert(entity)
-        #     @converted = true
-        #   end
+        def emergency_issuable_cash(corporation)
+          emergency_issuable_bundles(corporation).max_by(&:num_shares)&.price || 0
+        end
 
-        #   if emergency_issuable_shares(entity)[-1].share_price + entity.cash < @depot.min_depot_price && entity.total_shares == 5
-        #      convert(entity) 
-        #      @log << "#{entity.name} is forced to convert from a #{@converted ? "2-share to a 10-share" : "5-share to a 10-share"} corporation"
-        #   end
-        #   return [] unless entity.cash < @depot.min_depot_price
-        #   eligible, remaining = emergency_issuable_shares(entity).partition { |bundle| bundle.price + entity.cash < @depot.min_depot_price }
-        #   eligible_shares = eligible.each { |n| n.price }
-        #   return remaining.empty? ? eligible.last(1) : remaining.take(1)
-        # end
+        def emergency_issuable_bundles(entity)
+          return [] unless entity.cash < @depot.min_depot_price
+          bundles = bundles_for_corporation(entity, entity)
+          bundles.each { |b| b.share_price = entity.share_price.price / 2.0 }
+          eligible, remaining = bundles.partition { |bundle| bundle.price + entity.cash < @depot.min_depot_price }
+            return remaining.empty? ? eligible.last(1) : remaining.take(1)
+        end
 
         def issuable_shares(entity)
           return [] unless entity.corporation?
           return [] if entity.num_ipo_shares.zero?
           return bundles_for_corporation(entity, entity).take(1)
         end
+
+        # def emergency_issuable_shares(entity)
+        #   bundles = bundles_for_corporation(entity, entity).select { |bundle| @share_pool.fit_in_bank?(bundle) }
+        #   bundles.each { |b| b.share_price = entity.share_price.price / 2.0 }
+        #   return bundles
+        # end
+
 
         def scrap_train(train)
           owner = train.owner
@@ -803,34 +853,6 @@ module Engine
           #disallows 3P trains from running to red areas
           raise GameError, 'Cannot visit red areas' if visits.first.tile.color == :red || visits.last.tile.color == :red if route.train.name == '3P'
           return super
-        end
-
-        def convert(corporation)
-          shares = @_shares.values.select { |share| share.corporation == corporation }
-          corporation.share_holders.clear
-          case corporation.total_shares
-          when 2
-            shares[0].percent = 40
-            new_shares = Array.new(3) { |i| Share.new(corporation, percent: 20, index: i + 1) }
-          when 5
-            shares.each { |share| share.percent = 10 }
-            shares[0].percent = 20
-            new_shares = Array.new(5) { |i| Share.new(corporation, percent: 10, index: i + 4) }
-          else
-            raise GameError, 'Cannot convert 10-share corporation'
-          end
-          corporation.max_ownership_percent = 60
-          shares.each { |share| corporation.share_holders[share.owner] += share.percent }
-          new_shares.each do |share| add_new_share(share) end
-          new_shares
-        end
-        
-        def add_new_share(share)
-          owner = share.owner
-          corporation = share.corporation
-          corporation.share_holders[owner] += share.percent if owner
-          owner.shares_by_corporation[corporation] << share
-          @_shares[share.id] = share
         end
 
         def event_signal_end_game!

@@ -48,16 +48,15 @@ module Engine
 
             hex = action.hex
             tile = action.hex.tile
-            if @game.ic_line_hex?(hex) then
-              # if yellow, then one must match
-              if tile.color == 'yellow' then
-                if @game.ic_line_connections(hex) < 1 then
-                  raise GameError, "Yellow tile must connect IC line for at least one neighboring IC line hex."
+            if @game.ic_line_hex?(hex)
+              case tile.color
+                when 'yellow' #one must match
+                if @game.ic_line_connections(hex) < 1
+                  raise GameError, "Tile must overlay at least one dashed path"
                 end
-              # else if green, both must match
-              elsif tile.color == 'green' then
-                if @game.ic_line_connections(hex) < 2 then
-                  raise GameError, "Green tile must complete IC line in this hex for both neighboring IC line hexes."
+                when'green' #both must match
+                if @game.ic_line_connections(hex) < 2
+                  raise GameError, "Tile must complete IC Line"
                 end
               end
             end

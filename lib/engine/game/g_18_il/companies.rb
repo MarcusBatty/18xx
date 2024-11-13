@@ -379,8 +379,3 @@ module Engine
     end
   end
 end
-
-=begin
-
-=end 
-

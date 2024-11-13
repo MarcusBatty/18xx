@@ -7,93 +7,44 @@ module Engine
     module G18IL
       module Step
         class CorporateBuySellShares < Engine::Step::BuySellParShares
-
           def actions(entity)
             return [] if entity.corporation? && entity.receivership?
-            return [] unless entity == current_entity
-    
-            actions = []
-            @log << "can_buy_any: #{can_buy_any?(entity)}"
-            actions << 'buy_shares' if can_buy_any?(entity)
-            actions << 'sell_shares' unless issuable_shares(entity).empty?
-            actions << 'pass' unless actions.empty?
-            actions
+
+            super
           end
 
           def redeemable_shares(_corp)
-                        @log << "redeemable_shares"
             []
           end
 
           def description
-            'Issue and/or Buy a Share'
-          end
-
-          def pass_description
-            'Pass'
+            'Issue/Sell then Buy Shares'
           end
 
           def auto_actions(_entity); end
 
-          def can_buy_any?(entity)
-            @log << "can_buy_any?"
-            @log << "can_buy_any_from_ipo? #{can_buy_any_from_ipo?(entity)}"
-            (can_buy_any_from_market?(entity) ||
-            can_buy_any_from_ipo?(entity) ||
-            can_buy_any_from_player?(entity))
+          def can_sell_any?(entity)
+            can_issue?(entity) || super
           end
 
-          def can_buy_any_from_ipo?(entity)
-            @log << "can_buy_any_from_ipo?"
-            count = 0
-            @game.corporations.each do |corporation|
-              count += 1
-              @log << "#{count}"
-              next unless corporation.ipoed
-              @log<< "can_buy_shares? #{can_buy_shares?(entity, corporation.ipo_shares)}"
-              return true if can_buy_shares?(entity, corporation.ipo_shares)
-            end
-
-            false
-          end
-          
-          def can_buy_shares?(entity, shares)
-                        @log << "can_buy_shares?"
-                        @log << "shares.empty? #{shares.empty?}"
-            return false if shares.empty?
-    
-            sample_share = shares.first
-            corporation = sample_share.corporation
-            owner = sample_share.owner
-            @log << "bought? #{bought?}"
-            return false if bought?
-    
-            min_share = nil
-            shares.each do |share|
-              @log << "share: #{share}"
-              next unless share.buyable
-    
-              min_share = share if !min_share || share.percent < min_share.percent
-            end
-            @log << "min_share: #{min_share}"
-            bundle = min_share&.to_bundle
-            @log << "bundle: #{bundle}"
-            return unless bundle
-            available_cash(entity) >= modify_purchase_price(bundle) && can_gain?(entity, bundle)
+          def can_issue?(entity)
+            !bought? && entity.num_ipo_shares.positive? && max_issuable(entity).positive?
           end
 
-          def can_gain?(entity, bundle, exchange: false)
-                        @log << "can_gain?"
-            return if !bundle || !entity
-            return false if bundle.owner.player? && !@game.can_gain_from_player?(entity, bundle)
-    
-            corporation = bundle.corporation
-            @log << "corp: #{corporation.name}"
-            corporation.holding_ok?(entity, bundle.common_percent)
+          def issuable_shares(corp)
+            shares = @game.bundles_for_corporation(corp.ipo_owner, corp) # only IPO shares
+            shares.reject { |bundle| bundle.num_shares > max_issuable(corp) }
+          end
+
+          def max_issuable(corp)
+            num_p_shares = @game.players.sum { |p| p.num_shares_of(corp) }
+            num_c_shares = @game.corporations.sum { |p| p.num_shares_of(corp) }
+            num_m_shares = @game.share_pool.num_shares_of(corp)
+
+            [num_p_shares + num_c_shares - num_m_shares, @game.class::MARKET_SHARE_LIMIT - num_m_shares].min
           end
 
           def can_buy?(entity, bundle)
-            @log << "can buy?"
             return unless bundle
 
             # can't buy from own IPO
@@ -105,15 +56,19 @@ module Engine
             super
           end
 
-          def issuable_shares(entity)
-            # Done via Sell Shares
-            @game.issuable_shares(entity)
+          # FIXME: move to common location
+          def can_buy_any_from_ipo?(entity)
+            @game.corporations.each do |corporation|
+              next unless corporation.ipoed
+              return true if can_buy_shares?(entity, corporation.ipo_shares)
+            end
+
+            false
           end
 
           # FIXME: move to common location
           def buy_shares(entity, shares, exchange: nil, swap: nil, allow_president_change: true, borrow_from: nil,
                          discounter: nil)
-                         @log << "buy_shares"
             corp = shares.corporation
             if shares.owner == corp.ipo_owner
               # IPO shares pay corporation
@@ -129,26 +84,39 @@ module Engine
             end
           end
 
-#delete
-          def visible_corporations
-          @game.corporations.select(&:ipoed)
-          end
-
-
           def process_buy_shares(action)
-            @log << "process_buy_shares"
             @round.bought_from_ipo = true if action.bundle.owner.corporation?
             buy_shares(action.entity, action.bundle, swap: action.swap, allow_president_change: false)
             track_action(action, action.bundle.corporation)
           end
 
           def process_sell_shares(action)
-            @game.sell_shares_and_change_price(action.bundle)
-            old = action.bundle.corporation.share_price.price
-            @game.stock_market.move_left(action.bundle.corporation) 
-            new = action.bundle.corporation.share_price.price
-            @log << "#{action.bundle.corporation.name}'s share price moves left horizontally from $#{old} to $#{new}"
-            pass!
+            if action.entity == action.bundle.corporation && action.bundle.owner == action.bundle.corporation.ipo_owner
+              return issue_shares(action)
+            end
+
+            super
+            @round.recalculate_order
+          end
+
+          def issue_shares(action)
+            corp = action.entity
+            bundle = action.bundle
+            floated = corp.floated?
+            old_price = corp.share_price
+
+            @log << "#{corp.name} issues #{share_str(bundle)} of #{corp.name} to the market"\
+                    " and receives #{@game.format_currency(bundle.price)}"
+            @game.share_pool.transfer_shares(bundle,
+                                             @game.share_pool,
+                                             spender: @game.bank,
+                                             receiver: corp)
+            @game.stock_market.move_down(corp) if floated
+            @game.log_share_price(corp, old_price)
+            @game.float_corporation(corp) if corp.floatable && floated != corp.floated?
+
+            track_action(action, corp)
+            @round.players_sold[corp][corp] = :now
           end
 
           def share_str(bundle)
@@ -158,6 +126,9 @@ module Engine
             "#{num_shares} IPO shares"
           end
 
+          def can_ipo_any?(_entity)
+            false
+          end
         end
       end
     end

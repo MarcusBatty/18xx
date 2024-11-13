@@ -22,8 +22,7 @@ module Engine
           {
             sym: :intro_game,
             short_name: 'Introductory game',
-            desc: 'Play without private companies. Instead, four corporation charters are randomly selected to receive a port token, while the other four receive a mine token.'\
-                  ' There is no trading of corporation assets. Also, a randomly selected blue port tile begins on the map, and the other blue port tile is removed from the game.'
+            desc: 'No private companies or asset trading. Each corporation randomly receives a port or mine marker. One random port tile is placed on the map; the other is removed from the game.'
           },
         ].freeze
 

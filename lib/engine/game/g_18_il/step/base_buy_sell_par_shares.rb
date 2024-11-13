@@ -41,7 +41,6 @@ module Engine
             return if bundle.owner.corporation? && bundle.owner != bundle.corporation # can't buy non-IPO shares in treasury
             return if bundle.owner.player? && entity.player? # && !@game.allow_player2player_sales?
             return if bundle.owner.player? && entity.corporation?
-
             super
           end
 
@@ -58,10 +57,7 @@ module Engine
           def process_buy_shares(action)
             @round.players_bought[action.entity][action.bundle.corporation] += action.bundle.percent
             @round.bought_from_ipo = true if action.bundle.owner.corporation?
-            buy_shares(action.purchase_for || action.entity, action.bundle,
-                       swap: action.swap, borrow_from: action.borrow_from,
-                       allow_president_change: true)
-                       
+            buy_shares(action.purchase_for || action.entity, action.bundle, swap: action.swap, borrow_from: action.borrow_from, allow_president_change: true)      
             track_action(action, action.bundle.corporation)
           end
 
