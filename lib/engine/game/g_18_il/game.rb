@@ -772,9 +772,10 @@ module Engine
           return 0 if route.corporation.assignments.include?(PORT_ICON)
           stop_hexes = stops.map(&:hex).map { |hex| hex.name }
           st_paul = stop_hexes & ST_PAUL
-          port_of_memphis = stop_hexes & PORT_OF_MEMPHIS
           lake_michigan = stop_hexes & LAKE_MICHIGAN
-          return ((st_paul.count * 50) + (port_of_memphis.count * 30) + (lake_michigan.count * 20))
+          port_of_memphis = [0]
+          port_of_memphis << stop_hexes & PORT_OF_MEMPHIS unless hex_by_id('D23').tile.name == 'D23'
+          return ((st_paul.count * 50) + ((port_of_memphis.count - 1) * 30) + (lake_michigan.count * 20))
         end
 
         def p_bonus(route, stops)
@@ -826,7 +827,7 @@ module Engine
           mines = (stop_hexes & MINE_HEXES).count
           galena = (stop_hexes & GALENA).count
           ports = (stop_hexes & PORT_HEXES).count
-          others = route_distance(route) - mines - ports- galena
+          others = route_distance(route) - mines - ports - galena
           str = others.to_s
           str += "+#{mines + galena}m" if (mines.positive? || galena.positive?) && route.corporation.assignments.include?(MINE_ICON)
           str += "+#{ports}p" if ports.positive? && route.corporation.assignments.include?(PORT_ICON)
@@ -846,12 +847,27 @@ module Engine
           raise GameError, 'Train cannot visit St. Louis without a permit token' unless stl_permit?(current_entity)
         end
         
+        def check_3P(route, visits)
+          return unless route.train.name == '3P'
+          raise GameError, 'Cannot visit red areas' if visits.first.tile.color == :red || visits.last.tile.color == :red
+        end
+
+        def check_rogers(route, visits)
+          return unless route.train.name == 'Rogers (1+1)'  
+          return if visits.first.tile.name == 'S1' || visits.first.tile.name == 'E12' || visits.last.tile.name == 'S1' || visits.last.tile.name == 'E12'
+          raise GameError, "'Rogers' train can only run between Springfield and Jacksonville"
+        end
+
         def check_distance(route, visits)
           #checks STL for permit token
           check_stl(visits)
 
           #disallows 3P trains from running to red areas
-          raise GameError, 'Cannot visit red areas' if visits.first.tile.color == :red || visits.last.tile.color == :red if route.train.name == '3P'
+          check_3P(route, visits)
+
+          #disallows Rogers train from running outside of Springfield/Jacksonville
+          check_rogers(route, visits)
+
           return super
         end
 
