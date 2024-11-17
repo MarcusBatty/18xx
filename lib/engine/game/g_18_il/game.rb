@@ -194,6 +194,7 @@ module Engine
             G18IL::Step::Route,
             G18IL::Step::Dividend,
           #  G18IL::Step::EmergencyMoneyRaising,
+            Engine::Step::SpecialBuyTrain,
             G18IL::Step::BuyTrain,
             [Engine::Step::BuyCompany, { blocks: true }],
           ], round_num: round_num)
@@ -352,7 +353,7 @@ module Engine
           end
         end
 
-        def setup
+        def setup          
           @ic_formation_pending = nil
           @option_cubes ||= Hash.new(0)
           @ic_lines_built = 0
@@ -1073,7 +1074,7 @@ module Engine
           @corporations.each do |corp|
             while @option_cubes[corp] > 1
               @option_cubes[corp] -= 2
-              bundle = ShareBundle.new(@share_pool.shares_of(ic).first)
+              bundle = ShareBundle.new(@share_pool.shares_of(ic).last)
               @share_pool.transfer_shares(bundle, corp)
               @log << "#{corp.name} exchanges two option cubes for a 10% share of #{ic.name}"
              @option_cubes.delete(corp) if @option_cubes[corp] == 0
@@ -1096,7 +1097,7 @@ module Engine
         def option_exchange(corp)
           cost = ic.share_price.price / 2
           corp.spend(cost, @bank)
-          bundle = ShareBundle.new(@share_pool.shares_of(ic).first)
+          bundle = ShareBundle.new(@share_pool.shares_of(ic).last)
           @share_pool.transfer_shares(bundle, corp)
           @log << "#{corp.name} pays #{format_currency(cost)} and exchanges option cube for a 10% share of #{ic.name}"
           @option_cubes[corp] -= 1

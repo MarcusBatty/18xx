@@ -183,20 +183,10 @@ module Engine
             abilities: [
               {
                 type: 'train_discount',
-                discount: 0.25,
+                discount: { '2' => 20, '3' => 40, '4' => 60, '3P' => 80, '4+2P' => 160, '5+1P' => 140, '6' => 120, 'D' => 200 },
                 owner_type: 'corporation',
                 use_across_ors: false,
-                trains: %w[2 3 4 3P],
-                count: 4,
-                closed_when_used_up: true,
-                when: 'buy_train',
-              },
-              {
-                type: 'train_discount',
-                discount: 0.2,
-                owner_type: 'corporation',
-                use_across_ors: false,
-                trains: %w[4+2P 5+1P 6 D],
+                trains: %w[2 3 4 3P 4+2P 5+1P 6 D],
                 count: 4,
                 closed_when_used_up: true,
                 when: 'buy_train',

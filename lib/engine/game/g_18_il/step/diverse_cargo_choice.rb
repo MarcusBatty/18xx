@@ -4,15 +4,19 @@ module Engine
       module Step
         class DiverseCargoChoice < Engine::Step::Base
 
+          def setup
+            @diverse_cargo_pass = false
+            super
+          end
+
           def actions(entity)
-            return [] unless entity == current_entity
+            return [] unless entity == current_entity && !@diverse_cargo_pass
 
             ['choose']
           end
 
           def active_entities
-            return [] unless @game.diverse_cargo_corp
-
+            return [] unless @game.diverse_cargo_corp&.floated?
             [@game.diverse_cargo_corp]
           end
 
@@ -48,17 +52,19 @@ module Engine
                 @log << "#{corp.name} gains a mine marker"
                 company.close!
                 @log << "#{company.name} (#{corp.name}) closes"
+                @game.diverse_cargo_corp = nil
                 @game.assign_mine_icon(corp)
               when "Port"
                 @log << "#{corp.name} gains a port marker"
                 company.close!
                 @log << "#{company.name} (#{corp.name}) closes"
+                @game.diverse_cargo_corp = nil
                 @game.assign_port_icon(corp)
               when "Pass"
                 @log << "#{corp.name} passes gaining marker"
+                @diverse_cargo_pass = true
                 pass!
-            end 
-            @game.diverse_cargo_corp = nil
+            end
           end
 
         end
