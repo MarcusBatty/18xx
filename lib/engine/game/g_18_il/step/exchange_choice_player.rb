@@ -32,16 +32,6 @@ module Engine
             entity == @game.exchange_choice_player
           end
 
-          def can_sell?
-            false
-          end
-
-          def ipo_type(_entity)
-            nil
-          end
-
-          def swap_sell(_player, _corporation, _bundle, _pool_share); end
-
           def choices
             ["Sell for #{@game.format_currency(@game.merged_corporation.share_price.price)}", "Exchange for 10% share of #{@game.ic.name}"]
           end

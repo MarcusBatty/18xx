@@ -22,7 +22,7 @@ module Engine
         include Market
         include Phases
 
-        attr_accessor :stl_nodes, :blocking_token, :ic_lines_built, :ic_lines_progress, :mine_corp, :port_corp, :exchange_choice_player, :exchange_choice_corp, :exchange_choice_corps
+        attr_accessor :stl_nodes, :blocking_token, :ic_lines_built, :ic_lines_progress, :mine_corp, :port_corp, :exchange_choice_player, :exchange_choice_corp, :exchange_choice_corps, :diverse_cargo_corp
         attr_reader :merged_corporation
 
         register_colors(red: '#d1232a',
@@ -173,6 +173,7 @@ module Engine
           Engine::Round::Operating.new(self, [
             Engine::Step::Bankrupt,
            # G18IL::Step::Assign,
+           G18IL::Step::DiverseCargoChoice,
             Engine::Step::Exchange,
             Engine::Step::SpecialTrack,
             Engine::Step::SpecialToken,
@@ -193,7 +194,7 @@ module Engine
             G18IL::Step::Route,
             G18IL::Step::Dividend,
           #  G18IL::Step::EmergencyMoneyRaising,
-            Engine::Step::BuyTrain,
+            G18IL::Step::BuyTrain,
             [Engine::Step::BuyCompany, { blocks: true }],
           ], round_num: round_num)
         end
@@ -341,12 +342,18 @@ module Engine
                 c.owner = entity
                 str << "#{c.name} assigned to #{entity.name} concession"
                 entity.companies << c
+
+                if c.name == "Diverse Cargo"
+                  @diverse_cargo_corp = entity
+                end
+
               @log << str.join
             end
           end
         end
 
         def setup
+          @ic_formation_pending = nil
           @option_cubes ||= Hash.new(0)
           @ic_lines_built = 0
           @ic_line_progress = {
@@ -398,7 +405,7 @@ module Engine
         def assign_port_markers(entity)
           port_log = []
           port_corporations.each { |c| 
-          c.assign!(PORT_ICON)
+          assign_port_icon(c)
           port_log << c.name
           port_log << ", " if port_log.count < 6
           port_log << 'and ' if port_log.count == 6
@@ -409,12 +416,20 @@ module Engine
         def assign_mine_markers(entity)
           mine_log = []
           mine_corporations.each { |c| 
-          c.assign!(MINE_ICON)
+          assign_mine_icon(c)
           mine_log << c.name
           mine_log << ", " if mine_log.count < 6
           mine_log << 'and ' if mine_log.count == 6
           }
           @log << "#{mine_log.join} receive mine markers"
+        end
+
+        def assign_mine_icon(corp)
+          corp.assign!(MINE_ICON)
+        end
+
+        def assign_port_icon(corp)
+          corp.assign!(PORT_ICON)
         end
 
         def ipo_name(_entity = nil)
@@ -561,11 +576,15 @@ module Engine
                 @log << "IC Line is complete"
                 @log << "The Illinois Central Railroad will form at the end of #{action.entity.name}'s turn"
                 @ic_formation_triggered = true
-                event_ic_merger!
+                @ic_formation_pending = true
               end
             end
           end
           result
+        end
+
+        def event_pending_ic_formation?
+          @ic_formation_pending
         end
 
 =begin
@@ -1010,7 +1029,7 @@ module Engine
             .reject { |bundle| entity.cash < bundle.price }
         end
 
-        #--------------------------------IC Merger-------------------------------------------------------#
+        #--------------------------------IC Formation-------------------------------------------------------#
 
         def ic
           @ic_corporation ||= corporation_by_id('IC')
@@ -1034,15 +1053,13 @@ module Engine
           place_home_token(ic)  
         end
 
-        def event_ic_merger!
+        def event_ic_formation!
           @log << "-- Event: Illinois Central Formation --"
           @mergeable_candidates = mergeable_corporations
 
           ic_setup
 
-          #while !@option_cubes.empty?
           option_cube_exchange
-         # end
 
           if @mergeable_candidates.any?
             @log << "Merge candidates: #{present_mergeable_candidates(@mergeable_candidates)}"
@@ -1161,10 +1178,10 @@ module Engine
           end
         end
 
-        def presidency_exchange(entity)
-          ic_share = ic.ipo_shares.last
-          @share_pool.transfer_shares(ic_share.to_bundle, entity)
-          @log << "#{entity.name} exchanges the president's share of #{@merged_corporation.name} for a 10% share of #{ic.name}"
+        def presidency_exchange(player)
+          bundle = ShareBundle.new(ic.shares_of(ic).first)
+          @share_pool.transfer_shares(bundle, player)
+          @log << "#{player.name} exchanges the president's share of #{@merged_corporation.name} for a 10% share of #{ic.name}"
         end
 
         def presidency_sell(player)

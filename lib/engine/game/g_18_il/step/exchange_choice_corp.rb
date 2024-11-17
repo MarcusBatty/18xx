@@ -32,20 +32,11 @@ module Engine
             entity == @game.exchange_choice_corp
           end
 
-          def can_sell?
-            false
-          end
-
-          def ipo_type(_entity)
-            nil
-          end
-
-          def swap_sell(_player, _corporation, _bundle, _pool_share); end
-
           def choices
+            price = @game.ic.share_price.price / 2
             choices = []
-            choices << ["Sell for #{@game.format_currency(@game.ic.share_price.price / 2)}"]
-            choices << ["Exchange for #{@game.ic.name} share for #{@game.format_currency(@game.ic.share_price.price / 2)}"] if @game.ic.num_market_shares.positive?
+            choices << ["Sell for #{@game.format_currency(price)}"]
+            choices << ["Exchange for #{@game.ic.name} share for #{@game.format_currency(price)}"] if @game.ic.num_market_shares.positive? #&& @game.exchange_choice_corp.cash >= price
             choices
           end
 
