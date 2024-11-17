@@ -30,26 +30,26 @@ module Engine
 
           def choices
             choices = []
-            choices << ["Gain mine marker"]
-            choices << ["Gain port marker"]
+            choices << ["Mine"]
+            choices << ["Port"]
             choices << ["Pass"]
             choices
           end
 
           def choice_name
-            "Gain a mine or port marker (and close company)"
+            "Gain a mine or port marker (or pass)"
           end
 
           def process_choose(action)
             corp = action.entity
             company = @game.companies.find { |c| c.name == "Diverse Cargo" }
             case action.choice
-              when "Gain mine marker"
+              when "Mine"
                 @log << "#{corp.name} gains a mine marker"
                 company.close!
                 @log << "#{company.name} (#{corp.name}) closes"
                 @game.assign_mine_icon(corp)
-              when "Gain port marker"
+              when "Port"
                 @log << "#{corp.name} gains a port marker"
                 company.close!
                 @log << "#{company.name} (#{corp.name}) closes"
