@@ -45,19 +45,23 @@ module Engine
             improvement = @game.ic_line_improvement(action)
             #@log << "#{improvement}"
             @ic_line_improvement = improvement if improvement
-
             hex = action.hex
             tile = action.hex.tile
+            city = tile.cities.first
+            ic = @game.ic
             if @game.ic_line_hex?(hex)
               case tile.color
                 when 'yellow' #one must match
-                if @game.ic_line_connections(hex) < 1
-                  raise GameError, "Tile must overlay at least one dashed path"
-                end
+                  if @game.ic_line_connections(hex) < 1
+                    raise GameError, "Tile must overlay at least one dashed path"
+                  end
                 when'green' #both must match
-                if @game.ic_line_connections(hex) < 2
-                  raise GameError, "Tile must complete IC Line"
-                end
+                  if @game.ic_line_connections(hex) < 2
+                    raise GameError, "Tile must complete IC Line"
+                  elsif ic_token = ic.tokens.find { |t| t.city == city }
+                  #  ic_token.remove!
+                #    city.place_token(ic, ic_token) #TODO
+                  end
               end
             end
             pass! unless can_lay_tile?(action.entity)

@@ -39,6 +39,10 @@ module Engine
             [corporation] 
           end
 
+          def show_other_players
+            true
+          end
+
           def process_buy_shares(action)
             player = action.entity
             buy_shares(player, action.bundle)
@@ -84,6 +88,10 @@ module Engine
 
           def active?
             corporation
+          end
+
+          def issuable_shares
+            []
           end
 
           def active_entities

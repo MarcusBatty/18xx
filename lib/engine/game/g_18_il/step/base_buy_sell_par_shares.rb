@@ -115,7 +115,13 @@ module Engine
             corporation = bundle.corporation
 
             if entity.player?
-             super
+              @round.players_bought[action.entity][action.bundle.corporation] += action.bundle.percent
+              @round.bought_from_ipo = true if action.bundle.owner.corporation?
+              buy_shares(action.purchase_for || action.entity, action.bundle,
+                         swap: action.swap, borrow_from: action.borrow_from,
+                         allow_president_change: allow_president_change?(action.bundle.corporation),
+                         discounter: action.discounter)
+              track_action(action, action.bundle.corporation)
             else
               buy_shares(entity, bundle)
               track_action(action, corporation, false)
