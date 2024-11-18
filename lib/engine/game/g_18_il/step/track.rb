@@ -66,7 +66,7 @@ module Engine
               end
             end
 
-            if tile.name == 'CHI3'
+            if tile.name == 'CHI3' && !@game.goodrich_transit_line.closed?
               company = @game.goodrich_transit_line
               @log << "#{company.name} (#{company.owner.name}) closes"
               company.close!
