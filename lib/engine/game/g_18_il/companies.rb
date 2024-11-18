@@ -216,7 +216,16 @@ module Engine
             desc: 'When issuing a share during the Issue a Share step, receive double the current share price from the bank to the corporation treasury.'\
                   ' Once this ability is used, the private company closes.',
             sym: 'SP',
-            meta: {type: :private, class: :A},            
+            meta: {type: :private, class: :A}, 
+            abilities: [
+              {
+                type: 'description',
+                owner_type: 'corporation',
+                count: 1,
+                closed_when_used_up: true,
+                when: 'issue_share',
+              },
+            ],           
           },
           {
             name: 'U.S. Mail Line',
@@ -292,6 +301,7 @@ module Engine
                   consume_tile_lay: false,
                   reachable: false,
                   closed_when_used_up: true,
+                  special: false
                 },
               ],
             },
@@ -306,7 +316,7 @@ module Engine
               sym: 'CVCC',
               meta: {type: :private, class: :B},
               abilities: [
-              {
+                {
                   type: 'tile_lay',
                   tiles: ['58'],
                   hexes: MINE_HEXES,
@@ -316,44 +326,59 @@ module Engine
                   consume_tile_lay: false,
                   reachable: true,
                   closed_when_used_up: true,
-                  },
-                ],
-              },
-              {
-                name: 'Advanced Track',
-                value: 5,
-                revenue: 0,
-                desc: 'This company starts with two subsidy cubes on it. At any time during the tile-laying step of the corporation’s  operating turn, discard one cube to lay or upgrade one additional tile for free,'\
-                'except for any terrain costs. Only one cube may be used per turn. Once the second cube has been used, the private company closes.',
-                sym: 'AT',
-                meta: {type: :private, class: :B},
-              },
-              {
-                name: 'Diverse Cargo',
-                value: 5,
-                revenue: 0,
-                desc: 'Place either a mine or port marker on the corporation’s charter. Once this ability is used, the private company closes.',
-                sym: 'DC',
-                meta: {type: :private, class: :B},
-              },
-              {
-                name: 'Engineering Mastery',
-                value: 5,
-                revenue: 0,
-                desc: 'During the tile-laying step of the corporation’s operating turn, upgrade two tiles from yellow to green (instead of two lays or one lay and one upgrade), '\
-                'paying the normal $20 fee and any terrain costs. This may not be done in any of the IC Line hexes',
-                sym: 'EM',
-                meta: {type: :private, class: :B},
-              },
-              {
-                name: 'Lincoln Funeral Car',
-                value: 5,
-                revenue: 0,
-                desc: 'During the “Run Trains” step of the corporation’s operating turn, one of the corporation’s trains earns an additional $20/$30/$40 for each of the following cities in its route dur-ing a yellow/green/brown phase, '\
-                'respectively: Chicago (H3), Joliet (G6), Bloomington (F9), and Springfield (E12). Once this ability is used, the private company closes.',
-                sym: 'LFC',
-                meta: {type: :private, class: :B},
-              }
+                },
+              ],
+            },
+            {
+              name: 'Advanced Track',
+              value: 5,
+              revenue: 0,
+              desc: 'This company starts with two subsidy cubes on it. At any time during the tile-laying step of the corporation’s  operating turn, discard one cube to lay or upgrade one additional tile for free,'\
+              'except for any terrain costs. Only one cube may be used per turn. Once the second cube has been used, the private company closes.',
+              sym: 'AT',
+              meta: {type: :private, class: :B},
+              abilities: [
+                {
+                  type: 'tile_lay',
+                  when: 'track',
+                  owner_type: 'corporation',
+                  tiles: [],
+                  hexes: [],
+                  count: 2,
+                  count_per_or: 1,
+                  consume_tile_lay: false,
+                  reachable: true,
+                  closed_when_used_up: true,
+                  special: false,
+                },
+              ],
+            },
+            {
+              name: 'Diverse Cargo',
+              value: 5,
+              revenue: 0,
+              desc: 'Place either a mine or port marker on the corporation’s charter. Once this ability is used, the private company closes.',
+              sym: 'DC',
+              meta: {type: :private, class: :B},
+            },
+            {
+              name: 'Engineering Mastery',
+              value: 5,
+              revenue: 0,
+              desc: 'During the tile-laying step of the corporation’s operating turn, upgrade two tiles from yellow to green (instead of two lays or one lay and one upgrade), '\
+              'paying the normal $20 fee and any terrain costs. This may not be done in any of the IC Line hexes',
+              sym: 'EM',
+              meta: {type: :private, class: :B},
+            },
+            {
+              name: 'Lincoln Funeral Car',
+              value: 5,
+              revenue: 0,
+              desc: 'During the “Run Trains” step of the corporation’s operating turn, one of the corporation’s trains earns an additional $20/$30/$40 for each of the following cities in its route dur-ing a yellow/green/brown phase, '\
+              'respectively: Chicago (H3), Joliet (G6), Bloomington (F9), and Springfield (E12). Once this ability is used, the private company closes.',
+              sym: 'LFC',
+              meta: {type: :private, class: :B},
+            }
         ]
           companies
         end

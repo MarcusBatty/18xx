@@ -22,7 +22,7 @@ module Engine
         include Market
         include Phases
 
-        attr_accessor :stl_nodes, :blocking_token, :ic_lines_built, :ic_lines_progress, :mine_corp, :port_corp, :exchange_choice_player, :exchange_choice_corp, :exchange_choice_corps, :diverse_cargo_corp
+        attr_accessor :stl_nodes, :blocking_token, :ic_lines_built, :ic_lines_progress, :mine_corp, :port_corp, :exchange_choice_player, :exchange_choice_corp, :exchange_choice_corps, :sp_used
         attr_reader :merged_corporation
 
         register_colors(red: '#d1232a',
@@ -100,9 +100,11 @@ module Engine
         CORPORATION_SIZES = { 2 => :small, 5 => :medium, 10 => :large }.freeze
        # CORPORATIONS = %w[P&BV NC G&CU RI C&A V WAB C&EI].freeze
         PORT_ICON = 'port'.freeze
+        PORT_ICON2 = 'port '.freeze
         MINE_ICON = 'mine'.freeze
         IC_STARTING_PRICE = 80.freeze
         IC_LINE_HEXES = %w[H7 G10 F17 E22].freeze
+        BOOM_HEXES = %w[E8 E12].freeze
         
 
        PORT_TILE_FOR_HEX = {
@@ -112,6 +114,7 @@ module Engine
 
         ASSIGNMENT_TOKENS = {
           'port' => '/icons/18_il/port.svg',
+          'port ' => '/icons/18_il/port.svg',
           'mine' => '/icons/18_il/mine.svg',
         }.freeze
 
@@ -178,7 +181,7 @@ module Engine
           Engine::Round::Operating.new(self, [
             Engine::Step::Bankrupt,
            # G18IL::Step::Assign,
-           G18IL::Step::DiverseCargoChoice,
+            G18IL::Step::DiverseCargoChoice,
             Engine::Step::Exchange,
             Engine::Step::SpecialTrack,
             Engine::Step::SpecialToken,
@@ -190,6 +193,7 @@ module Engine
             G18IL::Step::Conversion,
             G18IL::Step::PostConversionShares,
             G18IL::Step::BuyNewTokens,
+            G18IL::Step::SpecialIssueShares,
             G18IL::Step::IssueShares,
             G18IL::Step::CorporateBuyShares,
           #  G18IL::Step::CorporateBuySellShares,
@@ -353,10 +357,6 @@ module Engine
                 str << "#{c.name} assigned to #{entity.name} concession"
                 entity.companies << c
 
-                if c.name == "Diverse Cargo"
-                  @diverse_cargo_corp = entity
-                end
-
               @log << str.join
             end
           end
@@ -479,9 +479,12 @@ module Engine
 
         #allows blue-on-blue tile lays
         def upgrades_to?(from, to, special = false, selected_company: nil)
-         if from.hex.name == 'B1' || from.hex.name =='D23'
+         if PORT_TILE_HEXES.include?(from.hex.id)
           return true if from.color == :blue && to.color == :blue
          end
+        #  if BOOM_HEXES.include?(from.hex.id) && @round.current_operator == central_illinois_boom.owner
+        #   return true
+        #  end
           super
         end
 
@@ -704,6 +707,16 @@ module Engine
           @round.recalculate_order if @round.respond_to?(:recalculate_order)
         end
         
+        def sell_shares_and_change_price(bundle, allow_president_change: true, swap: nil, movement: nil)
+          corporation = bundle.corporation
+          if corporation == share_premium.owner && @sp_used == true
+            @bank.spend(corporation.share_price.price, corporation)
+            @log << "corp gets extra cash"
+          end
+          super
+        end
+
+
         def emergency_issuable_cash(corporation)
           emergency_issuable_bundles(corporation).max_by(&:num_shares)&.price || 0
         end
@@ -774,7 +787,7 @@ module Engine
         end
 
         def port_revenue_removal(route, stops)
-          return 0 if route.corporation.assignments.include?(PORT_ICON)
+          return 0 if route.corporation.assignments.include?(PORT_ICON) || route.corporation.assignments.include?(PORT_ICON2)
           stop_hexes = stops.map(&:hex).map { |hex| hex.name }
           st_paul = stop_hexes & ST_PAUL
           lake_michigan = stop_hexes & LAKE_MICHIGAN
@@ -835,7 +848,7 @@ module Engine
           others = route_distance(route) - mines - ports - galena
           str = others.to_s
           str += "+#{mines + galena}m" if (mines.positive? || galena.positive?) && route.corporation.assignments.include?(MINE_ICON)
-          str += "+#{ports}p" if ports.positive? && route.corporation.assignments.include?(PORT_ICON)
+          str += "+#{ports}p" if ports.positive? && (route.corporation.assignments.include?(PORT_ICON) || route.corporation.assignments.include?(PORT_ICON2))
           return str
         end
 
@@ -948,86 +961,23 @@ module Engine
         end 
 
         def process_single_action(action)
-          if action.user && action.user != acting_for_player(action.entity&.player)&.id && action.type != 'message'
-            @log << "• Action(#{action.type}) via Master Mode by: #{player_by_id(action.user)&.name || 'Owner'}"
-          end
-  
-          preprocess_action(action)
+          corp = action.entity.owner if action.entity.company?
 
-          case action
-            when Action::PlaceToken
-              #@log << "action processed ****** #{action}  #{action.class} #{action.entity}"
-              if action.entity.kind_of? Company
-                if (action.entity.sym == "GTL") 
-                  _corp = get_owner("GTL")
-                end
-              end
-            when Action::LayTile
-              if action.entity.kind_of? Company
-                if ((action.entity.sym == "SMBT") ||
-                    (action.entity.sym == "FWC") ||
-                    (action.entity.sym == "CVCC")) 
-                    _corp = get_owner(action.entity.sym)
-                end
-              end
-          end
-  
-          @round.process_action(action)
-  
-          action_processed(action)
+          super
 
-          case action
-            when Action::PlaceToken
-              #@log << "action processed ****** #{action}  #{action.class} #{action.entity}"
-              if action.entity.kind_of? Company
-                if (action.entity.sym == "GTL") 
-                  _corp.assign!(PORT_ICON) if _corp
-                  log << "#{_corp.name} receives a port marker"
-                end
-              end
-            when Action::LayTile
-            if action.entity.kind_of? Company
-              if (action.entity.sym == "SMBT") 
-                _corp.assign!(PORT_ICON) if _corp
-                _corp.assign!(PORT_ICON.dup) if _corp
-                log << "#{_corp.name} receives two port markers"
-              elsif
-                if ((action.entity.sym == "FWC") || 
-                    (action.entity.sym == "CVCC"))
-                  _corp.assign!(MINE_ICON) if _corp
-                  log << "#{_corp.name} receives a mine marker"
-                end
-              end
-            end
+          if action.entity == goodrich_transit_line
+            corp.assign!(PORT_ICON)
+            log << "#{corp.name} receives a port marker"
           end
-      
-          end_timing = game_end_check&.last
-          end_game! if end_timing == :immediate
-  
-          while @round.finished? && !@finished
-            @round.entities.each(&:unpass!)
-  
-            if end_now?(end_timing) || @turn >= 100
-              end_game!
-            else
-              transition_to_next_round!
-            end
+          if action.entity == steamboat
+            corp.assign!(PORT_ICON)
+            corp.assign!(PORT_ICON2)
+            log << "#{corp.name} receives two port markers"
           end
-          # rescue Engine::GameError => e
-          #  rescue_exception(e, action)
-        end
-
-        def get_owner(sym)
-          corporations.each do |corp|
-            corp.companies.each do |c|
-              #@log << "#{c.sym}  #{sym}"
-              if (c.sym == sym) 
-                #log << "match"
-                return corp
-              end
-            end
+          if action.entity == frink_walker_co || action.entity == chicago_virden_coal_company
+            corp.assign!(MINE_ICON)
+            log << "#{corp.name} receives a mine marker"
           end
-          nil
         end
 
         def redeemable_shares(entity)
@@ -1053,7 +1003,7 @@ module Engine
           stock_market.set_par(ic, @stock_market.par_prices.find do |p|
               p.price == IC_STARTING_PRICE
           end)
-          @bank.spend(IC_STARTING_PRICE * 10,ic)
+          @bank.spend(IC_STARTING_PRICE * 10, ic)
           @log << "#{ic.name} is parred at #{format_currency(IC_STARTING_PRICE)} and receives #{format_currency(IC_STARTING_PRICE * 10)} from the bank"
 
           no_buy = abilities(ic, :no_buy)

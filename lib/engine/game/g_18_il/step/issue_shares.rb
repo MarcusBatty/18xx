@@ -6,7 +6,6 @@ module Engine
   module Game
     module G18IL
       module Step
-       # class IssueShares < Engine::Step::Base
         class IssueShares < Engine::Step::IssueShares
           
           def description

@@ -16,8 +16,8 @@ module Engine
           end
 
           def active_entities
-            return [] unless @game.diverse_cargo_corp&.floated?
-            [@game.diverse_cargo_corp]
+          return [] unless @game.diverse_cargo.owner == @round.current_operator
+            [@game.diverse_cargo.owner]
           end
 
           def description
@@ -29,7 +29,7 @@ module Engine
           end
 
           def choice_available?(entity)
-            entity == @game.diverse_cargo_corp
+            entity == @game.diverse_cargo.owner
           end
 
           def choices

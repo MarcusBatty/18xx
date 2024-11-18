@@ -49,13 +49,14 @@ module Engine
             tile = action.hex.tile
             city = tile.cities.first
             ic = @game.ic
+
             if @game.ic_line_hex?(hex)
               case tile.color
                 when 'yellow' #one must match
                   if @game.ic_line_connections(hex) < 1
                     raise GameError, "Tile must overlay at least one dashed path"
                   end
-                when'green' #both must match
+                when 'green' #both must match
                   if @game.ic_line_connections(hex) < 2
                     raise GameError, "Tile must complete IC Line"
                   elsif ic_token = ic.tokens.find { |t| t.city == city }
@@ -64,6 +65,12 @@ module Engine
                   end
               end
             end
+
+            # if tile.color == 'green'
+            #   if @game.class::BOOM_HEXES.include?(hex.id)
+            #     to.color ==
+            # end
+
             pass! unless can_lay_tile?(action.entity)
           end
 
