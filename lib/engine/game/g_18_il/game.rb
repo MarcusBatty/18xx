@@ -199,6 +199,7 @@ module Engine
           #  G18IL::Step::CorporateBuySellShares,
           # G18IL::Step::Corporate41BuyShares,
             G18IL::Step::Track,
+            G18IL::Step::ExtraStationChoice,
             G18IL::Step::Token,
             G18IL::Step::Route,
             G18IL::Step::Dividend,
