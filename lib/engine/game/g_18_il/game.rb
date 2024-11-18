@@ -182,7 +182,7 @@ module Engine
             Engine::Step::Bankrupt,
            # G18IL::Step::Assign,
             G18IL::Step::DiverseCargoChoice,
-            G18IL::Step::CloseFrinkChoice,
+            G18IL::Step::MineCompanyChoice,
             Engine::Step::Exchange,
             Engine::Step::SpecialTrack,
             Engine::Step::SpecialToken,

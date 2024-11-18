@@ -2,23 +2,31 @@ module Engine
     module Game
       module G18IL
         module Step
-          class CloseFrinkChoice < Engine::Step::Base
+          class MineCompanyChoice < Engine::Step::Base
   
             def setup
-              @frink_walker_co_pass = false
+              @mine_pass = false
+              @active_company = nil
               super
             end
   
             def actions(entity)
-              return [] unless entity == current_entity && !@frink_walker_co_pass
+              return [] unless entity == current_entity && (!@mine_pass)
   
               ['choose']
             end
   
             def active_entities
-                return [] unless @game.frink_walker_co.owner == @round.current_operator
-                return [] unless @game.hex_by_id('C2').tile.name == 'G1'
-                [@game.frink_walker_co.owner]
+              if @game.chicago_virden_coal_company.owner == @round.current_operator
+                @active_company = @game.chicago_virden_coal_company
+                return [@game.chicago_virden_coal_company.owner] 
+              end
+
+               if @game.frink_walker_co.owner == @round.current_operator
+                @active_company = @game.frink_walker_co
+                return [@game.frink_walker_co.owner] 
+               end
+                []
             end
   
             def description
@@ -30,7 +38,7 @@ module Engine
             end
   
             def choice_available?(entity)
-              entity == @game.frink_walker_co.owner
+              entity == @active_company.owner
             end
   
             def choices
@@ -41,12 +49,18 @@ module Engine
             end
   
             def choice_name
-              "Gain a mine marker, closing Frink, Walker, & Co. (or pass)"
+              "Gain a mine marker (or pass)"
+            end
+
+            def help
+              [
+              "In this step, #{@active_company.name} can be closed without using its main ability."
+            ]
             end
   
             def process_choose(action)
               corp = action.entity
-              company = @game.companies.find { |c| c.name == "Frink, Walker, & Co." }
+              company = @active_company
               case action.choice
                 when "Mine"
                   @log << "#{corp.name} gains a mine marker"
@@ -55,7 +69,7 @@ module Engine
                   @game.assign_mine_icon(corp)
                 when "Pass"
                   @log << "#{corp.name} passes gaining marker"
-                  @frink_walker_co_pass = true
+                  @mine_pass = true
                   pass!
               end
             end
