@@ -476,10 +476,6 @@ module Engine
         #allows blue tile lays at any time
         def tile_valid_for_phase?(tile, hex: nil, phase_color_cache: nil)
           return true if tile.name == 'SPH' || tile.name == 'POM'
-          if @round.current_operator == central_illinois_boom.owner
-            return true if tile.name == 'P4'
-            return true if tile.name == 'S4'
-          end
           super
         end
 
@@ -971,6 +967,16 @@ module Engine
           corp = action.entity.owner if action.entity.company?
 
           super
+
+          if action.entity == central_illinois_boom then
+            tile = action.hex.tile
+            #@log << "process single action  BOOM "+ tile.name
+            if tile.name == 'P4' then
+              tiles.delete_if {|tile| tile.name == 'S4'}
+            elsif tile.name == 'S4' then
+              tiles.delete_if {|tile| tile.name == 'P4'}
+            end 
+          end
 
           if action.entity == goodrich_transit_line
             corp.assign!(PORT_ICON)
