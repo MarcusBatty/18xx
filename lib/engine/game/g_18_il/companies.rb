@@ -121,139 +121,135 @@ module Engine
               },
             ],
           },
-         {
-            name: 'Goodrich Transit Line',
-            value: 5,
-            revenue: 0,
-            desc: 'Place an available station marker in Chicago (H3) in the indicated GTL station slot. A port marker is placed on the charter. '\
-            'Once this ability is used, the private company closes. If this company is still open when Chicago is upgraded with a brown tile, it closes immediately.',
-            sym: 'GTL',
-            meta: {type: :private, class: :A},
-            abilities: [
-              {
-                type: 'token',
-                when: 'owning_corp_or_turn',
-                owner_type: 'corporation',
-                hexes: ['H3'],
-                city: 2,
-                price: 0,
-                teleport_price: 0,
-                from_owner: true,
-                count: 1,
-                extra_action: true,
-                closed_when_used_up: true,
-              },
-              { type: 'reservation', remove: 'sold', hex: 'H3', city: 1}
-            ],
-          },
-          #TODO:  place port marker
           {
-            name: 'Steamboat',
-            value: 5,
-            revenue: 0,
-            desc: 'At any time during the tile-laying step of the corporation’s operating turn, place either the “St. Paul Harbor” tile at B1 or the “Port of Memphis” tile at D23.'\
-            ' It does not have to be connected to a station marker and does not count as a tile lay. Place two port markers on the charter. Once this ability is used, the private company closes.',
-            sym: 'SMBT',
-            meta: {type: :private, class: :A},
-            abilities: [
-              {
-              type: 'tile_lay',
-              hexes: %w[B1 D23],
-              tiles: %w[SPH POM],
-              when: 'track',
-              free: true,
-              owner_type: 'corporation',
-              count: 1,
-              closed_when_used_up: true,
-              },
-            ],
-          },
-          {
-            name: 'Train Subsidy',
-            value: 5,
-            revenue: 0,
-            desc: 'Receive a 25% discount on non-permanent trains and a 20% discount on permanent trains. Once this ability is used, the private company closes.',
-            sym: 'TS',
-            meta: {type: :private, class: :A},
-            abilities: [
-              {
-                type: 'train_discount',
-                discount: { '2' => 20, '3' => 40, '4' => 60, '3P' => 80, '4+2P' => 160, '5+1P' => 140, '6' => 120, 'D' => 200 },
-                owner_type: 'corporation',
-                use_across_ors: false,
-                trains: %w[2 3 4 3P 4+2P 5+1P 6 D],
-                count: 4,
-                closed_when_used_up: true,
-                when: 'buy_train',
-              },
-            ],
-          },
-
-          {
-            name: 'Rush Delivery',
-            value: 5,
-            revenue: 0,
-            desc: 'Buy one train from the bank prior to the Run Trains step during this operating round. The corporation may use emergency money raising if'\
-            ' it does not own a train. Once this ability is used, the private company closes.',
-            sym: 'RD',
-            meta: {type: :private, class: :A},
-          },
-
-          {
-            name: 'Station Subsidy',
-  
-            value: 5,
-            revenue: 0,
-            desc: 'This company starts with four subsidy cubes on it. When starting or converting a corporation, one, two, three, or four cubes may be discarded'\
-            ' to receive a discount of $40, $80, $120, or $160 respectively, when buying station markers. Once the fourth cube has been used, the private company closes.',
-            sym: 'SS',
-            meta: {type: :private, class: :A},
-          },
-          {
-            name: 'Share Premium',
-            value: 5,
-            revenue: 0,
-            desc: 'When issuing a share during the Issue a Share step, receive double the current share price from the bank to the corporation treasury.'\
-                  ' Once this ability is used, the private company closes.',
-            sym: 'SP',
-            meta: {type: :private, class: :A}, 
-            abilities: [
-              {
-                type: 'description',
-                owner_type: 'corporation',
-                count: 1,
-                closed_when_used_up: true,
-                when: 'issue_share',
-              },
-            ],           
-          },
-          {
-            name: 'U.S. Mail Line',
-            value: 5,
-            revenue: 0,
-            desc: 'After the “Run Trains” step of the corporation’s operating turn, receive $5 from the bank to the corporation’s treasury per stop that each train visited. '\
-            'Multiple trains visiting the same stop grant $5 per visit. The corporation may choose to receive a mine marker at any time.  When it does, the private company closes.',
-            sym: 'USML',
-            meta: {type: :private, class: :A},
-          },
-          {
-            name: 'Illinois Steel Bridge Company',
-            value: 5,
-            revenue: 0,
-            desc: 'Receive a $20 discount when laying a tile in a hex containing a river or a lake.',
-            sym: 'ISBC',
-            meta: {type: :private, class: :B},
-            abilities: [
+              name: 'Goodrich Transit Line',
+              value: 5,
+              revenue: 0,
+              desc: 'Place an available station marker in Chicago (H3) in the indicated GTL station slot. A port marker is placed on the charter. '\
+              'Once this ability is used, the private company closes. If this company is still open when Chicago is upgraded with a brown tile, it closes immediately.',
+              sym: 'GTL',
+              meta: {type: :private, class: :A},
+              abilities: [
                 {
-                type: 'tile_discount',
-                terrain: 'water',
+                  type: 'token',
+                  when: 'owning_corp_or_turn',
+                  owner_type: 'corporation',
+                  hexes: ['H3'],
+                  city: 2,
+                  price: 0,
+                  teleport_price: 0,
+                  from_owner: true,
+                  count: 1,
+                  extra_action: true,
+                  closed_when_used_up: true,
+                },
+                { type: 'reservation', remove: 'sold', hex: 'H3', city: 1}
+              ],
+            },
+            {
+              name: 'Steamboat',
+              value: 5,
+              revenue: 0,
+              desc: 'At any time during the tile-laying step of the corporation’s operating turn, place either the “St. Paul Harbor” tile at B1 or the “Port of Memphis” tile at D23.'\
+              ' It does not have to be connected to a station marker and does not count as a tile lay. Place two port markers on the charter. Once this ability is used, the private company closes.',
+              sym: 'SMBT',
+              meta: {type: :private, class: :A},
+              abilities: [
+                {
+                type: 'tile_lay',
+                hexes: %w[B1 D23],
+                tiles: %w[SPH POM],
+                when: 'track',
+                free: true,
                 owner_type: 'corporation',
-                discount: 20,
+                count: 1,
+                closed_when_used_up: true,
                 },
               ],
             },
             {
-              #TODO:  place mine marker
+              name: 'Train Subsidy',
+              value: 5,
+              revenue: 0,
+              desc: 'Receive a 25% discount on non-permanent trains and a 20% discount on permanent trains. Once this ability is used, the private company closes.',
+              sym: 'TS',
+              meta: {type: :private, class: :A},
+              abilities: [
+                {
+                  type: 'train_discount',
+                  discount: { '2' => 20, '3' => 40, '4' => 60, '3P' => 80, '4+2P' => 160, '5+1P' => 140, '6' => 120, 'D' => 200 },
+                  owner_type: 'corporation',
+                  use_across_ors: false,
+                  trains: %w[2 3 4 3P 4+2P 5+1P 6 D],
+                  count: 4,
+                  closed_when_used_up: true,
+                  when: 'buy_train',
+                },
+              ],
+            },
+            {
+              name: 'Rush Delivery',
+              value: 5,
+              revenue: 0,
+              desc: 'Buy one train from the bank prior to the Run Trains step during this operating round. The corporation may use emergency money raising if'\
+              ' it does not own a train. Once this ability is used, the private company closes.',
+              sym: 'RD',
+              meta: {type: :private, class: :A},
+            },
+            {
+              name: 'Station Subsidy',
+    
+              value: 5,
+              revenue: 0,
+              desc: 'This company starts with four subsidy cubes on it. When starting or converting a corporation, one, two, three, or four cubes may be discarded'\
+              ' to receive a discount of $40, $80, $120, or $160 respectively, when buying station markers. Once the fourth cube has been used, the private company closes.',
+              sym: 'SS',
+              meta: {type: :private, class: :A},
+            },
+            {
+              name: 'Share Premium',
+              value: 5,
+              revenue: 0,
+              desc: 'When issuing a share during the Issue a Share step, receive double the current share price from the bank to the corporation treasury.'\
+                    ' Once this ability is used, the private company closes.',
+              sym: 'SP',
+              meta: {type: :private, class: :A}, 
+              abilities: [
+                {
+                  type: 'description',
+                  owner_type: 'corporation',
+                  count: 1,
+                  closed_when_used_up: true,
+                  when: 'issue_share',
+                },
+              ],           
+            },
+            {
+              name: 'U.S. Mail Line',
+              value: 5,
+              revenue: 0,
+              desc: 'After the “Run Trains” step of the corporation’s operating turn, receive $5 from the bank to the corporation’s treasury per stop that each train visited. '\
+              'Multiple trains visiting the same stop grant $5 per visit. The corporation may choose to receive a mine marker at any time.  When it does, the private company closes.',
+              sym: 'USML',
+              meta: {type: :private, class: :A},
+            },
+            {
+              name: 'Illinois Steel Bridge Company',
+              value: 5,
+              revenue: 0,
+              desc: 'Receive a $20 discount when laying a tile in a hex containing a river or a lake.',
+              sym: 'ISBC',
+              meta: {type: :private, class: :B},
+              abilities: [
+                  {
+                  type: 'tile_discount',
+                  terrain: 'water',
+                  owner_type: 'corporation',
+                  discount: 20,
+                  },
+                ],
+            },
+            {
               name: 'Frink, Walker, & Co.',
               value: 5,
               revenue: 0,
@@ -275,11 +271,7 @@ module Engine
                 },
               ],
             },
-
-
-            #TODO:  regardless of current city color
-            #TODO:  remove other tile
-            #"special: true" tag may be needed
+            #TODO:   restrict use of tiles to this private and remove other tile when one is placed
             {
               name: 'Central Illinois Boom',
               value: 5,
@@ -293,7 +285,6 @@ module Engine
                 {
                   type: 'tile_lay',
                   tiles: %w[P4 S4],
-                  #tiles: %w[P2 S2],
                   hexes: %w[E8 E12],
                   when: 'track',
                   owner_type: 'corporation',
@@ -305,7 +296,6 @@ module Engine
                 },
               ],
             },
-
             {
               name: 'Chicago-Virden Coal Company',
               value: 5,
@@ -382,9 +372,6 @@ module Engine
         ]
           companies
         end
-       # MINE_COMPANIES = %w[FWC CIB CVCC].freeze
-       # PORT_COMPANIES = %w[GTL SMBT].freeze
-        #TODO: DC can be either, SMBT gets two tokens
       end
     end
   end

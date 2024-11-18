@@ -476,10 +476,6 @@ module Engine
         #allows blue tile lays at any time
         def tile_valid_for_phase?(tile, hex: nil, phase_color_cache: nil)
           return true if tile.name == 'SPH' || tile.name == 'POM'
-          if @round.current_operator == central_illinois_boom.owner
-            return true if tile.name == 'P4'
-            return true if tile.name == 'S4'
-          end
           super
         end
 
@@ -832,30 +828,67 @@ module Engine
             return bonus
         end
 
+        def stop_hexes(route)
+          stop_hexes = []
+          stop_hexes = route.stops.map(&:hex).map { |hex| hex.name}
+          stop_hexes
+        end
+
+        def num_mines(route)
+          (stop_hexes(route) & MINE_HEXES).count
+        end
+
+        def num_galena(route)
+          (stop_hexes(route) & GALENA).count
+        end
+
+        def num_ports(route)
+          (stop_hexes(route) & PORT_HEXES).count
+        end
+
+        def mine_company?(route)
+          return true if route.corporation.assignments.include?(MINE_ICON)
+          false
+        end
+
+        def port_company?(route)
+          return true if route.corporation.assignments.include?(PORT_ICON)
+          return true if route.corporation.assignments.include?(PORT_ICON2)
+          false
+        end
+
+        def mail_revenue(route, stops)
+          #mines = mine_company?(route) ? 0 : num_mines(route)
+          #galena = mine_company?(route) ? 0 : num_galena(route)
+         # ports =  port_company?(route) ? 0 : num_ports(route)
+          mail_stops = stops.count #- mines - ports - galena
+          return mail_stops * 5
+        end
+
         def revenue_for(route, stops)
           revenue = super
           revenue += ew_ns_bonus(stops)[:revenue] + p_bonus(route, stops)
           revenue = revenue - mine_revenue_removal(route, stops) - port_revenue_removal(route, stops)
+          revenue += mail_revenue(route, stops) if route.corporation == us_mail_line.owner
           return revenue
         end
 
-
-         def revenue_str(route)
-           str = super
-           bonus = ew_ns_bonus(route.stops)[:description]
-           str += " + #{bonus}" if bonus
-           return str
-         end
+        def revenue_str(route)
+          str = super
+          bonus = ew_ns_bonus(route.stops)[:description]
+          str += " + #{bonus}" if bonus
+          str += " + mail" if route.corporation == us_mail_line.owner
+          return str
+        end
 
         def route_distance_str(route)
-          stop_hexes = route.stops.map(&:hex).map { |hex| hex.name}
-          mines = (stop_hexes & MINE_HEXES).count
-          galena = (stop_hexes & GALENA).count
-          ports = (stop_hexes & PORT_HEXES).count
+          mines = num_mines(route)
+          galena = num_galena(route)
+          ports = num_ports(route)
           others = route_distance(route) - mines - ports - galena
           str = others.to_s
-          str += "+#{mines + galena}m" if (mines.positive? || galena.positive?) && route.corporation.assignments.include?(MINE_ICON)
-          str += "+#{ports}p" if ports.positive? && (route.corporation.assignments.include?(PORT_ICON) || route.corporation.assignments.include?(PORT_ICON2))
+          str += "+#{mines + galena}m" if (mines.positive? || galena.positive?) && mine_company?(route)
+          str += "+#{ports}p" if ports.positive? && port_company?(route)
           return str
         end
 
