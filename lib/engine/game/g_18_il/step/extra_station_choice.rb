@@ -45,7 +45,7 @@ module Engine
   
             def process_choose(action)
               corp = action.entity
-              company = @game.companies.find { |c| c.name == "Extra Station" }
+              company = @game.extra_station
               case action.choice
                 when "Extra Station"
                   @log << "#{corp.name} gains an extra station"

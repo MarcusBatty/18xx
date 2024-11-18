@@ -66,6 +66,12 @@ module Engine
               end
             end
 
+            if tile.name == 'CHI3'
+              company = @game.goodrich_transit_line
+              @log << "#{company.name} (#{company.owner.name}) closes"
+              company.close!
+            end
+
             # if tile.color == 'green'
             #   if @game.class::BOOM_HEXES.include?(hex.id)
             #     to.color ==
