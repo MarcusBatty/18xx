@@ -17,20 +17,24 @@ module Engine
             end
   
             def active_entities
-              if @game.chicago_virden_coal_company.owner == @round.current_operator
-                @active_company = @game.chicago_virden_coal_company
-                return [@game.chicago_virden_coal_company.owner] 
+              case @round.current_operator
+                when @game.chicago_virden_coal_company.owner
+                  @active_company = @game.chicago_virden_coal_company
+
+                when @game.frink_walker_co.owner
+                  @active_company = @game.frink_walker_co
+
+                when @game.us_mail_line.owner
+                  @active_company = @game.us_mail_line
+                else
+                  return []
               end
 
-               if @game.frink_walker_co.owner == @round.current_operator
-                @active_company = @game.frink_walker_co
-                return [@game.frink_walker_co.owner] 
-               end
-                []
+              return [@active_company.owner] 
             end
   
             def description
-              "Use Frink, Walker, & Co. ability"
+              "Use #{@active_company.name} ability"
             end
   
             def active?
@@ -60,12 +64,11 @@ module Engine
   
             def process_choose(action)
               corp = action.entity
-              company = @active_company
               case action.choice
                 when "Mine"
                   @log << "#{corp.name} gains a mine marker"
-                  company.close!
-                  @log << "#{company.name} (#{corp.name}) closes"
+                  @active_company.close!
+                  @log << "#{@active_company.name} (#{corp.name}) closes"
                   @game.assign_mine_icon(corp)
                 when "Pass"
                   @log << "#{corp.name} passes gaining marker"

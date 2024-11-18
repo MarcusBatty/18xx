@@ -72,11 +72,6 @@ module Engine
               company.close!
             end
 
-            # if tile.color == 'green'
-            #   if @game.class::BOOM_HEXES.include?(hex.id)
-            #     to.color ==
-            # end
-
             pass! unless can_lay_tile?(action.entity)
           end
 
