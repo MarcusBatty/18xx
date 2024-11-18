@@ -54,14 +54,7 @@ module Engine
                   #@game.extra_station_corp = nil
                   #@game.assign_mine_icon(corp)
 
-                  @round.buy_tokens << {
-                    entity: corp,
-                    type: :start,
-                    first_price: 0,
-                    price: 100,
-                    min: 1,
-                    max: 1,
-                  }
+                  @game.purchase_tokens!(corp, 1, 0, quiet = true)
 
                 when "Pass"
                   @log << "#{corp.name} passes gaining extra station"
