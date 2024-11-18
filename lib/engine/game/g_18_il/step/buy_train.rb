@@ -8,6 +8,11 @@ module Engine
       module Step
         class BuyTrain < Engine::Step::BuyTrain
 
+          def setup
+
+            super
+          end
+
           def actions(entity)
             # 1846 and a few others minors can't buy trains
             return [] unless can_entity_buy_train?(entity)
@@ -32,6 +37,8 @@ module Engine
           end
 
           def pass!
+            company = @game.train_subsidy
+            company.close! if company.ability_uses.first < 4
             @last_share_sold_price = nil
             @last_share_issued_price = nil
             super
@@ -56,7 +63,7 @@ module Engine
                               "#{@game.format_currency(max)}."
             end
           end
-
+          
           def scrap_info(_train)
             ''
           end

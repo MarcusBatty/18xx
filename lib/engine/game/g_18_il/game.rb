@@ -61,6 +61,11 @@ module Engine
           { lay: true, upgrade: :not_if_upgraded, cost: 20, cannot_reuse_same_hex: true },
         ].freeze
 
+        ENGINEERING_MASTERY_TILE_LAYS = [
+          { lay: true, upgrade: true, cost:0},
+          { lay: true, upgrade: true, cost: 20, cannot_reuse_same_hex: true },
+        ].freeze
+
         HOME_TOKEN_TIMING = :float
         MUST_BUY_TRAIN = :always
         DISCARDED_TRAINS = :remove
@@ -200,7 +205,11 @@ module Engine
           ], round_num: round_num)
         end
 
+        def tile_lays(entity)
+          return ENGINEERING_MASTERY_TILE_LAYS if engineering_mastery.owner == entity
 
+          super
+        end
         
           def status_str(corp)
           str = ''
@@ -1319,6 +1328,70 @@ module Engine
           ic_tokens.delete(ic_replacement)
         end
         #-------------------------------------------------------------------------------------------#
+
+        def extra_station
+          @extra_station = @companies.find { |c| c.name == "Extra Station" }
+        end
+
+        def goodrich_transit_line
+          @goodrich_transit_line = @companies.find { |c| c.name == "Goodrich Transit Line" }
+        end
+
+        def rush_delivery
+          @rush_delivery = @companies.find { |c| c.name == "Rush Delivery" }
+        end
+
+        def station_subsidy
+          @station_subsidy = @companies.find { |c| c.name == "Station Subsidy" }
+        end
+
+        def share_premium
+          @share_premium = @companies.find { |c| c.name == "Share Premium" }
+        end
+
+        def steamboat
+          @steamboat = @companies.find { |c| c.name == "Steamboat" }
+        end
+
+        def train_subsidy
+          @train_subsidy = @companies.find { |c| c.name == "Train Subsidy" }
+        end
+
+        def us_mail_line
+          @us_mail_line = @companies.find { |c| c.name == "U.S. Mail Line" }
+        end
+
+        def advanced_track
+          @advanced_track = @companies.find { |c| c.name == "Advanced Track" }
+        end
+
+        def central_illinois_boom
+          @central_illinois_boom = @companies.find { |c| c.name == "Central Illinois Boom" }
+        end
+
+        def chicago_virden_coal_company
+          @chicago_virden_coal_company = @companies.find { |c| c.name == "Chicago-Virden Coal Company" }
+        end
+
+        def diverse_cargo
+          @diverse_cargo = @companies.find { |c| c.name == "Diverse Cargo" }
+        end
+
+        def engineering_mastery
+          @engineering_mastery = @companies.find { |c| c.name == "Engineering Mastery" }
+        end
+
+        def frink_walker_co
+          @frink_walker_co = @companies.find { |c| c.name == "Frink, Walker, & Co." }
+        end
+
+        def illinois_steel_bridge_company
+          @illinois_steel_bridge_company = @companies.find { |c| c.name == "Illinois Steel Bridge Company" }
+        end
+
+        def lincoln_funeral_car
+          @lincoln_funeral_car = @companies.find { |c| c.name == "Lincoln Funeral Car" }
+        end
 
       end
     end

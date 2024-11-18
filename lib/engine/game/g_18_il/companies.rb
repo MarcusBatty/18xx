@@ -8,7 +8,7 @@ module Engine
     module G18IL
       module Companies
 
-        #TODO: reference game.rb's version instead of having redundancy (dunno how...)
+        #TODO: reference game.rb's version instead of having redundancy
         MINE_HEXES = %w[D9 D13 D17 E6 E14 F5 F13 F21 G22 H11].freeze
 
         def game_companies
@@ -101,8 +101,6 @@ module Engine
             text_color: 'white',
             meta: {type: :concession},
           },
-
-          #TODO:  fix
           {
             name: 'Extra Station',
             sym: 'ES',
@@ -124,8 +122,6 @@ module Engine
             ],
           },
          {
-            #TODO:  add port marker to charter
-            #TODO:  closes on brown CHI tile
             name: 'Goodrich Transit Line',
             value: 5,
             revenue: 0,
@@ -179,7 +175,6 @@ module Engine
             desc: 'Receive a 25% discount on non-permanent trains and a 20% discount on permanent trains. Once this ability is used, the private company closes.',
             sym: 'TS',
             meta: {type: :private, class: :A},
-            #TODO:  fix
             abilities: [
               {
                 type: 'train_discount',
