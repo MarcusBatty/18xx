@@ -476,17 +476,22 @@ module Engine
         #allows blue tile lays at any time
         def tile_valid_for_phase?(tile, hex: nil, phase_color_cache: nil)
           return true if tile.name == 'SPH' || tile.name == 'POM'
+          if @round.current_operator == central_illinois_boom.owner
+            return true if tile.name == 'P4'
+            return true if tile.name == 'S4'
+          end
           super
         end
 
         #allows blue-on-blue tile lays
         def upgrades_to?(from, to, special = false, selected_company: nil)
-         if PORT_TILE_HEXES.include?(from.hex.id)
-          return true if from.color == :blue && to.color == :blue
-         end
-        #  if BOOM_HEXES.include?(from.hex.id) && @round.current_operator == central_illinois_boom.owner
-        #   return true
-        #  end
+          if PORT_TILE_HEXES.include?(from.hex.id)
+            return true if from.color == :blue && to.color == :blue
+          end
+          if BOOM_HEXES.include?(from.hex.id) && @round.current_operator == central_illinois_boom.owner
+            return true if from.hex.id == 'E8' && to.name == 'P4'
+            return true if from.hex.id == 'E12' && to.name == 'S4'
+          end
           super
         end
 

@@ -292,8 +292,8 @@ module Engine
               abilities: [
                 {
                   type: 'tile_lay',
-                  #tiles: %w[P4 S4],
-                  tiles: %w[P2 S2],
+                  tiles: %w[P4 S4],
+                  #tiles: %w[P2 S2],
                   hexes: %w[E8 E12],
                   when: 'track',
                   owner_type: 'corporation',
