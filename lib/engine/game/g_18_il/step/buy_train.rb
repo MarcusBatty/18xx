@@ -36,7 +36,6 @@ module Engine
             @last_share_sold_price = nil
             @last_share_issued_price = nil
             super
-            @game.event_ic_formation! if @game.event_pending_ic_formation?
           end
 
           def check_spend(action)

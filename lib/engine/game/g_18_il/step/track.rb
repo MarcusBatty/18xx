@@ -24,6 +24,16 @@ module Engine
             [4, 21]
           ].freeze
 
+          ACTIONS = %w[lay_tile pass].freeze
+
+          def actions(entity)
+            return [] unless entity == current_entity
+            return [] if entity.company? || !can_lay_tile?(entity)
+            return [] if entity.corporation? && entity.receivership?
+    
+            ACTIONS
+          end
+
           def setup
             super
             @ic_line_improvement = nil

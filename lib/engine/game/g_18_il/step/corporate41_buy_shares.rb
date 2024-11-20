@@ -28,6 +28,7 @@ module Engine
           end
 
           def actions(entity)
+            return [] if entity.corporation? && entity.receivership?
           super
           end
 

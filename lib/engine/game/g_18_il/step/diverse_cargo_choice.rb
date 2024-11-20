@@ -52,13 +52,11 @@ module Engine
                 @log << "#{corp.name} gains a mine marker"
                 company.close!
                 @log << "#{company.name} (#{corp.name}) closes"
-                #@game.diverse_cargo_corp = nil
                 @game.assign_mine_icon(corp)
               when "Port"
                 @log << "#{corp.name} gains a port marker"
                 company.close!
                 @log << "#{company.name} (#{corp.name}) closes"
-                #@game.diverse_cargo_corp = nil
                 @game.assign_port_icon(corp)
               when "Pass"
                 @log << "#{corp.name} passes gaining marker"

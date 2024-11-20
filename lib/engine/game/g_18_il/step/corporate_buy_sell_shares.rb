@@ -9,7 +9,6 @@ module Engine
         class CorporateBuySellShares < Engine::Step::BuySellParShares
           def actions(entity)
             return [] if entity.corporation? && entity.receivership?
-
             super
           end
 

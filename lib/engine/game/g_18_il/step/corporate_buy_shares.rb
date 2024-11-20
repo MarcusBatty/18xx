@@ -18,6 +18,7 @@ module Engine
     
           def actions(entity)
             return [] unless entity == current_entity
+            return [] if entity.corporation? && entity.receivership?
     
             actions = []
             actions << 'corporate_buy_shares' if can_buy_any?(entity)

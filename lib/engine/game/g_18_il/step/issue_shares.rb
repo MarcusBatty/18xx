@@ -14,6 +14,7 @@ module Engine
 
           def actions(entity)
             actions = []
+            return [] if entity.corporation? && entity.receivership?
             return actions unless entity.corporation?
             return actions unless entity == current_entity
     

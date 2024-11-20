@@ -8,6 +8,16 @@ module Engine
       module Step
         class Token < Engine::Step::Token
           
+          ACTIONS = %w[place_token pass].freeze
+
+          def actions(entity)
+            return [] unless entity == current_entity
+            return [] unless can_place_token?(entity)
+            return [] if entity.corporation? && entity.receivership?
+    
+            ACTIONS
+          end
+
           def can_replace_token?(entity, token)
             available_hex(entity, token.city.hex)
           end

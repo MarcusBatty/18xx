@@ -322,7 +322,7 @@ module Engine
               name: 'Advanced Track',
               value: 5,
               revenue: 0,
-              desc: 'This company starts with two subsidy cubes on it. At any time during the tile-laying step of the corporation’s  operating turn, discard one cube to lay or upgrade one additional tile for free,'\
+              desc: 'This company starts with two subsidy cubes on it. At any time during the tile-laying step of the corporation’s operating turn, discard one cube to lay or upgrade one additional tile for free,'\
               'except for any terrain costs. Only one cube may be used per turn. Once the second cube has been used, the private company closes.',
               sym: 'AT',
               meta: {type: :private, class: :B},
@@ -346,7 +346,7 @@ module Engine
               name: 'Diverse Cargo',
               value: 5,
               revenue: 0,
-              desc: 'Place either a mine or port marker on the corporation’s charter. Once this ability is used, the private company closes.',
+              desc: "Place either a mine or port marker on the corporation’s charter. Once this ability is used, the private company closes.",
               sym: 'DC',
               meta: {type: :private, class: :B},
             },
