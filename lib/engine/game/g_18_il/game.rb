@@ -823,16 +823,6 @@ module Engine
         def subsidy_for(route, _stops)
           return 0 unless route.corporation == us_mail_line.owner
           (route.visited_stops & regular_stops).count * 10
-            # train = route.train
-            # if train.name.include?("P")
-            #   num = train.name[-2].to_i
-            # elsif
-            #   train.name == 'D'
-            #   num = (route.visited_stops & regular_stops).count
-            # else
-            #   num = train.name[0].to_i
-            # end
-        #  return num * 10
         end
 
         def revenue_for(route, stops)

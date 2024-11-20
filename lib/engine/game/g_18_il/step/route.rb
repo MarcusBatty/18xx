@@ -31,11 +31,6 @@ module Engine
             'Scrap'
           end
 
-          def process_run_routes(action)
-            
-            super
-          end
-
           def process_scrap_train(action)
             raise GameError, 'Can only scrap trains owned by the corporation' if action.entity != action.train.owner
             @game.scrap_train(action.train)
