@@ -81,8 +81,7 @@ module Engine
         CLOSED_CORP_RESERVATIONS_REMOVED = false
 
         PORT_HEXES = %w[B1 D23 H1 I2].freeze
-        MINE_HEXES = %w[D9 D13 D17 E6 E14 F5 F13 F21 G22 H11].freeze
-        GALENA = ['C2'].freeze
+        MINE_HEXES = %w[C2 D9 D13 D17 E6 E14 F5 F13 F21 G22 H11].freeze
         DETROIT = ['I6'].freeze
         ST_PAUL = ['B1'].freeze
         PORT_OF_MEMPHIS = ['D23'].freeze
@@ -320,6 +319,7 @@ module Engine
 
         def setup_preround
           super
+
           @ic_formation_triggered = nil
           #creates corp that places blocking tokens (phase colors) in STL
           blocking_logo = ["/logos/18_il/yellow_blocking.svg","/logos/18_il/green_blocking.svg","/logos/18_il/brown_blocking.svg","/logos/18_il/gray_blocking.svg"]
@@ -364,7 +364,8 @@ module Engine
           end
         end
 
-        def setup          
+        def setup     
+
           @ic_formation_pending = nil
           @option_cubes ||= Hash.new(0)
           @ic_lines_built = 0
@@ -504,10 +505,6 @@ module Engine
           corp.ipoed = false
           corp.unfloat!
 
-          # @corporations(&:floated).each do |c|
-          #   if c.owner == corp
-          # end
-
           # return shares to IPO
           corp.share_holders.keys.each do |share_holder|
             next if share_holder == corp
@@ -546,21 +543,11 @@ module Engine
          #@log << "#{current_entity.name} skips Trade Assets"
         end
 
-        def mine_company?(company)
-          self.class::MINE_COMPANIES.include?(company.id)
-        end
-
-        def port_company?(company)
-          self.class::PORT_COMPANIES.include?(company.id)
-        end
-
         def ic_line_hex?(hex)
           IC_LINE_ORIENTATION[hex.name]
         end
 
         def ic_line_improvement(action)
-          #ic_line_icon = action.hex.tile.icons.find {IC_LINE_ICON}
-          #return if !ic_line_icon || !connects_ic_line?(action.hex)
           hex = action.hex
           tile = action.hex.tile
           icons = action.hex.tile.icons
@@ -603,28 +590,10 @@ module Engine
           @ic_formation_pending
         end
 
-=begin
-        def self.remove_sticky_icon
-          print "remove_sticky_icon"
-          @icons.each do |icon| 
-            if (icon.sticky == 1) then 
-              icons.reject(icon)
-            end
-          end
-        end
-=end
-
         def ic_line_connections(hex)
-          #@log << "connects_ic_line?"
-
           return 0 unless (orientation = IC_LINE_ORIENTATION[hex.name])
           paths = hex.tile.paths
           exits = [orientation[0], orientation[1]]
-
-          #@log << "orientation  #{orientation}"
-          #paths.each do |path| 
-          #  @log << "path #{path.exits}"
-          #end
 
           count = 0
           paths.each do |path|
@@ -632,11 +601,7 @@ module Engine
               (count += 1) if exits.include? exit
             end
           end
-          #@log << "count #{count}"
           return count
-  
-          #paths.any? { |path| (path.exits & exits).size == 2 } ||
-           # (path_to_city(paths, orientation[0]) && path_to_city(paths, orientation[1]))
         end
 
         def path_to_city(paths, edge)
@@ -721,7 +686,7 @@ module Engine
 
 
         def emergency_issuable_cash(corporation)
-          emergency_issuable_bundles(corporation).max_by(&:num_shares)&.price || 0
+          corporation.trains.any? ? 0 : emergency_issuable_bundles(corporation).max_by(&:num_shares)&.price
         end
 
         def emergency_issuable_bundles(entity)
@@ -729,7 +694,7 @@ module Engine
           bundles = bundles_for_corporation(entity, entity)
           bundles.each { |b| b.share_price = entity.share_price.price / 2.0 }
           eligible, remaining = bundles.partition { |bundle| bundle.price + entity.cash < @depot.min_depot_price }
-            return remaining.empty? ? eligible.last(1) : remaining.take(1)
+            return remaining.empty? ? eligible.last : remaining.take(1)
         end
 
         def issuable_shares(entity)
@@ -737,13 +702,6 @@ module Engine
           return [] if entity.num_ipo_shares.zero?
           return bundles_for_corporation(entity, entity).take(1)
         end
-
-        # def emergency_issuable_shares(entity)
-        #   bundles = bundles_for_corporation(entity, entity).select { |bundle| @share_pool.fit_in_bank?(bundle) }
-        #   bundles.each { |b| b.share_price = entity.share_price.price / 2.0 }
-        #   return bundles
-        # end
-
 
         def scrap_train(train)
           owner = train.owner
@@ -781,24 +739,6 @@ module Engine
           StockMarket.new(self.class::MARKET, [], zigzag: :flip)
         end
 
-        def mine_revenue_removal(route, stops)
-          return 0 if route.corporation.assignments.include?(MINE_ICON)
-          stop_hexes = stops.map(&:hex).map { |hex| hex.name }
-          mines = stop_hexes & MINE_HEXES
-          galena = stop_hexes & GALENA
-          return mines.count * 10 + galena.count * 30
-        end
-
-        def port_revenue_removal(route, stops)
-          return 0 if route.corporation.assignments.include?(PORT_ICON) || route.corporation.assignments.include?(PORT_ICON2)
-          stop_hexes = stops.map(&:hex).map { |hex| hex.name }
-          st_paul = stop_hexes & ST_PAUL
-          lake_michigan = stop_hexes & LAKE_MICHIGAN
-          port_of_memphis = [0]
-          port_of_memphis << stop_hexes & PORT_OF_MEMPHIS unless hex_by_id('D23').tile.name == 'D23'
-          return ((st_paul.count * 50) + ((port_of_memphis.count - 1) * 30) + (lake_michigan.count * 20))
-        end
-
         def p_bonus(route, stops)
           return 0 unless route.train.name.include?("P")
           cities = stops.select { |s| s.city? }
@@ -828,48 +768,76 @@ module Engine
             return bonus
         end
 
-        def stop_hexes(route)
-          stop_hexes = []
-          stop_hexes = route.stops.map(&:hex).map { |hex| hex.name}
-          stop_hexes
+        def mine_stops
+          MINE_HEXES.map { |h| hex_by_id(h).tile.stops}.reject!(&:empty?).flatten
         end
 
-        def num_mines(route)
-          (stop_hexes(route) & MINE_HEXES).count
+        def port_stops
+          PORT_HEXES.map { |h| hex_by_id(h).tile.stops}.reject!(&:empty?).flatten
         end
 
-        def num_galena(route)
-          (stop_hexes(route) & GALENA).count
-        end
-
-        def num_ports(route)
-          (stop_hexes(route) & PORT_HEXES).count
-        end
-
-        def mine_company?(route)
-          return true if route.corporation.assignments.include?(MINE_ICON)
+        def mine_corporation?(corporation)
+          return true if corporation.assignments.include?(MINE_ICON)
           false
         end
 
-        def port_company?(route)
-          return true if route.corporation.assignments.include?(PORT_ICON)
-          return true if route.corporation.assignments.include?(PORT_ICON2)
+        def port_corporation?(corporation)
+          return true if corporation.assignments.include?(PORT_ICON)
+          return true if corporation.assignments.include?(PORT_ICON2)
           false
         end
 
-        def mail_revenue(route, stops)
-          #mines = mine_company?(route) ? 0 : num_mines(route)
-          #galena = mine_company?(route) ? 0 : num_galena(route)
-         # ports =  port_company?(route) ? 0 : num_ports(route)
-          mail_stops = stops.count #- mines - ports - galena
-          return mail_stops * 5
+        def train_marker_adjustment(corporation)
+          return unless corporation.trains.any?
+          corporation.trains.each do |train|
+            next if train.name == 'D'
+            if train.name == 'Rogers (1+1)' 
+              next unless mine_corporation?(corporation)
+              train.distance = [{ 'nodes' => ['town'], 'pay' => 1, 'visit' => 1 },
+                                { 'nodes' => ['city'], 'pay' => 1, 'visit' => 1 }]
+              next
+            end
+            train_num = train.name[0].to_i
+            if mine_corporation?(corporation) && port_corporation?(corporation)
+              train.distance = [{'nodes' => %w[town halt], 'pay' => 99, 'visit' => 99 },
+                                {'nodes' => %w[city offboard], 'pay' => train_num, 'visit' => train_num }]
+              next
+            end
+            if mine_corporation?(corporation)
+              train.distance = [{'nodes' => %w[town halt], 'pay' => 99, 'visit' => 99 },
+                                {'nodes' => %w[city offboard], 'pay' => train_num, 'visit' => train_num }]
+            elsif port_corporation?(corporation)
+              train.distance = [{'nodes' => %w[town halt], 'pay' => 99, 'visit' => 99 },
+                                {'nodes' => %w[city offboard], 'pay' => train_num, 'visit' => train_num }]
+            else
+              train.distance = [{'nodes' => %w[town halt], 'pay' => 0, 'visit' => 99 },
+                                {'nodes' => %w[city offboard], 'pay' => train_num, 'visit' => train_num }]
+            end
+          end
+        end
+
+        def routes_subsidy(routes)
+          routes.sum(&:subsidy)
+        end
+
+        def subsidy_for(route, _stops)
+          return 0 unless route.corporation == us_mail_line.owner
+          (route.visited_stops & regular_stops).count * 10
+            # train = route.train
+            # if train.name.include?("P")
+            #   num = train.name[-2].to_i
+            # elsif
+            #   train.name == 'D'
+            #   num = (route.visited_stops & regular_stops).count
+            # else
+            #   num = train.name[0].to_i
+            # end
+        #  return num * 10
         end
 
         def revenue_for(route, stops)
           revenue = super
           revenue += ew_ns_bonus(stops)[:revenue] + p_bonus(route, stops)
-          revenue = revenue - mine_revenue_removal(route, stops) - port_revenue_removal(route, stops)
-          revenue += mail_revenue(route, stops) if route.corporation == us_mail_line.owner
           return revenue
         end
 
@@ -877,23 +845,28 @@ module Engine
           str = super
           bonus = ew_ns_bonus(route.stops)[:description]
           str += " + #{bonus}" if bonus
-          str += " + mail" if route.corporation == us_mail_line.owner
           return str
         end
 
         def route_distance_str(route)
-          mines = num_mines(route)
-          galena = num_galena(route)
-          ports = num_ports(route)
-          others = route_distance(route) - mines - ports - galena
+          corporation = route.corporation
+          mines = (route.visited_stops & mine_stops).count
+          ports = (route.visited_stops & port_stops).count
+          others = (route.visited_stops & regular_stops).count
           str = others.to_s
-          str += "+#{mines + galena}m" if (mines.positive? || galena.positive?) && mine_company?(route)
-          str += "+#{ports}p" if ports.positive? && port_company?(route)
+          str += "+#{mines}m" if mines.positive? && mine_corporation?(corporation)
+          str += "+#{ports}p" if ports.positive? && port_corporation?(corporation)
           return str
         end
 
+        def regular_stops
+          marker_stops = (MINE_HEXES + PORT_HEXES).map { |h| hex_by_id(h).tile.stops}.reject!(&:empty?).flatten
+          all_stops = hexes.map {|h| h.tile.stops}.reject!(&:empty?).flatten
+          all_stops - marker_stops
+        end
+
         def stl_permit?(entity)
-          STL_TOKEN_HEXES.any? { |hexid| hex_by_id(hexid).tile.cities.any? { |c| c.tokened_by?(entity) } }
+          STL_TOKEN_HEXES.any? { |h| hex_by_id(h).tile.cities.any? { |c| c.tokened_by?(entity) } }
         end
 
         def stl_hex?(stop)
@@ -975,26 +948,16 @@ module Engine
           @final_operating_rounds || super
         end
 
-        # Pullman Strike: Flip all 5+1P trains over to their 5-train
-        # side and flip all 4+2P trains over to their 4-train side.
-        # TODO:   illegal access of class variables
+        # Pullman Strike: 4+2P and 5+1P trains downgrade to 4- and 5-trains, respectively.
         def event_pullman_strike!
-          downgraded_trains = []
-          owners = Hash.new(0)
-          self.corporations.each do |cp|
-            cp.trains.each do |train|
-              if train.name == '4+2P' then
-                @log << "#{train.name} train downgraded to a 4-train (#{cp.name})"
-                train.name = '4'
+          @corporations.each do |c|
+            c.trains.each do |train|
+              if train.name.include?("P")
+                train_num = train.name[0]
+                @log << "#{train.name} train downgraded to a #{train_num}-train (#{c.name})"
+                train.name = train_num
                 train.distance = [{'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
-                                  {'nodes' => %w[city offboard], 'pay' => 4, 'visit' => 4 }]
-
-              elsif train.name == '5+1P' then
-                @log << "#{train.name} train downgraded to a 5-train (#{cp.name})"
-                train.name = '5'
-                train.distance = [{'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
-                                  {'nodes' => %w[city offboard], 'pay' => 5, 'visit' => 5 }]
-                                  
+                                  {'nodes' => %w[city offboard], 'pay' => train_num, 'visit' => train_num }]
               end
             end
           end
@@ -1007,7 +970,6 @@ module Engine
 
           if action.entity == central_illinois_boom then
             tile = action.hex.tile
-            #@log << "process single action  BOOM "+ tile.name
             if tile.name == 'P4' then
               tiles.delete_if {|tile| tile.name == 'S4'}
             elsif tile.name == 'S4' then
@@ -1045,6 +1007,22 @@ module Engine
           @ic_corporation ||= corporation_by_id('IC')
         end
 
+        def event_ic_formation!
+          @log << "-- Event: Illinois Central Formation --"
+
+          ic_setup
+
+          option_cube_exchange
+
+          @mergeable_candidates = mergeable_corporations
+
+          if @mergeable_candidates.any?
+            @log << "Merge candidates: #{present_mergeable_candidates(@mergeable_candidates)}"
+          else
+            @log << "IC forms with no merger"
+          end
+        end
+
         def ic_setup
           float_corporation(ic)
           bundle = ShareBundle.new(ic.shares[4..8])
@@ -1061,21 +1039,6 @@ module Engine
       
           ic.tokens << Engine::Token.new(ic, price:0)
           place_home_token(ic)  
-        end
-
-        def event_ic_formation!
-          @log << "-- Event: Illinois Central Formation --"
-          @mergeable_candidates = mergeable_corporations
-
-          ic_setup
-
-          option_cube_exchange
-
-          if @mergeable_candidates.any?
-            @log << "Merge candidates: #{present_mergeable_candidates(@mergeable_candidates)}"
-          else
-            @log << "IC forms with no merger"
-          end
         end
 
         def option_cube_exchange
@@ -1139,14 +1102,10 @@ module Engine
 
         def mergeable_corporations
           ic_line_corporations = []
-          corp = @corporations.select {|c| c.tokens.find {|t| t.hex == hex_by_id('H7')}}.first
-          ic_line_corporations << corp unless corp.nil?
-          corp = @corporations.select {|c| c.tokens.find {|t| t.hex == hex_by_id('G10')}}.first
-          ic_line_corporations << corp unless corp.nil?
-          corp = @corporations.select {|c| c.tokens.find {|t| t.hex == hex_by_id('F17')}}.first
-          ic_line_corporations << corp unless corp.nil?
-          corp = @corporations.select {|c| c.tokens.find {|t| t.hex == hex_by_id('E22')}}.first
-          ic_line_corporations << corp unless corp.nil?
+          4.times do |i|
+            corp = @corporations.select {|c| c.tokens.find {|t| t.hex == hex_by_id(IC_LINE_HEXES[i])}}.first
+            ic_line_corporations << corp unless corp.nil?
+          end
           ic_line_corporations
         end
 

@@ -12,6 +12,7 @@ module Engine
             return [] if !entity.operator? || @game.route_trains(entity).empty? || !@game.can_run_route?(entity)
             actions = []
             return actions unless entity.corporation?
+            @game.train_marker_adjustment(entity)
             return [] if entity.receivership?
             actions << 'run_routes'
             actions << 'scrap_train' unless scrappable_trains(entity).count < 2
@@ -28,6 +29,11 @@ module Engine
 
           def scrap_button_text(_train)
             'Scrap'
+          end
+
+          def process_run_routes(action)
+            
+            super
           end
 
           def process_scrap_train(action)

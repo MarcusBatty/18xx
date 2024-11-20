@@ -14,18 +14,12 @@ module Engine
           end
 
           def actions(entity)
-            # 1846 and a few others minors can't buy trains
-            return [] unless can_entity_buy_train?(entity)
-
-            # TODO: This needs to check it actually needs to sell shares.
-            return ['sell_shares'] if entity == current_entity&.owner && can_ebuy_sell_shares?(current_entity)
-
+            return [] if entity.receivership? && entity.trains.any?
             return [] if entity != current_entity
-            # TODO: Not sure this is right
-            return %w[sell_shares buy_train] if president_may_contribute?(entity)
-            return %w[buy_train pass] if can_buy_train?(entity)
-
-            []
+            actions = []
+            actions << 'buy_train' if can_buy_train?(entity)
+            actions << 'pass' unless actions.empty? || must_buy_train?(entity)
+            actions
           end
 
           def description

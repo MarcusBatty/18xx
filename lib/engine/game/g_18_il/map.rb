@@ -7,7 +7,7 @@ module Engine
 
         LOCATION_NAMES = {
           'A10' => 'Omaha +80 E/W',
-          'B1' => 'St. Paul Harbor',
+ #         'B1' => 'St. Paul Harbor',
           'B3' => 'Sioux City +80 E/W', 
           'B11' => 'Quincy',
           'B17'=> 'St Louis',
@@ -51,9 +51,9 @@ module Engine
         HEXES = {
 
           blue: {
-              ['B1'] => 'town=revenue:0;icon=image:18_il/port,sticky:1,blocks_lay:1;path=a:5,b:_0',
-              ['D23'] => 'town=revenue:0;icon=image:18_il/port,sticky:1,blocks_lay:1;path=a:3,b:_0;path=a:5,b:_0',
-              ['H1'] => 'town=revenue:20,groups:port;path=a:1,b:_0;path=a:5,b:_0;border=edge:5;icon=image:18_il/port,sticky:1',
+              ['B1'] => 'halt=revenue:0,symbol:0;icon=image:18_il/port,sticky:1,blocks_lay:1;path=a:5,b:_0',
+              ['D23'] => 'halt=revenue:0,symbol:0;icon=image:18_il/port,sticky:1,blocks_lay:1;path=a:3,b:_0;path=a:5,b:_0',
+              ['H1'] => 'halt=revenue:20,symbol:20,groups:port;path=a:1,b:_0;path=a:5,b:_0;border=edge:5;icon=image:18_il/port,sticky:1',
               ['I2'] => 'offboard=revenue:0;path=a:1,b:2;border=edge:0;border=edge:2',
               ['I4'] => 'offboard=revenue:0;border=edge:3',
           },
