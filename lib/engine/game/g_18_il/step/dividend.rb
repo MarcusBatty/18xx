@@ -12,6 +12,11 @@ module Engine
           
           DIVIDEND_TYPES = %i[payout half withhold].freeze
 
+          def dividend_types
+            return %i[withhold] if current_entity.receivership?
+            return DIVIDEND_TYPES
+          end
+
           def share_price_change(entity, revenue = 0)
             price = entity.share_price.price
             return { share_direction: :down, share_times: 2 } if entity.receivership? && revenue == 0 #TODO: IC cannot close

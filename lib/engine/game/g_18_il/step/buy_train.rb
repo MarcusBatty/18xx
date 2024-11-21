@@ -8,18 +8,13 @@ module Engine
       module Step
         class BuyTrain < Engine::Step::BuyTrain
 
-          def setup
-
-            super
-          end
-
           def actions(entity)
-            return [] if entity.receivership? && entity.trains.any?
+            return [] unless can_entity_buy_train?(entity)
+            return ['sell_shares'] if entity == current_entity&.owner && can_ebuy_sell_shares?(current_entity)
             return [] if entity != current_entity
-            actions = []
-            actions << 'buy_train' if can_buy_train?(entity)
-            actions << 'pass' unless actions.empty? || must_buy_train?(entity)
-            actions
+            return %w[sell_shares buy_train] if president_may_contribute?(entity)
+            return %w[buy_train pass] if can_buy_train?(entity)
+            []
           end
 
           def description
@@ -38,25 +33,6 @@ module Engine
             super
           end
 
-          def check_spend(action)
-            return unless action.train.owned_by_corporation?
-
-            min, max = spend_minmax(action.entity, action.train)
-            return if (min..max).cover?(action.price)
-
-            if max.zero? && !@game.class::EBUY_OTHER_VALUE
-              raise GameError, "#{action.entity.name} may not buy a train from "\
-                              'another corporation.'
-            else
-              raise GameError, "#{action.entity.name} may not spend "\
-                              "#{@game.format_currency(action.price)} on "\
-                              "#{action.train.owner.name}'s #{action.train.name} "\
-                              'train; may only spend between '\
-                              "#{@game.format_currency(min)} and "\
-                              "#{@game.format_currency(max)}."
-            end
-          end
-          
           def scrap_info(_train)
             ''
           end

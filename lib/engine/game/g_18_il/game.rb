@@ -344,8 +344,8 @@ module Engine
             @mine_corporations = @corporations - @port_corporations
             @port_tile_for_hex = PORT_TILE_FOR_HEX.min_by(1) { rand }
           else
-            _classA = [8,9,10,11,12,13,14,15]
-            _classB = [16,17,18,19,20,21,22,23]
+            _classA = [*8..15]
+            _classB = [*16..23]
             classA = _classA.min_by(_classA.count) {rand}
             classB = _classB.min_by(_classB.count) {rand}
             @log << "-- Auction Lot Formation --"
@@ -367,7 +367,7 @@ module Engine
         end
 
         def setup     
-
+          @emr_active = nil
           @ic_formation_pending = nil
           @option_cubes ||= Hash.new(0)
           @ic_lines_built = 0
@@ -457,6 +457,10 @@ module Engine
 
         def ipo_reserved_name(_entity = nil)
           'Reserve'
+        end
+
+        def emr_active?
+          @emr_active
         end
 
         #TODO: add stuff to this
@@ -623,7 +627,6 @@ module Engine
         end
         
         def convert(corporation)
-          return unless corporation == current_entity
           shares = @_shares.values.select { |share| share.corporation == corporation }
           corporation.share_holders.clear
           case corporation.total_shares
@@ -655,7 +658,7 @@ module Engine
           (count).times { corporation.tokens << Token.new(corporation, price: 0) }
           auto_emr(corporation, total_cost) if corporation.cash < total_cost
           corporation.spend(total_cost, @bank) unless total_cost == 0
-          @log << "#{corporation.name} buys #{count} #{count == 1 ? "token" : "tokens"} for #{format_currency(total_cost)}" if quiet = false
+          @log << "#{corporation.name} buys #{count} #{count == 1 ? "token" : "tokens"} for #{format_currency(total_cost)}" if quiet = true
         end
 
         # sell IPO shares to make up shortfall
@@ -669,11 +672,7 @@ module Engine
           bundle = ShareBundle.new(corp.shares_of(corp).take(num_shares))
           bundle.share_price = corp.share_price.price / 2.0
           sell_shares_and_change_price(bundle)
-          old = bundle.corporation.share_price.price
-          stock_market.move_down(bundle.corporation) 
-          new = bundle.corporation.share_price.price
           @log << "#{corp.name} raises #{format_currency(bundle.price)} and completes EMR"
-          @log << "#{bundle.corporation.name}'s share price moves left diagonally from #{format_currency(old)} to #{format_currency(new)}"
           @round.recalculate_order if @round.respond_to?(:recalculate_order)
         end
         
@@ -683,9 +682,23 @@ module Engine
             @bank.spend(corporation.share_price.price, corporation)
             @log << "corp gets extra cash"
           end
-          super
+          movement = :down_share if emr_active? == true
+          old_price = corporation.share_price
+          was_president = corporation.president?(bundle.owner)
+          @share_pool.sell_shares(bundle, allow_president_change: allow_president_change, swap: swap)
+          case movement || sell_movement(corporation)
+            when :down_share
+              bundle.num_shares.times { @stock_market.move_down(corporation) }
+            when :left_share
+              bundle.num_shares.times { @stock_market.move_left(corporation) }
+            when :none
+              nil
+            else
+              raise NotImplementedError
+          end
+          log_share_price(corporation, old_price) unless sell_movement(corporation) == :none && movement == nil
+          @emr_active = nil
         end
-
 
         def emergency_issuable_cash(corporation)
           corporation.trains.any? ? 0 : emergency_issuable_bundles(corporation).max_by(&:num_shares)&.price
@@ -693,6 +706,7 @@ module Engine
 
         def emergency_issuable_bundles(entity)
           return [] unless entity.cash < @depot.min_depot_price
+          @emr_active = true
           bundles = bundles_for_corporation(entity, entity)
           bundles.each { |b| b.share_price = entity.share_price.price / 2.0 }
           eligible, remaining = bundles.partition { |bundle| bundle.price + entity.cash < @depot.min_depot_price }
@@ -725,7 +739,18 @@ module Engine
         end
 
         def or_set_finished
+          #no one owns IC if in receivership
           ic.owner = nil if ic.receivership?
+
+          #convert unstarted corporations at the appropriate time.
+          if %w[4 4+2P 5 6 D].include?(@phase.name)
+            @corporations.reject { |c| c.floated? }.each do |c|
+              convert(c) if c.total_shares == 2
+              return if @phase.name == '4'
+              convert(c) if c.total_shares == 5
+            end
+          end
+          
           if phase.name == 'D'
             @log << "-- Event: Removing unopened corporations and placing blocking tokens --"
             #remove unopened corporations and decrement cert limit
