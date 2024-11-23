@@ -35,10 +35,6 @@ module Engine
 
           def process_sell_shares(action)
             @game.sell_shares_and_change_price(action.bundle, allow_president_change: false, swap: nil, movement: :left_share)
-           # old = action.bundle.corporation.share_price.price
-           # @game.stock_market.move_left(action.bundle.corporation) 
-           # new = action.bundle.corporation.share_price.price
-           # @log << "#{action.bundle.corporation.name}'s share price moves left horizontally from $#{old} to $#{new}"
             pass!
           end
 

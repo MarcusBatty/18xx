@@ -12,9 +12,15 @@ module Engine
 
           def setup
             @game.players.each(&:unpass!)
-            setup_auction   
-            #@companies = @game.companies
-            @companies = @game.companies.select { |company| company.meta[:type] == :concession }
+            setup_auction
+            if @game.ic_formation_triggered?
+              ic_shares = @game.companies.select { |c| c.meta[:type] == :share}.each { |c| c.value = @game.ic.share_price.price }
+              ic_presidents_share = @game.companies.select { |c| c.meta[:type] == :presidents_share}.each { |c| c.value = @game.ic.share_price.price * 2 }
+              @companies = @game.companies.dup.select { |company| company.meta[:type] == :concession } + ic_presidents_share + ic_shares
+            else
+              @companies = @game.companies.dup.select { |c| c.meta[:type] == :concession }
+            end
+            @companies = @companies.sort_by {|c| c.meta[:type]}
           end
          
           def description
@@ -24,6 +30,11 @@ module Engine
               'Bid on Concession'
             end
           end
+
+          def max_bid(player, _company)
+            player.cash
+          end
+
           
           def resolve_bids
             return unless @bids[@auctioning].one?
@@ -48,6 +59,35 @@ module Engine
             #removes company from the auction
             @companies.delete(company)
             @log << "#{player.name} wins the auction for #{company.name} with a bid of #{@game.format_currency(price)}"
+
+            ic = @game.ic
+            #exchange for ordinary share of IC
+            if company.meta[:type] == :share
+              corporation = @game.corporation_by_id(company.sym)
+              bundle = ShareBundle.new(ic.shares_of(ic).last)
+              @game.share_pool.transfer_shares(bundle, player)
+              if ic.presidents_share.owner == ic
+                @game.companies.delete(company)
+                company.close!
+              #if IC now has a president, remove the president's cert proxy from the auction
+              else
+                company.close!
+                @companies << company
+                @companies = @companies.sort_by {|c| c.meta[:type]}
+                pres = @companies.find {|c| c == @game.company_by_id('ICP')}
+                @companies.delete(pres)
+                @game.companies.delete(pres)
+                pres.close!
+              end
+            #exchange for president's share of IC
+            elsif company.meta[:type] == :presidents_share
+              corporation = @game.corporation_by_id(company.sym)
+              bundle = ShareBundle.new(ic.shares_of(ic).first)
+              @game.share_pool.transfer_shares(bundle, player)
+              @game.companies.delete(company)
+              company.close!
+            end
+
             #moves auction winner to the back of the line and starts again from the front of the line
             @game.players.insert((@round.entity_index - 1), @game.players.delete_at(@game.players.index(player)))
             @round.entity_index = @game.players.index(player)

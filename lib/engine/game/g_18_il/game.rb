@@ -138,6 +138,7 @@ module Engine
           @round =
             case @round
             when Engine::Round::Auction
+              clear_programmed_actions
               #reorder_players
               new_stock_round
             when Engine::Round::Stock
@@ -209,7 +210,7 @@ module Engine
         end
 
         def tile_lays(entity)
-          return ENGINEERING_MASTERY_TILE_LAYS if engineering_mastery.owner == entity
+          return ENGINEERING_MASTERY_TILE_LAYS if engineering_mastery&.owner == entity
 
           super
         end
@@ -263,43 +264,32 @@ module Engine
           companies
         end
 
-        def company_status_str(_company)
+        def company_status_str(company)
           return if @optional_rules&.include?(:intro_game)
-          if _company.meta[:type] == :private
-            if _company.meta[:class] == :A   
+          if company.meta[:type] == :private
+            if company.meta[:class] == :A   
               "Class A"
             else
               "Class B"
             end
-          elsif _company.meta[:type] == :concession
-            (@corporations.select { |c| c.name == _company.sym }).each do |corp|
+          elsif company.meta[:type] == :concession
+            (@corporations.select { |c| c.name == company.sym }).each do |corp|
               return sprintf("A: %s B: %s", corp.companies[0].name, corp.companies[1].name)
             end
           end
         end
 
         
-        def company_header(_company)
-          if _company.meta[:type] == :concession
-            'CONCESSION'
-          elsif _company.meta[:type] == :private
-            if _company.meta[:class] == :A   
-              'CLASS A'
-            else
-              'CLASS B'
-            end
-          else
-            'IC SHARE'
+        def company_header(company)
+          case company.meta[:type]
+            when :share then "ORDINARY SHARE"
+            when :presidents_share then "PRESIDENT'S SHARE"
+            when :concession then "CONCESSION"
           end
-          
         end
 
-        # def allow_player2player_sales?
-        #   @player2player ||= true #@optional_rules&.include?(:p2p_purchases)
-        # end
-
         def corporation_size(entity)
-          # For display purposes is a corporation small, medium or large
+          # change stock market token size based on share count of corporation
           CORPORATION_SIZES[entity.total_shares]
         end
 
@@ -500,50 +490,80 @@ module Engine
           super
         end
 
-        def close_corporation(corp)
-          return if corp.closed?
+        def close_corporation(corporation)
           @closed_corporations ||= []
-          @closed_corporations << corp
-          @log << "#{corp.name} closes"
+          @closed_corporations << corporation
+          @log << "#{corporation.name} closes"
+          @round.force_next_entity! if @round.current_entity == corporation
 
           # un-IPO the corporation
-          corp.share_price.corporations.delete(corp)
-          corp.share_price = nil
-          corp.par_price = nil
-          corp.ipoed = false
-          corp.unfloat!
+          corporation.share_price&.corporations&.delete(corporation)
+          corporation.share_price = nil
+          corporation.par_price = nil
+          corporation.ipoed = false
+          corporation.unfloat!
 
-          # return shares to IPO
-          corp.share_holders.keys.each do |share_holder|
-            next if share_holder == corp
-
-            shares = share_holder.shares_by_corporation[corp].compact
-            corp.share_holders.delete(share_holder)
-            shares.each do |share|
-              share_holder.shares_by_corporation[corp].delete(share)
-              share.owner = corp
-              corp.shares_by_corporation[corp] << share
+         #move owned shares of other corporations to market
+          @corporations.each do |c|
+            next if c == corporation
+            c.share_holders.keys.each do |share_holder|
+              next unless share_holder == corporation
+              shares = share_holder.shares_by_corporation[c].compact
+              c.share_holders.delete(share_holder)
+              shares.each do |share|
+                share_holder.shares_by_corporation[c].delete(share)
+                share.owner = c
+                 c.shares_by_corporation[c] << share
+                 @share_pool.transfer_shares(share.to_bundle, @share_pool)
+              end
+              c.shares_by_corporation[c].sort_by!(&:index)
             end
           end
-          corp.shares_by_corporation[corp].sort_by!(&:index)
-          corp.share_holders[corp] = 100
-          corp.owner = nil
 
-          # remove home station and flip any other tokens for corporation placed on map
-          #TODO: implement rules change to also flip home token. Upon par, corp flips any one flipped token it has on the map. If it has none, it instead places one in any free token slot.
-          corp.tokens.first.remove!
-          corp.tokens.each do |token|
+          # return shares to IPO
+          corporation.share_holders.keys.each do |share_holder|
+            next if share_holder == corporation
+            shares = share_holder.shares_by_corporation[corporation].compact
+            corporation.share_holders.delete(share_holder)
+            shares.each do |share|
+              share_holder.shares_by_corporation[corporation].delete(share)
+              share.owner = corporation
+              corporation.shares_by_corporation[corporation] << share
+            end
+          end
+          corporation.shares_by_corporation[corporation].sort_by!(&:index)
+          corporation.share_holders[corporation] = 100
+          corporation.owner = nil
+
+          # flip all of the corporation's tokens on the map
+          #TODO: When starting a previously closed corporation, the corporation flips any one flipped token it has on the map. If it has none, it instead places one in any free token slot.
+          corporation.tokens.each do |token|
           token.status = :flipped if token.used
           end
-          hex_by_id(corp.coordinates).tile.add_reservation!(corp, 0)
 
          #reactivate concession
-          company = company_by_id(corp.name)
+          company = company_by_id(corporation.name)
           company.owner = nil
           @companies << company
           @companies = @companies.sort
-         #@round.force_next_entity! if @round.operating? #&& @mergeable_candidates.empty?
+          close_corporations_in_close_cell!
         end
+
+        # def close_corporation(corporation)
+        #   # un-IPO the corporation
+        #   corporation.share_price&.corporations&.delete(corporation)
+        #   corporation.share_price = nil
+        #   corporation.par_price = nil
+        #   corporation.ipoed = false
+        #   corporation.unfloat!
+        #   corporation.owner = nil
+
+        #   # restore original permit
+        # #  @permits[corporation] = @original_permits[corporation].dup
+
+        #   # re-sort shares
+        #   @bank.shares_by_corporation[corporation].sort_by!(&:id)
+        # end
 
         def trade_assets
          #@log << "#{current_entity.name} skips Trade Assets"
@@ -667,7 +687,7 @@ module Engine
           return unless diff.positive?
 
           num_shares = ((2.0 * diff) / corp.share_price.price).ceil
-          raise GameError, 'Corporation cannot raise enough money to convert - please undo' if num_shares > corp.shares_of(corp).size #TODO: move this to convert step
+          raise GameError, 'Corporation cannot raise enough money to convert - please undo' if num_shares > corp.shares_of(corp).size #TODO: move this to convert step, or force player to make up the difference
 
           bundle = ShareBundle.new(corp.shares_of(corp).take(num_shares))
           bundle.share_price = corp.share_price.price / 2.0
@@ -680,7 +700,9 @@ module Engine
           corporation = bundle.corporation
           if corporation == share_premium.owner && @sp_used == true
             @bank.spend(corporation.share_price.price, corporation)
-            @log << "corp gets extra cash"
+            @log << "#{corporation.name} receives a bonus #{format_currency(corporation.share_price.price)} (#{share_premium.name})"
+            @log << "#{share_premium.name} (#{share_premium.owner.name}) closes"
+            @share_premium.close!
           end
           movement = :down_share if emr_active? == true
           old_price = corporation.share_price
@@ -701,11 +723,13 @@ module Engine
         end
 
         def emergency_issuable_cash(corporation)
+          return 0 if corporation.num_ipo_shares == 0
           corporation.trains.any? ? 0 : emergency_issuable_bundles(corporation).max_by(&:num_shares)&.price
         end
 
         def emergency_issuable_bundles(entity)
           return [] unless entity.cash < @depot.min_depot_price
+
           @emr_active = true
           bundles = bundles_for_corporation(entity, entity)
           bundles.each { |b| b.share_price = entity.share_price.price / 2.0 }
@@ -731,7 +755,7 @@ module Engine
           if @depot.upcoming.first.name == '2'
             depot.export_all!('2')
             phase.next!
-            nc.trains.delete_at(0)
+            nc.trains.shift
             @log << "-- Event: Rogers (1+1) train rusts --"
           else
             depot.export!
@@ -740,7 +764,7 @@ module Engine
 
         def or_set_finished
           #no one owns IC if in receivership
-          ic.owner = nil if ic.receivership?
+          ic.owner = nil if ic.presidents_share.owner == ic
 
           #convert unstarted corporations at the appropriate time.
           if %w[4 4+2P 5 6 D].include?(@phase.name)
@@ -988,11 +1012,11 @@ module Engine
 
           super
 
-          if action.entity == central_illinois_boom then
+          if action.entity == central_illinois_boom
             tile = action.hex.tile
-            if tile.name == 'P4' then
+            if tile.name == 'P4'
               tiles.delete_if {|tile| tile.name == 'S4'}
-            elsif tile.name == 'S4' then
+            elsif tile.name == 'S4'
               tiles.delete_if {|tile| tile.name == 'P4'}
             end 
           end
@@ -1105,7 +1129,7 @@ module Engine
         end
 
         def decline_merge(corporation)
-          @log << "#{corporation.name} declines"
+          @log << "#{corporation.name} declines to merge"
           @mergeable_candidates.delete(corporation)
           post_ic_formation if @mergeable_candidates.empty?
         end
@@ -1214,7 +1238,7 @@ module Engine
                               corporation.tokens.find {|t| t.hex == hex_by_id('G10')} ||
                               corporation.tokens.find {|t| t.hex == hex_by_id('F17')} ||
                               corporation.tokens.find {|t| t.hex == hex_by_id('E22')}
-          replace_token(corporation, corporation_token, ic_tokens)
+          replace_ic_token(corporation, corporation_token, ic_tokens)
 
           # If the corporation has any money, it is transferred to IC
           if corporation.cash.positive?
@@ -1234,7 +1258,7 @@ module Engine
         end
       
         
-        def replace_token(corporation, corporation_token, ic_tokens)
+        def replace_ic_token(corporation, corporation_token, ic_tokens)
           city = corporation_token.city
           @log << "#{corporation.name}'s token in #{city.hex.name} (#{city.hex.tile.location_name}) is replaced with an #{ic.name} token"
           ic_replacement = ic_tokens.first
@@ -1254,7 +1278,7 @@ module Engine
             if @slot_open == true
               city.place_token(ic, ic_tokens.first, free: true, check_tokenable: false)
             else
-              city.place_token(ic, ic_tokens.first, free: true, check_tokenable: false, cheater: false, extra_slot: true) 
+              city.place_token(ic, ic_tokens.first, free: true, check_tokenable: false, cheater: true) 
             end
             @log << "#{ic.name} places a token in #{city.hex.name} (#{hex.tile.location_name})"
             count += 1
@@ -1274,7 +1298,7 @@ module Engine
           if selected_hexes.empty?
             #if none are available, it finds the first city not tokened by IC
             selected_hexes = hexes.select do |hex|
-              IC_LINE_HEXES.include?(hex.id) && hex.tile.cities.any? { |city| !city.tokened_by?(ic) && city.tokenable?(ic, free: true, tokens: ic.tokens_by_type, cheater: false, extra_slot: true) }
+              IC_LINE_HEXES.include?(hex.id) && hex.tile.cities.any? { |city| !city.tokened_by?(ic) && city.tokenable?(ic, free: true, tokens: ic.tokens_by_type, cheater: true) }
             end #
             @slot_open = false
           end
@@ -1283,97 +1307,97 @@ module Engine
 
         def post_ic_formation
           @ic_formation_pending = false
-          #IC gains station markers and places additional markers if fewer than two mergers occur
+          #IC gains station tokens and places additional tokens if fewer than two mergers occur
           ic_reserve_tokens
 
           #calculate IC's new share price - the average of merged corporations' share prices and $80
           if @merge_share_prices == nil
             price = ic.share_price.price
           else
-          price = @merge_share_prices.sum/@merge_share_prices.count
+            price = @merge_share_prices.sum/@merge_share_prices.count
           end
-
           ic_new_share_price = @stock_market.market.first.max_by { |p| p.price <= price ? p.price : 0 }
           @log << "#{ic.name}'s new share price is #{format_currency(ic_new_share_price.price)}"
+          #removes old share price and sets new
           ic.share_price.corporations.delete(ic)
-          stock_market.set_par(ic, ic_new_share_price)
-          
+          stock_market.set_par(ic, ic_new_share_price)  
           #IC enters receivership if there is no president (priority deal player operates)
-          if ic.receivership?
+          if ic.presidents_share.owner == ic
             @log << "#{ic.name} enters receivership (it has no president)"
             ic.owner = priority_deal_player
           end
 
-          @round.entities << ic       
+          @round.entities << ic 
           @round.recalculate_order
 
+          #TODO: create new companies as proxies for IC shares to be used in auction rounds
           @log << "-- Event: Illinois Central Formation complete --"
         end
 
         #-------------------------------------------------------------------------------------------#
 
         def extra_station
-          @extra_station = @companies.find { |c| c.name == "Extra Station" }
+          @extra_station = @companies.find { |c| c&.name == "Extra Station" }
         end
 
         def goodrich_transit_line
-          @goodrich_transit_line = @companies.find { |c| c.name == "Goodrich Transit Line" }
+          @goodrich_transit_line = @companies.find { |c| c&.name == "Goodrich Transit Line" }
         end
 
         def rush_delivery
-          @rush_delivery = @companies.find { |c| c.name == "Rush Delivery" }
+          @rush_delivery = @companies.find { |c| c&.name == "Rush Delivery" }
         end
 
         def station_subsidy
-          @station_subsidy = @companies.find { |c| c.name == "Station Subsidy" }
+          @station_subsidy = @companies.find { |c| c&.name == "Station Subsidy" }
         end
 
         def share_premium
-          @share_premium = @companies.find { |c| c.name == "Share Premium" }
+          @share_premium = @companies.find { |c| c&.name == "Share Premium" }
         end
 
         def steamboat
-          @steamboat = @companies.find { |c| c.name == "Steamboat" }
+          @steamboat = @companies.find { |c| c&.name == "Steamboat" }
         end
 
         def train_subsidy
-          @train_subsidy = @companies.find { |c| c.name == "Train Subsidy" }
+          @train_subsidy = @companies.find { |c| c&.name == "Train Subsidy" }
         end
 
         def us_mail_line
-          @us_mail_line = @companies.find { |c| c.name == "U.S. Mail Line" }
+          @us_mail_line = @companies.find { |c| c&.name == "U.S. Mail Line" }
         end
 
         def advanced_track
-          @advanced_track = @companies.find { |c| c.name == "Advanced Track" }
+          @advanced_track = @companies.find { |c| c&.name == "Advanced Track" }
         end
 
         def central_illinois_boom
-          @central_illinois_boom = @companies.find { |c| c.name == "Central Illinois Boom" }
+          @central_illinois_boom = @companies.find { |c| c&.name == "Central Illinois Boom" }
         end
 
         def chicago_virden_coal_company
-          @chicago_virden_coal_company = @companies.find { |c| c.name == "Chicago-Virden Coal Company" }
+          @chicago_virden_coal_company = @companies.find { |c| c&.name == "Chicago-Virden Coal Company" }
         end
 
         def diverse_cargo
-          @diverse_cargo = @companies.find { |c| c.name == "Diverse Cargo" }
+          @diverse_cargo = @companies.find { |c| c&.name == "Diverse Cargo" }
         end
 
         def engineering_mastery
-          @engineering_mastery = @companies.find { |c| c.name == "Engineering Mastery" }
+          @engineering_mastery = @companies.find { |c| c&.name == "Engineering Mastery" }
         end
 
         def frink_walker_co
-          @frink_walker_co = @companies.find { |c| c.name == "Frink, Walker, & Co." }
+          @frink_walker_co = @companies.find { |c| c&.name == "Frink, Walker, & Co." }
         end
 
         def illinois_steel_bridge_company
-          @illinois_steel_bridge_company = @companies.find { |c| c.name == "Illinois Steel Bridge Company" }
+          @illinois_steel_bridge_company = @companies.find { |c| c&.name == "Illinois Steel Bridge Company" }
         end
 
         def lincoln_funeral_car
-          @lincoln_funeral_car = @companies.find { |c| c.name == "Lincoln Funeral Car" }
+          @lincoln_funeral_car = @companies.find { |c| c&.name == "Lincoln Funeral Car" }
         end
 
       end

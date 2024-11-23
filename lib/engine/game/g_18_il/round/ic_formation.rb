@@ -24,10 +24,6 @@ module Engine
              clear_cache!
            end
 
-          # def cash_crisis_entity
-          #   @game.players.find { |p| p.cash.negative? }
-          # end
-
         end
       end
     end

@@ -10,13 +10,14 @@ module Engine
           end
 
           def actions(entity)
-            return [] unless entity == current_entity && !@diverse_cargo_pass
+            return [] unless entity == current_entity
+            return [] if @diverse_cargo_pass
 
             ['choose']
           end
 
           def active_entities
-          return [] unless @game.diverse_cargo.owner == @round.current_operator
+          return [] unless @game.diverse_cargo&.owner == @round.current_operator
             [@game.diverse_cargo.owner]
           end
 
@@ -29,7 +30,7 @@ module Engine
           end
 
           def choice_available?(entity)
-            entity == @game.diverse_cargo.owner
+            entity == @game.diverse_cargo&.owner
           end
 
           def choices
@@ -46,7 +47,7 @@ module Engine
 
           def process_choose(action)
             corp = action.entity
-            company = @game.companies.find { |c| c.name == "Diverse Cargo" }
+            company = @game.diverse_cargo
             case action.choice
               when "Mine"
                 @log << "#{corp.name} gains a mine marker"

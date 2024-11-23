@@ -11,20 +11,21 @@ module Engine
             end
   
             def actions(entity)
-              return [] unless entity == current_entity && (!@mine_pass)
+              return [] unless entity == current_entity
+              return [] if @mine_pass
   
               ['choose']
             end
   
             def active_entities
               case @round.current_operator
-                when @game.chicago_virden_coal_company.owner
+                when @game.chicago_virden_coal_company&.owner
                   @active_company = @game.chicago_virden_coal_company
 
-                when @game.frink_walker_co.owner
+                when @game.frink_walker_co&.owner
                   @active_company = @game.frink_walker_co
 
-                when @game.us_mail_line.owner
+                when @game.us_mail_line&.owner
                   @active_company = @game.us_mail_line
                 else
                   return []

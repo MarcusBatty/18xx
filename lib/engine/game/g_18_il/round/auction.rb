@@ -15,15 +15,7 @@ module Engine
           def self.short_name
             'CR'
           end
-
-          def auction?
-            true
-          end
-
-          def select_entities
-            @game.players
-          end
-
+          
         end
       end
     end

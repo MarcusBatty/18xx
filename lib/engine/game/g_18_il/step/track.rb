@@ -6,11 +6,6 @@ module Engine
       module Step
         class Track < Engine::Step::Track
 
-          FUTURE_PATH_TILES = [
-            'C11', 'C12', 'C13', 'C14', 'C15', 'K11', 'K12', 'K13', 'IC1', 'IC2', 'IC3', 'IC4', 'IC5', 'IC6', 'IC7', 'IC8', 
-            'IC9', 'IC10', 'IC11', 'IC12', 
-          ]
-
           IC_LINE_HEXES = [
             [7, 6], 
             [6, 7],
@@ -37,23 +32,12 @@ module Engine
           def setup
             super
             @ic_line_improvement = nil
-            #@tile_lays = 0
-          end
-
-          def upgradeable_tiles(entity, ui_hex)
-            real_tiles = super
-            tiles = real_tiles
-            if !IC_LINE_HEXES.include?([ui_hex.x, ui_hex.y]) then
-              tiles.delete_if {|t| (FUTURE_PATH_TILES.include?(t.name))}
-            end
-            tiles
           end
 
           def process_lay_tile(action)
             lay_tile_action(action)
             return if action.entity.company?
             improvement = @game.ic_line_improvement(action)
-            #@log << "#{improvement}"
             @ic_line_improvement = improvement if improvement
             hex = action.hex
             tile = action.hex.tile
@@ -62,17 +46,18 @@ module Engine
 
             if @game.ic_line_hex?(hex)
               case tile.color
-                when 'yellow' #one must match
+                when 'yellow'
+                  #checks for one IC Line connection when laying yellow
                   if @game.ic_line_connections(hex) < 1
                     raise GameError, "Tile must overlay at least one dashed path"
                   end
-                when 'green' #both must match
+                when 'green'
+                  #checks for both IC Line connections when laying green
                   if @game.ic_line_connections(hex) < 2
                     raise GameError, "Tile must complete IC Line"
-                  elsif ic_token = ic.tokens.find { |t| t.city == city }
-                  #  ic_token.remove!
-                #    city.place_token(ic, ic_token) #TODO
                   end
+                  #adds reservation to IC Line hex when new tile is green
+                  tile.add_reservation!(ic, city)
               end
             end
 

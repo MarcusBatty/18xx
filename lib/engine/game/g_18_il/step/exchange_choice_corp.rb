@@ -36,7 +36,7 @@ module Engine
             price = @game.ic.share_price.price / 2
             choices = []
             choices << ["Sell for #{@game.format_currency(price)}"]
-            choices << ["Exchange for #{@game.ic.name} share for #{@game.format_currency(price)}"] if @game.ic.num_market_shares.positive? #&& @game.exchange_choice_corp.cash >= price
+            choices << ["Exchange for #{@game.ic.name} share for #{@game.format_currency(price)}"] if @game.ic.num_market_shares.positive? #&& @game.exchange_choice_corp.cash >= price #TODO
             choices
           end
 
