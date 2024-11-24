@@ -30,11 +30,6 @@ module Engine
               'Bid on Concession'
             end
           end
-
-          def max_bid(player, _company)
-            player.cash
-          end
-
           
           def resolve_bids
             return unless @bids[@auctioning].one?

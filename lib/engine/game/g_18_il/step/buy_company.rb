@@ -13,7 +13,7 @@ module Engine
       PASS = %w[pass].freeze
 
       def actions(entity)
-        return [] if entity.corporation? && entity.receivership?
+        return [] if entity == @game.ic && @game.ic.presidents_share.owner == @game.ic && @game.ic.trains.any?
         return blocks? ? ACTIONS : ACTIONS_NO_PASS if can_buy_company?(entity)
 
         return PASS if blocks? && entity.corporation? && @game.abilities(entity, passive_ok: false)
@@ -23,7 +23,7 @@ module Engine
 
           def pass!
             super
-            @game.event_ic_formation! if @game.event_pending_ic_formation?
+            @game.event_ic_formation! if @game.ic_formation_pending?
           end
           
         end

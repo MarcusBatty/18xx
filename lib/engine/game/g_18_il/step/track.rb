@@ -24,7 +24,7 @@ module Engine
           def actions(entity)
             return [] unless entity == current_entity
             return [] if entity.company? || !can_lay_tile?(entity)
-            return [] if entity.corporation? && entity.receivership?
+            return [] if entity == @game.ic && @game.ic.presidents_share.owner == @game.ic
     
             ACTIONS
           end
@@ -56,8 +56,8 @@ module Engine
                   if @game.ic_line_connections(hex) < 2
                     raise GameError, "Tile must complete IC Line"
                   end
-                  #adds reservation to IC Line hex when new tile is green
-                  tile.add_reservation!(ic, city)
+                  #adds reservation to IC Line hex when new tile is green city
+                  tile.add_reservation!(ic, city) if @game.class::IC_LINE_HEXES.include?(hex.id)
               end
             end
 

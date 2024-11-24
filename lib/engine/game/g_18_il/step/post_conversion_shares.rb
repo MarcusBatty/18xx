@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative '../../../step/base'
-require_relative 'corp_convert'
 
 module Engine
   module Game
@@ -9,7 +8,6 @@ module Engine
       module Step
         class PostConversionShares < Engine::Step::Base
           include Engine::Step::ShareBuying
-          include CorpConvert
 
           def setup
             super
@@ -64,6 +62,10 @@ module Engine
             can_buy?(entity, corporation.shares[0])
           end
 
+          def help
+            [ "Click on corporation to buy a share:"]
+          end
+
           def can_buy?(entity, bundle)
             return unless bundle
 
@@ -98,6 +100,33 @@ module Engine
             return [] unless corporation
            [@game.players.rotate(@game.players.index(corporation.owner))
            .find { |p| p.active? && (can_buy_any?(p) || can_sell?(p, nil)) }].compact
+          end
+
+          def post_convert_pass_step!
+            return unless @round.converted
+
+              corp = @round.converted
+              case corp.total_shares
+              when 10
+                min = 3
+                max = 3
+                @log << "#{corp.name} must buy 3 tokens"
+              when 5
+                min = 1
+                max = 1
+                @log << "#{corp.name} must buy 1 token"
+              end
+ 
+            price = 40
+            @log << "Each token costs $40"
+            @round.buy_tokens << {
+              entity: corp,
+              type: :convert,
+              first_price: price,
+              price: price,
+              min: min,
+              max: max,
+            }
           end
 
         end

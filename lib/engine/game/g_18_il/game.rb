@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'entities'
+require_relative 'corporations'
 require_relative 'companies'
 require_relative 'map'
 require_relative 'meta'
@@ -14,7 +14,7 @@ module Engine
     module G18IL
       class Game < Game::Base
         include_meta(G18IL::Meta)
-        include Entities
+        include Corporations
         include Companies
         include Map
         include Tiles
@@ -169,9 +169,6 @@ module Engine
         def stock_round
           G18IL::Round::Stock.new(self, [
             G18IL::Step::BuyNewTokens,
-            #Engine::Step::DiscardTrain,
-            #Engine::Step::Exchange,
-            #Engine::Step::SpecialTrack,
             G18IL::Step::BaseBuySellParShares,
           ])
         end
@@ -179,7 +176,6 @@ module Engine
         def operating_round(round_num)
           G18IL::Round::Operating.new(self, [
             Engine::Step::Bankrupt,
-           # G18IL::Step::Assign,
             G18IL::Step::DiverseCargoChoice,
             G18IL::Step::MineCompanyChoice,
             Engine::Step::Exchange,
@@ -356,9 +352,12 @@ module Engine
           end
         end
 
-        def setup     
+        def setup
+          @closed_corporations = []
+          @merged_corps = []
+          @ic_trigger_entity = nil
           @emr_active = nil
-          @ic_formation_pending = nil
+          @ic_formation_pending = false
           @option_cubes ||= Hash.new(0)
           @ic_lines_built = 0
           @ic_line_progress = {
@@ -491,7 +490,7 @@ module Engine
         end
 
         def close_corporation(corporation)
-          @closed_corporations ||= []
+
           @closed_corporations << corporation
           @log << "#{corporation.name} closes"
           @round.force_next_entity! if @round.current_entity == corporation
@@ -546,24 +545,11 @@ module Engine
           company.owner = nil
           @companies << company
           @companies = @companies.sort
-          close_corporations_in_close_cell!
+
+          @round.entities.delete(corporation)
+          
+           close_corporations_in_close_cell!
         end
-
-        # def close_corporation(corporation)
-        #   # un-IPO the corporation
-        #   corporation.share_price&.corporations&.delete(corporation)
-        #   corporation.share_price = nil
-        #   corporation.par_price = nil
-        #   corporation.ipoed = false
-        #   corporation.unfloat!
-        #   corporation.owner = nil
-
-        #   # restore original permit
-        # #  @permits[corporation] = @original_permits[corporation].dup
-
-        #   # re-sort shares
-        #   @bank.shares_by_corporation[corporation].sort_by!(&:id)
-        # end
 
         def trade_assets
          #@log << "#{current_entity.name} skips Trade Assets"
@@ -606,13 +592,14 @@ module Engine
                 @log << "The Illinois Central Railroad will form at the end of #{action.entity.name}'s turn"
                 @ic_formation_triggered = true
                 @ic_formation_pending = true
+                @ic_trigger_entity = action.entity
               end
             end
           end
           result
         end
 
-        def event_pending_ic_formation?
+        def ic_formation_pending?
           @ic_formation_pending
         end
 
@@ -634,7 +621,7 @@ module Engine
           paths.find { |p| p.exits == [edge] }
         end
 
-        def ic_line_completed?()
+        def ic_line_completed?
           @ic_lines_built == IC_LINE_COUNT
         end
 
@@ -722,14 +709,15 @@ module Engine
           @emr_active = nil
         end
 
-        def emergency_issuable_cash(corporation)
-          return 0 if corporation.num_ipo_shares == 0
-          corporation.trains.any? ? 0 : emergency_issuable_bundles(corporation).max_by(&:num_shares)&.price
-        end
+         def emergency_issuable_cash(corporation)
+          return 0 if corporation.trains.any?
+          emergency_issuable_bundles(corporation).max_by(&:num_shares)&.price || 0
+         end
 
         def emergency_issuable_bundles(entity)
           return [] unless entity.cash < @depot.min_depot_price
-
+          return [] unless entity.corporation?
+          return [] if entity.num_ipo_shares.zero?
           @emr_active = true
           bundles = bundles_for_corporation(entity, entity)
           bundles.each { |b| b.share_price = entity.share_price.price / 2.0 }
@@ -1075,12 +1063,9 @@ module Engine
               p.price == IC_STARTING_PRICE
           end)
           @bank.spend(IC_STARTING_PRICE * 10, ic)
-          @log << "#{ic.name} is parred at #{format_currency(IC_STARTING_PRICE)} and receives #{format_currency(IC_STARTING_PRICE * 10)} from the bank"
-
-          no_buy = abilities(ic, :no_buy)
-          ic.remove_ability(no_buy)
+          @log << "#{ic.name} is started at #{format_currency(IC_STARTING_PRICE)} and receives #{format_currency(IC_STARTING_PRICE * 10)} from the bank"
       
-          place_home_token(ic)  
+          place_home_token(ic)
         end
 
         def option_cube_exchange
@@ -1146,7 +1131,7 @@ module Engine
           ic_line_corporations = []
           4.times do |i|
             corp = @corporations.select {|c| c.tokens.find {|t| t.hex == hex_by_id(IC_LINE_HEXES[i])}}.first
-            ic_line_corporations << corp unless corp.nil?
+            ic_line_corporations << corp unless corp.nil? || corp == ic
           end
           ic_line_corporations.uniq
         end
@@ -1159,6 +1144,7 @@ module Engine
         end
 
         def merge_corporation_part_one(corporation = nil)
+          @merged_corps << corporation
           @mergeable_candidates.delete(corporation)
           @merged_corporation = corporation
           @log << "-- #{corporation.name} merges into #{ic.name} --"
@@ -1253,7 +1239,7 @@ module Engine
             @log << "#{ic.name} receives #{trains_transfered.one? ? "a train" : "trains"} from #{corporation.name}: #{trains_transfered.join(", ")}"
           end
 
-          close_corporation(corporation)
+          #close_corporation(corporation)
           post_ic_formation if @mergeable_candidates.empty?
         end
       
@@ -1306,7 +1292,6 @@ module Engine
         end
 
         def post_ic_formation
-          @ic_formation_pending = false
           #IC gains station tokens and places additional tokens if fewer than two mergers occur
           ic_reserve_tokens
 
@@ -1327,11 +1312,33 @@ module Engine
             ic.owner = priority_deal_player
           end
 
-          @round.entities << ic 
-          @round.recalculate_order
-
-          #TODO: create new companies as proxies for IC shares to be used in auction rounds
+          earliest_index = @merged_corps.empty? ? 99 : @merged_corps.map { |n| @round.entities.index(n) }.min
+          current_corp_index = @round.entities.index(@ic_trigger_entity)
+          #if no corps merged or none of the merged corps ran yet, IC runs next
+          if current_corp_index < earliest_index #if the triggering corp operated before any merged corps, IC will operate this round
+            @log << "IC will operate for the first time in this operating round (no merged corporations have operated in this round)"
+            #find the corp with the next price below IC's
+           index = @round.entities.find_index { |c| c&.share_price&.price < ic.share_price.price }
+            if index == nil #if there is no such corp, add IC at the end of the line
+              @round.entities << ic
+              #if IC's price is higher than the trigger corp's, IC will operate next
+            elsif ic.share_price.price > @ic_trigger_entity.share_price.price
+              @round.entities.insert(current_corp_index + 1, ic) 
+            else
+              #if IC's price is lower than the trigger corp's, IC will be placed in the proper place in order
+              @round.entities.insert(index, ic)
+            end
+          else
+            @log << "IC will operate for the first time in the next operating round"
+           end
+          
           @log << "-- Event: Illinois Central Formation complete --"
+
+          ic.floatable = true
+          ic.floated = true
+          ic.ipoed = true
+          @merged_corps.each { |c| close_corporation(c) }
+          @ic_formation_pending = false
         end
 
         #-------------------------------------------------------------------------------------------#

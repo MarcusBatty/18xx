@@ -15,7 +15,7 @@ module Engine
           def actions(entity)
             return [] unless entity == current_entity
             return [] unless can_place_token?(entity)
-            return [] if entity.corporation? && entity.receivership?
+            return [] if entity == @game.ic && @game.ic.presidents_share.owner == @game.ic
     
             ACTIONS
           end
@@ -66,8 +66,6 @@ module Engine
               #closed corp's home location is removed if the token was placed in its home location
               flipped_token.corporation.coordinates = nil if flipped_token.corporation.coordinates = hex.id
               @round.tokened = true
-              co = @game.companies.map(&:name)
-              @log << "companies: #{co}"
               return
             end
 

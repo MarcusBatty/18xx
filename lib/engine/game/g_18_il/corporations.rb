@@ -3,7 +3,7 @@
 module Engine
   module Game
     module G18IL
-      module Entities
+      module Corporations
         
         def game_corporations
           corporations = [
@@ -138,10 +138,10 @@ module Engine
                   description: 'Inter train buy/sell at face value',
                   face_value: true,
                 },
-                {
-                  type: 'no_buy',
-                  description: 'Unavailable in SR before IC Formation',
-                }
+                # {
+                #   type: 'no_buy',
+                #   description: 'Unavailable in SR before IC Formation',
+                # }
               ]
             }
           ]

@@ -14,16 +14,13 @@ module Engine
 
               old_price = corp.share_price
 
-              sold_out_stock_movement(corp) if sold_out?(corp) && @game.sold_out_increase?(corp)
-              pool_share_drop = @game.class::POOL_SHARE_DROP
+              sold_out_stock_movement(corp) if sold_out?(corp)
               price_drops =
-                if (pool_share_drop == :none) || (shares_in_pool = corp.num_market_shares).zero?
-                  0
-                elsif pool_share_drop == :down_block
-                  @game.frozen?(corp) ? 2 : 1
-                else
-                  shares_in_pool
-                end
+              if (shares_in_pool = corp.num_market_shares).zero?
+                0
+              else
+                shares_in_pool
+              end
               price_drops.times { @game.stock_market.move_down(corp) }
 
               @game.log_share_price(corp, old_price)

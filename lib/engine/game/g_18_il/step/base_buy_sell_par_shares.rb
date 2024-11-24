@@ -4,14 +4,12 @@ require_relative '../../../step/buy_sell_par_shares'
 require_relative '../../../step/share_buying'
 require_relative '../../../action/buy_shares'
 require_relative '../../../action/par'
-require_relative 'corp_start'
 
 module Engine
   module Game
     module G18IL
       module Step
         class BaseBuySellParShares < Engine::Step::BuySellParShares
-          include CorpStart
 
           def actions(entity)
             return corporate_actions(entity) if !entity.player? && entity.owned_by?(current_entity)
@@ -86,7 +84,7 @@ module Engine
           def can_buy?(entity, bundle)
             return unless bundle
             return unless bundle.buyable
-
+            return if bundle.owner == @game.ic
             if entity.corporation?
               entity.cash >= bundle.price && redeemable_shares(entity).include?(bundle)
             else
@@ -142,6 +140,36 @@ module Engine
             company = @game.company_by_id(action.corporation.name)
             @game.companies.delete(company)
             company.close!
+          end
+
+          def post_share_pass_step!
+            return unless @round.corp_started
+
+              corp = @round.corp_started
+              case corp.total_shares
+              when 10
+                min = 2
+                max = 5
+                @log << "#{corp.name} must buy between #{min} and #{max} tokens"
+              when 5
+                min = 1
+                max = 1
+                @log << "#{corp.name} must buy 1 token"
+              when 2
+                @log << "#{corp.name} does not buy tokens"
+                return
+              end
+            
+            price = 40
+            @log << "Each token costs $40"
+            @round.buy_tokens << {
+              entity: corp,
+              type: :start,
+              first_price: price,
+              price: price,
+              min: min,
+              max: max,
+            }
           end
 
         end

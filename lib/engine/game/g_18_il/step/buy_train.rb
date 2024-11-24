@@ -9,6 +9,7 @@ module Engine
         class BuyTrain < Engine::Step::BuyTrain
 
           def actions(entity)
+            return [] if entity == @game.ic && @game.ic.presidents_share.owner == @game.ic && @game.ic.trains.any?
             return ['sell_shares'] if entity == current_entity&.player
             return [] if entity != current_entity
             return %w[buy_train sell_shares] if must_sell_shares?(entity)
@@ -19,6 +20,7 @@ module Engine
           end
 
           def must_sell_shares?(corporation)
+            return false if corporation.cash > @game.depot.min_depot_price
             return false unless must_buy_train?(corporation)
             return false unless @game.emergency_issuable_cash(corporation) < @game.depot.min_depot_price
 
@@ -42,8 +44,6 @@ module Engine
           def pass!
             company = @game.train_subsidy
             company.close! if company.ability_uses.first < 4
-            @last_share_sold_price = nil
-            @last_share_issued_price = nil
             super
           end
 
