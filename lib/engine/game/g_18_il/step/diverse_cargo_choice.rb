@@ -22,7 +22,7 @@ module Engine
           end
 
           def description
-            "Use Diverse Cargo ability"
+            "Use #{@game.diverse_cargo.name} ability"
           end
 
           def active?

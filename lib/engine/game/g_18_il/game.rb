@@ -200,6 +200,7 @@ module Engine
             G18IL::Step::ExtraStationChoice,
             G18IL::Step::Token,
             G18IL::Step::BorrowTrain,
+            G18IL::Step::BuyTrainBeforeRunRoute,
             G18IL::Step::Route,
             G18IL::Step::Dividend,
             Engine::Step::SpecialBuyTrain,

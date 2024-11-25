@@ -194,6 +194,15 @@ module Engine
               ' it does not own a train. Once this ability is used, the private company closes.',
               sym: 'RD',
               meta: {type: :private, class: :A},
+              abilities:
+              [
+                {
+                  type: 'train_buy',
+                  description: 'Buy trains before instead of after Run Routes',
+                  owner_type: 'corporation',
+                  count: 1,
+                },
+              ],
             },
             {
               name: 'Station Subsidy',
