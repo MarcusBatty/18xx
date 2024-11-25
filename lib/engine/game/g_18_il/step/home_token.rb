@@ -14,14 +14,14 @@ module Engine
             pending_token[:hexes].include?(hex)
           end
 
-          def can_replace_token?(entity, replace_token)
-            @game.home_token_locations(entity).include?(replace_token.city.hex)
+          def can_replace_token?(entity, token)
+            @game.home_token_locations(entity).include?(token.city.hex)
           end
 
           def process_place_token(action)
             hex = action.city.hex
             raise GameError, "Cannot place token on #{hex.name} as the hex is not available" unless available_hex(action.entity, hex)
-            if @game.closed_corporations.include?(action.entity)
+            if @game.eligible_tokens?(action.entity)
               replace_token(action)
             else
               place_token(token.corporation, action.city, token, connected: false, extra_action: true)

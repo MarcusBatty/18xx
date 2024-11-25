@@ -494,38 +494,35 @@ module Engine
           super
         end
 
+        def eligible_tokens?(corporation)
+          corporation.tokens.find {|t| t.used && !STL_TOKEN_HEXES.include?(t.hex.id) }
+        end
+
         def place_home_token(corporation)
           return super unless @closed_corporations.include?(corporation)
-          tokens = corporation.tokens.select {|t| t.used}
-          if tokens.empty?
+          if eligible_tokens?(corporation)
+            @log << "#{corporation.name} must choose token to flip"
+          else
             @log << "#{corporation.name} must choose city for home token"
+          end
             @round.pending_tokens << {
               entity: corporation,
               hexes: home_token_locations(corporation),
               token: corporation.tokens.first
             }
-          else
-            @log << "#{corporation.name} must choose token to flip"
-            @round.pending_tokens << {
-              entity: corporation,
-              hexes: home_token_locations(corporation),
-              token: corporation.tokens.last
-            }
-          end
           @round.clear_cache!
         end
 
-        def home_token_locations(entity)
-          tokens = entity.tokens.select {|t| t.used}
+        def home_token_locations(corporation)
           #if reopened corp has no flipped tokens on map, it can place token in any available city slot except in CHI or STL
-          if tokens.empty?
-            hexes.select { |hex|
-              hex.tile.cities.any? && hex.tile.cities.select { |c| c.reservations.any? }.empty? &&
-              !STL_HEXES.include?(hex.id) && !CHICAGO_HEX.include?(hex.id)
-            }
+          if eligible_tokens?(corporation)
+            #if reopened corp has flipped token(s) on map, it can flip one of these tokens (except for STL)
+            hexes.select { |hex| hex.tile.cities.find { |c| c.tokened_by?(corporation) && !STL_TOKEN_HEXES.include?(hex.id) } }
           else
-          #if reopened corp has flipped token(s) on map, it can flip one of these tokens (except for STL)
-            hexes.select { |hex| hex.tile.cities.find { |c| c.tokened_by?(entity) && !STL_TOKEN_HEXES.include?(hex.id) } }
+            hexes.select { |hex|
+            hex.tile.cities.any? && hex.tile.cities.select { |c| c.reservations.any? }.empty? &&
+            !STL_TOKEN_HEXES.include?(hex.id) && !CHICAGO_HEX.include?(hex.id)
+            }
           end
         end
 
