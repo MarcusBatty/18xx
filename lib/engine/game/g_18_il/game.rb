@@ -22,7 +22,8 @@ module Engine
         include Market
         include Phases
 
-        attr_accessor :stl_nodes, :blocking_token, :ic_lines_built, :ic_lines_progress, :mine_corp, :port_corp, :exchange_choice_player, :exchange_choice_corp, :exchange_choice_corps, :sp_used
+        attr_accessor :stl_nodes, :blocking_token, :ic_lines_built, :ic_lines_progress, :mine_corp, :port_corp, :exchange_choice_player,
+        :exchange_choice_corp, :exchange_choice_corps, :sp_used, :borrowed_trains, :train_borrowed, :closed_corporations
         attr_reader :merged_corporation
 
         register_colors(red: '#d1232a',
@@ -92,7 +93,7 @@ module Engine
         PORT_TILE_HEXES = %w[B1 D23].freeze
         STL_HEXES = %w[B15 B17 C16 C18].freeze
         STL_TOKEN_HEXES = %w[C18].freeze
-        EXTRA_STATION_PRIVATE_NAME = 'ES'.freeze
+        CHICAGO_HEX = ['H3'].freeze
         PORT_MARKER_ICON = 'port'.freeze
         MINE_MARKER_ICON = 'mine'.freeze
         SPRINGFIELD_HEX = 'E12'.freeze
@@ -168,6 +169,7 @@ module Engine
 
         def stock_round
           G18IL::Round::Stock.new(self, [
+            G18IL::Step::HomeToken,
             G18IL::Step::BuyNewTokens,
             G18IL::Step::BaseBuySellParShares,
           ])
@@ -197,6 +199,7 @@ module Engine
             G18IL::Step::Track,
             G18IL::Step::ExtraStationChoice,
             G18IL::Step::Token,
+            G18IL::Step::BorrowTrain,
             G18IL::Step::Route,
             G18IL::Step::Dividend,
             Engine::Step::SpecialBuyTrain,
@@ -354,6 +357,8 @@ module Engine
 
         def setup
           @closed_corporations = []
+          @train_borrowed = nil
+          @borrowed_trains = {}
           @merged_corps = []
           @ic_trigger_entity = nil
           @emr_active = nil
@@ -482,11 +487,46 @@ module Engine
           if PORT_TILE_HEXES.include?(from.hex.id)
             return true if from.color == :blue && to.color == :blue
           end
-          if BOOM_HEXES.include?(from.hex.id) && @round.current_operator == central_illinois_boom.owner
+          if BOOM_HEXES.include?(from.hex.id) && @round.current_operator == central_illinois_boom.owner && phase.name == 'D'
             return true if from.hex.id == 'E8' && to.name == 'P4'
             return true if from.hex.id == 'E12' && to.name == 'S4'
           end
           super
+        end
+
+        def place_home_token(corporation)
+          return super unless @closed_corporations.include?(corporation)
+          tokens = corporation.tokens.select {|t| t.used}
+          if tokens.empty?
+            @log << "#{corporation.name} must choose city for home token"
+            @round.pending_tokens << {
+              entity: corporation,
+              hexes: home_token_locations(corporation),
+              token: corporation.tokens.first
+            }
+          else
+            @log << "#{corporation.name} must choose token to flip"
+            @round.pending_tokens << {
+              entity: corporation,
+              hexes: home_token_locations(corporation),
+              token: corporation.tokens.last
+            }
+          end
+          @round.clear_cache!
+        end
+
+        def home_token_locations(entity)
+          tokens = entity.tokens.select {|t| t.used}
+          #if reopened corp has no flipped tokens on map, it can place token in any available city slot except in CHI or STL
+          if tokens.empty?
+            hexes.select { |hex|
+              hex.tile.cities.any? && hex.tile.cities.select { |c| c.reservations.any? }.empty? &&
+              !STL_HEXES.include?(hex.id) && !CHICAGO_HEX.include?(hex.id)
+            }
+          else
+          #if reopened corp has flipped token(s) on map, it can flip one of these tokens (except for STL)
+            hexes.select { |hex| hex.tile.cities.find { |c| c.tokened_by?(entity) && !STL_TOKEN_HEXES.include?(hex.id) } }
+          end
         end
 
         def close_corporation(corporation)
@@ -535,11 +575,13 @@ module Engine
           corporation.owner = nil
 
           # flip all of the corporation's tokens on the map
-          #TODO: When starting a previously closed corporation, the corporation flips any one flipped token it has on the map. If it has none, it instead places one in any free token slot.
           corporation.tokens.each do |token|
           token.status = :flipped if token.used
           end
 
+          #home location is removed
+          corporation.coordinates = nil
+          
          #reactivate concession
           company = company_by_id(corporation.name)
           company.owner = nil
@@ -691,10 +733,10 @@ module Engine
             @log << "#{share_premium.name} (#{share_premium.owner.name}) closes"
             @share_premium.close!
           end
-          movement = :down_share if emr_active? == true
-          old_price = corporation.share_price
-          was_president = corporation.president?(bundle.owner)
-          @share_pool.sell_shares(bundle, allow_president_change: allow_president_change, swap: swap)
+           movement = :down_share if emr_active? == true
+           old_price = corporation.share_price
+           was_president = corporation.president?(bundle.owner)
+           @share_pool.sell_shares(bundle, allow_president_change: allow_president_change, swap: swap)
           case movement || sell_movement(corporation)
             when :down_share
               bundle.num_shares.times { @stock_market.move_down(corporation) }
@@ -705,8 +747,8 @@ module Engine
             else
               raise NotImplementedError
           end
-          log_share_price(corporation, old_price) unless sell_movement(corporation) == :none && movement == nil
-          @emr_active = nil
+          # log_share_price(corporation, old_price) unless sell_movement(corporation) == :none && movement == nil
+          # @emr_active = nil
         end
 
          def emergency_issuable_cash(corporation)
@@ -729,6 +771,24 @@ module Engine
           return [] unless entity.corporation?
           return [] if entity.num_ipo_shares.zero?
           return bundles_for_corporation(entity, entity).take(1)
+        end
+
+        def must_buy_train?(entity)
+          if entity == ic
+            return false if entity.cash < @depot.min_depot_price
+            return true if entity.cash > @depot.min_depot_price && num_corp_trains(entity) < train_limit(entity)
+          end
+          entity.trains.empty? && !depot.depot_trains.empty?
+        end
+
+        def borrow_train(action)
+          entity = action.entity
+          train = action.train
+          buy_train(entity, train, :free)
+          train.operated = false
+          @borrowed_trains[entity] = train
+          @log << "#{entity.name} borrows a #{train.name}"
+          @train_borrowed = true
         end
 
         def scrap_train(train)
@@ -776,7 +836,9 @@ module Engine
         end
 
         def init_stock_market
-          StockMarket.new(self.class::MARKET, [], zigzag: :flip)
+          stock_market = G18IL::StockMarket.new(self.class::MARKET, [], zigzag: :flip)
+          stock_market.game = self
+          stock_market
         end
 
         def p_bonus(route, stops)
@@ -1220,10 +1282,10 @@ module Engine
 
           ic.tokens << Engine::Token.new(ic, price:0)
           ic_tokens = ic.tokens.reject(&:city)
-          corporation_token = corporation.tokens.find {|t| t.hex == hex_by_id('H7')} ||
-                              corporation.tokens.find {|t| t.hex == hex_by_id('G10')} ||
-                              corporation.tokens.find {|t| t.hex == hex_by_id('F17')} ||
-                              corporation.tokens.find {|t| t.hex == hex_by_id('E22')}
+          corporation_token = corporation.tokens.find { |t| t.hex == hex_by_id('H7') } ||
+                              corporation.tokens.find { |t| t.hex == hex_by_id('G10') } ||
+                              corporation.tokens.find { |t| t.hex == hex_by_id('F17') } ||
+                              corporation.tokens.find { |t| t.hex == hex_by_id('E22') }
           replace_ic_token(corporation, corporation_token, ic_tokens)
 
           # If the corporation has any money, it is transferred to IC
@@ -1315,10 +1377,15 @@ module Engine
           earliest_index = @merged_corps.empty? ? 99 : @merged_corps.map { |n| @round.entities.index(n) }.min
           current_corp_index = @round.entities.index(@ic_trigger_entity)
           #if no corps merged or none of the merged corps ran yet, IC runs next
+          
           if current_corp_index < earliest_index #if the triggering corp operated before any merged corps, IC will operate this round
-            @log << "IC will operate for the first time in this operating round (no merged corporations have operated in this round)"
+            if @merged_corps.empty?
+              @log << "IC will operate for the first time in this operating round (no corporations merged)"
+            else
+              @log << "IC will operate for the first time in this operating round (no merged corporations have operated in this round)"
+            end
             #find the corp with the next price below IC's
-           index = @round.entities.find_index { |c| c&.share_price&.price < ic.share_price.price }
+            index = @round.entities.find_index { |c| c&.share_price&.price < ic.share_price.price }
             if index == nil #if there is no such corp, add IC at the end of the line
               @round.entities << ic
               #if IC's price is higher than the trigger corp's, IC will operate next

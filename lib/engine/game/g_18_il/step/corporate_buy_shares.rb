@@ -27,6 +27,10 @@ module Engine
             actions
           end
     
+          def help
+            [ "Select a corporation to buy a share or pass:"]
+          end
+
           def pass_description
             'Pass (Share Buy)'
           end

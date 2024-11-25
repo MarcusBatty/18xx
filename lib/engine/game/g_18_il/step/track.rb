@@ -42,7 +42,6 @@ module Engine
             hex = action.hex
             tile = action.hex.tile
             city = tile.cities.first
-            ic = @game.ic
 
             if @game.ic_line_hex?(hex)
               case tile.color
@@ -57,7 +56,7 @@ module Engine
                     raise GameError, "Tile must complete IC Line"
                   end
                   #adds reservation to IC Line hex when new tile is green city
-                  tile.add_reservation!(ic, city) if @game.class::IC_LINE_HEXES.include?(hex.id)
+                  tile.add_reservation!(@game.ic, city) if @game.class::IC_LINE_HEXES.include?(hex.id)
               end
             end
 
@@ -79,8 +78,10 @@ module Engine
           end
 
           def available_hex(entity, hex, normal: false)
-            return nil if @game.class::STL_HEXES.include?(hex.id) && !@game.stl_permit?(current_entity) # highlight the STL hexes only when corp has permit token
-            return nil if hex.id != @game.class::SPRINGFIELD_HEX && @game.hex_by_id(entity.coordinates).tile.color == :white && entity == @game.nc #forces NC to lay in its home hex first if it's not yellow
+            #highlight the STL hexes only when corp has permit token
+            return nil if @game.class::STL_HEXES.include?(hex.id) && !@game.stl_permit?(current_entity) 
+             #forces NC to lay in its home hex first if it's not yellow
+            return nil if hex.id != @game.class::SPRINGFIELD_HEX && @game.hex_by_id(entity.coordinates).tile.color == :white && entity == @game.nc
             super
           end
           

@@ -30,6 +30,34 @@ module Engine
             #TODO: Overwrite 'up' and 'down' text with 'up diag' and 'down diag'
           end
 
+          def log_run_payout(entity, kind, revenue, subsidy, action, payout)
+            unless Dividend::DIVIDEND_TYPES.include?(kind)
+              @log << "#{entity.name} runs for #{@game.format_currency(revenue)} and pays #{action.kind}"
+            end
+    
+            if payout[:corporation].positive?
+              if @game.train_borrowed
+                @log << "#{entity.name} withholds #{@game.format_currency(payout[:corporation])} (#{@game.format_currency(payout[:corporation])} paid to bank as lease payment)"
+              else
+                @log << "#{entity.name} withholds #{@game.format_currency(payout[:corporation])}"
+              end
+            elsif payout[:per_share].zero?
+              @log << "#{entity.name} does not run"
+            end
+            @log << "#{entity.name} earns #{@game.subsidy_name} of #{@game.format_currency(subsidy)}" if subsidy.positive?
+            @game.train_borrowed = nil
+          end
+
+          def dividend_options(entity)
+            revenue = total_revenue
+            revenue = total_revenue / 2 if @game.train_borrowed
+            dividend_types.to_h do |type|
+              payout = send(type, entity, revenue)
+              payout[:divs_to_corporation] = corporation_dividends(entity, payout[:per_share])
+              [type, payout.merge(share_price_change(entity, revenue - payout[:corporation]))]
+            end
+          end
+
           def skip!
             super
 

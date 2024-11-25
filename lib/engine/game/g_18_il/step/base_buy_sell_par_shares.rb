@@ -104,6 +104,7 @@ module Engine
           end
 
           def can_sell?(entity, bundle)
+            return false if bundle.corporation == @game.ic && @game.ic.presidents_share.owner == @game.ic
             super && !@corporate_action
           end
 
@@ -143,9 +144,10 @@ module Engine
           end
 
           def post_share_pass_step!
-            return unless @round.corp_started
-
-              corp = @round.corp_started
+            corp = @round.corp_started
+            if @game.closed_corporations.include?(corp)
+              @game.closed_corporations.delete(corp)
+            else
               case corp.total_shares
               when 10
                 min = 2
@@ -159,19 +161,18 @@ module Engine
                 @log << "#{corp.name} does not buy tokens"
                 return
               end
-            
-            price = 40
-            @log << "Each token costs $40"
-            @round.buy_tokens << {
-              entity: corp,
-              type: :start,
-              first_price: price,
-              price: price,
-              min: min,
-              max: max,
-            }
+                price = 40
+                @log << "Each token costs $40"
+                @round.buy_tokens << {
+                  entity: corp,
+                  type: :start,
+                  first_price: price,
+                  price: price,
+                  min: min,
+                  max: max,
+                }
+            end
           end
-
         end
       end
     end

@@ -23,6 +23,12 @@ module Engine
             'Convert'
           end
 
+          def help
+            [
+              "Convert #{current_entity.name} to a #{current_entity.total_shares == 2 ? "5" : "10"}-share corporation or pass:"
+            ]
+          end
+
           def others_acted?
             !@round.converts.empty?
           end

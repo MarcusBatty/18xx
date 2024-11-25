@@ -63,7 +63,7 @@ module Engine
           end
 
           def help
-            [ "Click on corporation to buy a share:"]
+            [ "Select corporation to buy a share or pass:"]
           end
 
           def can_buy?(entity, bundle)

@@ -14,8 +14,8 @@ module Engine
             @game.players.each(&:unpass!)
             setup_auction
             if @game.ic_formation_triggered?
-              ic_shares = @game.companies.select { |c| c.meta[:type] == :share}.each { |c| c.value = @game.ic.share_price.price }
-              ic_presidents_share = @game.companies.select { |c| c.meta[:type] == :presidents_share}.each { |c| c.value = @game.ic.share_price.price * 2 }
+              ic_shares = @game.companies.dup.select { |c| c.meta[:type] == :share}.each { |c| c.value = @game.ic.share_price.price }
+              ic_presidents_share = @game.companies.dup.select { |c| c.meta[:type] == :presidents_share}.each { |c| c.value = @game.ic.share_price.price * 2 }
               @companies = @game.companies.dup.select { |company| company.meta[:type] == :concession } + ic_presidents_share + ic_shares
             else
               @companies = @game.companies.dup.select { |c| c.meta[:type] == :concession }

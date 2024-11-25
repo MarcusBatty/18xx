@@ -57,14 +57,12 @@ module Engine
               stl_token_errors(entity,token) if @game.class::STL_TOKEN_HEXES.include?(hex.id)
               raise GameError, "Not enough cash to replace flipped token" if entity.cash < TOKEN_REPLACEMENT_COST
               entity.spend(TOKEN_REPLACEMENT_COST, @game.bank)
-              @log << "#{entity.name} spends #{@game.format_currency(TOKEN_REPLACEMENT_COST)} and replaces #{flipped_token.corporation.name}'s token in #{hex.name} (#{hex.location_name})"
+              @log << "#{entity.name} spends #{@game.format_currency(TOKEN_REPLACEMENT_COST)} and replaces #{flipped_token.corporation.name}'s token in #{hex.name}"
               #flips the token back to normal and returns it to the corp
               flipped_token.status = nil
               flipped_token.remove!
               #places new token
               city.place_token(entity, entity.tokens.reject(&:used).first, free: true, check_tokenable: false)
-              #closed corp's home location is removed if the token was placed in its home location
-              flipped_token.corporation.coordinates = nil if flipped_token.corporation.coordinates = hex.id
               @round.tokened = true
               return
             end

@@ -38,6 +38,10 @@ module Engine
             pending_buy[:type]
           end
 
+          def available_hex(entity, hex)
+            @game.token_graph_for_entity(entity).reachable_hexes(entity)[hex]
+          end
+
           def pending_min
             pending_buy[:min]
           end
