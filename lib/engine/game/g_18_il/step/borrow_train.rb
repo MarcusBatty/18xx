@@ -7,7 +7,7 @@ module Engine
     module G18IL
       module Step
         class BorrowTrain < Engine::Step::Base
-          ACTIONS = %w[borrow_train pass].freeze
+          ACTIONS = %w[borrow_train].freeze
           def actions(entity)
             return [] unless entity.corporation?
             return [] unless can_borrow_train?(entity)
@@ -15,12 +15,12 @@ module Engine
             ACTIONS
           end
 
-          def description
-            'Borrow Train'
+          def setup
+            @game.ic_needs_train if @game.ic.trains.empty?
           end
 
-          def pass_description
-            'Pass (Borrow Train)'
+          def description
+            'Borrow Train'
           end
 
           def blocks?

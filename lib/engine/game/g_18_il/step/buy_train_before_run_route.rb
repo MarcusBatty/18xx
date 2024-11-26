@@ -37,7 +37,9 @@ module Engine
             @round.bought_trains << corporation if from_depot && @round.respond_to?(:bought_trains)
             @round.premature_trains_bought << action.entity
 
-            pass! unless can_buy_train?(action.entity)
+            @log << "#{@game.rush_delivery.name} (#{current_entity.name}) closes"
+            @game.rush_delivery.close!
+            pass! #unless can_buy_train?(action.entity)
           end
 
           def description
@@ -46,14 +48,14 @@ module Engine
 
           def pass!
             super
-            return if @round.premature_trains_bought.empty?
+            # return if @round.premature_trains_bought.empty?
 
-            ability = ability(@game.rush_delivery.owner)
-            return unless ability
+            # ability = ability(@game.rush_delivery.owner)
+            # return unless ability
 
-            ability.use!
-            @log << "#{@game.rush_delivery.name} (#{current_entity.name}) closes"
-            @game.rush_delivery.close!
+            # ability.use!
+            # @log << "#{@game.rush_delivery.name} (#{current_entity.name}) closes"
+            # @game.rush_delivery.close!
           end
 
           def can_buy_train?

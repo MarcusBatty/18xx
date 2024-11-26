@@ -23,7 +23,9 @@ module Engine
         include Phases
 
         attr_accessor :stl_nodes, :blocking_token, :ic_lines_built, :ic_lines_progress, :mine_corp, :port_corp, :exchange_choice_player,
-        :exchange_choice_corp, :exchange_choice_corps, :sp_used, :borrowed_trains, :train_borrowed, :closed_corporations
+        :exchange_choice_corp, :exchange_choice_corps, :sp_used, :borrowed_trains, :train_borrowed, :closed_corporations, :ic_owns_train,
+        :ic_needs_train
+
         attr_reader :merged_corporation
 
         register_colors(red: '#d1232a',
@@ -130,10 +132,23 @@ module Engine
           'E20' => [4, 0],
           'E22' => [3, 0],
         }.freeze
-      
-        @port_log = []
-        @mine_log = []
-        
+
+        IMMOBILE_SHARE_PRICE_ABILITY = Ability::Description.new(
+          type: 'description',
+          description: 'Share price may not change',
+          desc_detail: 'Share price may not change while IC is trainless'
+        )
+        FORCED_WITHHOLD_ABILITY = Ability::Description.new(
+          type: 'description',
+          description: 'May not pay dividends',
+          desc_detail: 'Must withhold earnings while IC is trainless'
+        )
+        BORROW_TRAIN_ABILITY = Ability::BorrowTrain.new(
+          type: 'borrow_train',
+          train_types: %w[2 3 4 4+2P 5+1P 6 D],
+          description: 'Must borrow train',
+          desc_detail: "While trainless, IC must borrow the cheapest-available train from the Depot when running trains"
+        )
 
         def next_round!
           @round =
@@ -312,7 +327,6 @@ module Engine
         def setup_preround
           super
 
-          @ic_formation_triggered = nil
           #creates corp that places blocking tokens (phase colors) in STL
           blocking_logo = ["/logos/18_il/yellow_blocking.svg","/logos/18_il/green_blocking.svg","/logos/18_il/brown_blocking.svg","/logos/18_il/gray_blocking.svg"]
           game_start_blocking_corp = Corporation.new(sym: 'GSB', name: 'game_start_blocking_corp', logo: blocking_logo[0], simple_logo: blocking_logo[0], tokens: [0])
@@ -357,6 +371,8 @@ module Engine
         end
 
         def setup
+          @ic_owns_train = false
+          @ic_formation_triggered = nil
           @closed_corporations = []
           @train_borrowed = nil
           @borrowed_trains = {}
@@ -525,6 +541,24 @@ module Engine
             !STL_TOKEN_HEXES.include?(hex.id) && !CHICAGO_HEX.include?(hex.id)
             }
           end
+        end
+
+        def ic_owns_train
+          return if @ic_owns_train
+
+          @ic_owns_train = true
+          ic.remove_ability(self.class::FORCED_WITHHOLD_ABILITY)
+          ic.remove_ability(self.class::IMMOBILE_SHARE_PRICE_ABILITY)
+          ic.remove_ability(self.class::BORROW_TRAIN_ABILITY)
+        end
+
+        def ic_needs_train
+          return if @ic_needs_train
+
+          @ic_needs_train = true
+          ic.add_ability(self.class::FORCED_WITHHOLD_ABILITY)
+          ic.add_ability(self.class::IMMOBILE_SHARE_PRICE_ABILITY)
+          ic.add_ability(self.class::BORROW_TRAIN_ABILITY)
         end
 
         def close_corporation(corporation)
@@ -771,21 +805,13 @@ module Engine
           return bundles_for_corporation(entity, entity).take(1)
         end
 
-        def must_buy_train?(entity)
-          if entity == ic
-            return false if entity.cash < @depot.min_depot_price
-            return true if entity.cash > @depot.min_depot_price && num_corp_trains(entity) < train_limit(entity)
-          end
-          entity.trains.empty? && !depot.depot_trains.empty?
-        end
-
         def borrow_train(action)
           entity = action.entity
           train = action.train
           buy_train(entity, train, :free)
           train.operated = false
           @borrowed_trains[entity] = train
-          @log << "#{entity.name} borrows a #{train.name}"
+          @log << "#{entity.name} borrows a #{train.name} train"
           @train_borrowed = true
         end
 
@@ -1112,6 +1138,7 @@ module Engine
             @log << "Merge candidates: #{present_mergeable_candidates(@mergeable_candidates)}"
           else
             @log << "IC forms with no merger"
+            post_ic_formation
           end
         end
 

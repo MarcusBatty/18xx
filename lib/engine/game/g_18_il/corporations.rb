@@ -135,24 +135,15 @@ module Engine
               abilities: [
                 {
                   type: 'description',
-                  description: "Does not redeem, issue, or buy shares",
+                  description: "Modified operating turn",
+                  desc_detail: 'IC only performs the "run trains" and "buy trains" steps of its operating turn'
                 },
                 {
                   type: 'description',
-                  description: 'Can only buy trains from the bank and can only buy one train per round',
-                },
-                {
-                  type: 'description',
-                  description: "Not required to own a train but must buy one if possible",
-                },
-                {
-                  type: 'description',
-                  description: "Other corporations may not buy IC's last train",
-                },
-                {
-                  type: 'borrow_train',
-                  train_types: %w[2 3 4 4+2P 5+1P 6 D],
-                  description: 'May borrow a train when trainless and must withhold',
+                  description: 'Modified train buy',
+                  desc_detail: "IC can only buy trains from the bank and can only buy one train per round. "\
+                  "IC is not required to own a train, but must buy a train if possible. "\
+                  "IC's last train may not be bought by another corporation"
                 },
               ],
             }

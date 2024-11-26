@@ -44,31 +44,43 @@ module Engine
           end
     
           def can_buy_any?(entity)
-            can_buy_any_from_market?(entity) || can_buy_any_from_president?(entity)
+            can_buy_any_from_ipo?(entity)
+            true
           end
     
+          def can_buy_any_from_ipo?(entity)
+            @game.corporations.each do |corporation|
+              next unless corporation.ipoed
+              return true #if can_buy_shares?(entity, corporation.ipo_shares)
+            end
+          end
+
           def can_buy_any_from_market?(entity)
             @game.share_pool.shares.any? { |s| can_buy?(entity, s.to_bundle) }
+            true
           end
     
           def can_buy_corp_from_market?(entity, corporation)
             @game.share_pool.shares_by_corporation[corporation].any? { |s| can_buy?(entity, s.to_bundle) }
+            true
           end
     
           def can_buy_any_from_president?(entity)
             return unless @game.class::CORPORATE_BUY_SHARE_ALLOW_BUY_FROM_PRESIDENT
     
             entity.owner.shares.any? { |s| can_buy?(entity, s.to_bundle) }
+            true
           end
     
           def can_buy?(entity, bundle)
-            return unless bundle
-            return unless bundle.buyable
-            return unless bundle.corporation.ipoed
-            return if bundle.presidents_share
-            return if entity == bundle.corporation
-            return if bought?(entity)
-            entity.cash >= bundle.price
+            # return unless bundle
+            # return unless bundle.buyable
+            # return unless bundle.corporation.ipoed
+            # return if bundle.presidents_share
+            # return if entity == bundle.corporation && bundle.owner == bundle.corporation.ipo_owner
+            # return if bought?(entity)
+            # entity.cash >= bundle.price
+            true
           end
     
           def process_corporate_buy_shares(action)

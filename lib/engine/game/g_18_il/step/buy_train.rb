@@ -14,7 +14,6 @@ module Engine
           end
           
           def actions(entity)
-            return [] if entity == @game.ic && @game.ic.presidents_share.owner == @game.ic && @game.ic.trains.any?
             return ['sell_shares'] if entity == current_entity&.player
             return [] if entity != current_entity
             return %w[buy_train sell_shares] if must_sell_shares?(entity)
@@ -39,7 +38,7 @@ module Engine
           end
 
           def can_buy_train?
-            return false if @ic_bought_train = true
+            return false if @ic_bought_train
             super
           end
 
@@ -53,7 +52,7 @@ module Engine
 
           def pass!
             if (borrowed_train = @game.borrowed_trains[current_entity])
-              @game.log << "#{current_entity.name} returns #{borrowed_train.name}"
+              @game.log << "#{current_entity.name} returns a #{borrowed_train.name} train"
               @game.depot.reclaim_train(borrowed_train)
               @game.borrowed_trains[current_entity] = nil
             end
@@ -68,6 +67,11 @@ module Engine
 
           def scrap_button_text(_train)
             'Scrap'
+          end
+
+          def must_buy_train?(entity)
+            return super if entity != @game.ic
+            entity.cash > @game.depot.min_depot_price
           end
 
           def check_spend(action)
@@ -91,19 +95,39 @@ module Engine
             end
           end
 
+          def buyable_trains(entity)
+            depot_trains = @depot.depot_trains
+            other_trains = entity == @game.ic ? [] : other_trains(entity)
+    
+            if entity.cash < @depot.min_depot_price
+              depot_trains = [@depot.min_depot_train] if ebuy_offer_only_cheapest_depot_train?
+    
+              if @last_share_sold_price
+                  other_trains = []
+              end
+            end
+    
+            other_trains = [] if entity.cash.zero? && !@game.class::EBUY_OTHER_VALUE
+    
+            other_trains.reject! { |t| entity.cash < t.price && must_buy_at_face_value?(t, entity) }
+    
+            depot_trains + other_trains
+          end
+
           def process_buy_train(action)
             check_spend(action)
             check_ic_last_train(action)
             buy_train_action(action)
-            @game.ic.remove_ability(@game.ic.all_abilities.find { |a| a.type == :borrow_train }) if action.entity == @game.ic && @game.ic.trains.any?
+            @game.ic_owns_train if action.entity == @game.ic
+
             pass! if !can_buy_train?(action.entity) && pass_if_cannot_buy_train?(action.entity)
           end
 
           def buy_train_action(action, entity = nil, borrow_from: nil)
             #Check if the train is IC's last
             check_ic_last_train(entity)
-            super
             @ic_bought_train = true if action.entity == @game.ic
+            super
           end
 
           def check_ic_last_train(entity)

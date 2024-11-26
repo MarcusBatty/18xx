@@ -7,13 +7,16 @@ module Engine
         attr_writer :game
 
         def move(corporation, coordinates, force: false)
-            return super #unless corporation == @game.ic
+          return super unless corporation == @game.ic
 
-            share_price = share_price(coordinates)
-            # IC may never close
-            return super unless share_price.types.include?(:close)
+          # IC may not move unless it owns a train
+          return if @game.ic.presidents_share.owner == @game.ic
 
-            @game.log << "#{@game.ic.name} may not close"
+          share_price = share_price(coordinates)
+          # IC may never close
+          return super unless share_price.types.include?(:close)
+
+          @game.log << "#{@game.ic.name} may not close"
         end
       end
     end

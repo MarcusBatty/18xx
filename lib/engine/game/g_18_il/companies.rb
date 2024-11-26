@@ -114,7 +114,7 @@ module Engine
                   type: 'additional_token',
                   count: 1,
                   owner_type: 'corporation',
-                  when: 'owning_corp_track',
+                  when: 'track',
                   closed_when_used_up: true,
                   extra_slot: true,
                 },
@@ -131,7 +131,7 @@ module Engine
               abilities: [
                 {
                   type: 'token',
-                  when: 'owning_corp_or_turn',
+                  when: %w[track token route buying_train bought_train],
                   owner_type: 'corporation',
                   hexes: ['H3'],
                   city: 2,
@@ -198,9 +198,9 @@ module Engine
               [
                 {
                   type: 'train_buy',
-                  description: 'Buy trains before instead of after Run Routes',
                   owner_type: 'corporation',
                   count: 1,
+                  when: 'buy_train',
                 },
               ],
             },
