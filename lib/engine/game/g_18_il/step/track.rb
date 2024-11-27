@@ -24,7 +24,7 @@ module Engine
           def actions(entity)
             return [] unless entity == current_entity
             return [] if entity.company? || !can_lay_tile?(entity)
-            return [] if entity == @game.ic && @game.ic.presidents_share.owner == @game.ic
+            return [] if entity == @game.ic && @game.ic_in_receivership?
     
             ACTIONS
           end

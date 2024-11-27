@@ -104,7 +104,7 @@ module Engine
           end
 
           def can_sell?(entity, bundle)
-            return false if bundle.corporation == @game.ic && @game.ic.presidents_share.owner == @game.ic
+            return false if bundle.corporation == @game.ic && @game.ic_in_receivership?
             super && !@corporate_action
           end
 
@@ -126,6 +126,7 @@ module Engine
               track_action(action, corporation, false)
               @corporate_action = action
             end
+            @game.add_ic_operating_ability if corporation == @game.ic && !@game.ic_in_receivership?
           end
           
           def redeemable_shares(entity)

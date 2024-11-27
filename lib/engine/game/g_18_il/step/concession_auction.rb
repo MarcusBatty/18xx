@@ -61,7 +61,7 @@ module Engine
               corporation = @game.corporation_by_id(company.sym)
               bundle = ShareBundle.new(ic.shares_of(ic).last)
               @game.share_pool.transfer_shares(bundle, player)
-              if ic.presidents_share.owner == ic
+              if @game.ic_in_receivership?
                 @game.companies.delete(company)
                 company.close!
               #if IC now has a president, remove the president's cert proxy from the auction
@@ -73,6 +73,7 @@ module Engine
                 @companies.delete(pres)
                 @game.companies.delete(pres)
                 pres.close!
+                @game.add_ic_operating_ability
               end
             #exchange for president's share of IC
             elsif company.meta[:type] == :presidents_share
@@ -81,6 +82,7 @@ module Engine
               @game.share_pool.transfer_shares(bundle, player)
               @game.companies.delete(company)
               company.close!
+              @game.add_ic_operating_ability
             end
 
             #moves auction winner to the back of the line and starts again from the front of the line

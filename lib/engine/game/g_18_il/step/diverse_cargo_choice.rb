@@ -11,6 +11,7 @@ module Engine
 
           def actions(entity)
             return [] unless entity == current_entity
+            return [] unless @game.diverse_cargo&.owner == @round.current_operator
             return [] if @diverse_cargo_pass
 
             ['choose']
@@ -18,11 +19,11 @@ module Engine
 
           def active_entities
           return [] unless @game.diverse_cargo&.owner == @round.current_operator
-            [@game.diverse_cargo.owner]
+            [@game.diverse_cargo&.owner].compact
           end
 
           def description
-            "Use #{@game.diverse_cargo.name} ability"
+            "Use #{@game.diverse_cargo&.name} ability"
           end
 
           def active?

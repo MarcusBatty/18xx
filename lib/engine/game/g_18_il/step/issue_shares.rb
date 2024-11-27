@@ -14,7 +14,7 @@ module Engine
 
           def actions(entity)
             actions = []
-            return [] if entity == @game.ic && @game.ic.presidents_share.owner == @game.ic
+            return [] if entity == @game.ic && @game.ic_in_receivership?
             return actions unless entity.corporation?
             return actions unless entity == current_entity
     

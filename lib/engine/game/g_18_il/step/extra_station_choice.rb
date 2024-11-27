@@ -16,12 +16,12 @@ module Engine
             end
   
             def active_entities
-            return [] unless @game.extra_station.owner == @round.current_operator
-              [@game.extra_station.owner]
+            return [] unless @game.extra_station&.owner == @round.current_operator
+              [@game.extra_station&.owner].compact
             end
   
             def description
-              "Use Extra Station ability"
+              "Use #{@game.extra_station&.name} ability"
             end
   
             def active?
@@ -29,7 +29,7 @@ module Engine
             end
   
             def choice_available?(entity)
-              entity == @game.extra_station.owner
+              entity == @game.extra_station&.owner
             end
   
             def choices

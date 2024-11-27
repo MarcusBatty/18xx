@@ -8,7 +8,7 @@ module Engine
       module Step
         class CorporateBuySellShares < Engine::Step::BuySellParShares
           def actions(entity)
-            return [] if entity == @game.ic && @game.ic.presidents_share.owner == @game.ic
+            return [] if entity == @game.ic && @game.ic_in_receivership?
             super
           end
 

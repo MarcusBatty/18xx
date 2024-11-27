@@ -135,15 +135,15 @@ module Engine
               abilities: [
                 {
                   type: 'description',
-                  description: "Modified operating turn",
-                  desc_detail: 'IC only performs the "run trains" and "buy trains" steps of its operating turn'
-                },
-                {
-                  type: 'description',
                   description: 'Modified train buy',
                   desc_detail: "IC can only buy trains from the bank and can only buy one train per round. "\
                   "IC is not required to own a train, but must buy a train if possible. "\
-                  "IC's last train may not be bought by another corporation"
+                  "IC's last train may not be bought by another corporation."
+                },
+                {
+                  type: 'description',
+                  description: 'Modified stock purchase',
+                  desc_detail: "IC treasury shares are only available for purchase in concession rounds."
                 },
               ],
             }

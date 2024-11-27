@@ -31,11 +31,11 @@ module Engine
                   return []
               end
 
-              return [@active_company.owner] 
+              return [@active_company&.owner].compact
             end
   
             def description
-              "Use #{@active_company.name} ability"
+              "Use #{@active_company&.name} ability"
             end
   
             def active?
@@ -43,7 +43,7 @@ module Engine
             end
   
             def choice_available?(entity)
-              entity == @active_company.owner
+              entity == @active_company&.owner
             end
   
             def choices
@@ -59,7 +59,7 @@ module Engine
 
             def help
               [
-              "In this step, #{@active_company.name} can be closed without using its main ability."
+              "In this step, #{@active_company&.name} can be closed without using its main ability."
             ]
             end
   

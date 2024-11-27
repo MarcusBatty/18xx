@@ -18,7 +18,7 @@ module Engine
     
           def actions(entity)
             return [] unless entity == current_entity
-            return [] if entity == @game.ic && @game.ic.presidents_share.owner == @game.ic
+            return [] if entity == @game.ic && @game.ic_in_receivership?
     
             actions = []
             actions << 'corporate_buy_shares' if can_buy_any?(entity)
@@ -73,14 +73,13 @@ module Engine
           end
     
           def can_buy?(entity, bundle)
-            # return unless bundle
-            # return unless bundle.buyable
-            # return unless bundle.corporation.ipoed
-            # return if bundle.presidents_share
-            # return if entity == bundle.corporation && bundle.owner == bundle.corporation.ipo_owner
-            # return if bought?(entity)
-            # entity.cash >= bundle.price
-            true
+            return unless bundle
+            return unless bundle.buyable
+            return unless bundle.corporation.ipoed
+            return if bundle.presidents_share
+            return if entity == bundle.corporation && bundle.owner == bundle.corporation.ipo_owner
+            return if bought?(entity)
+            entity.cash >= bundle.price
           end
     
           def process_corporate_buy_shares(action)

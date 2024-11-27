@@ -25,7 +25,7 @@ module Engine
 
           def active_entities
             return [] unless @game.rush_delivery&.owner == @round.current_operator
-              [@game.rush_delivery.owner]
+              [@game.rush_delivery&.owner].compact
             end
 
           def process_buy_train(action)
@@ -64,11 +64,11 @@ module Engine
           end
 
           def help
-            "#{@game.rush_delivery.name} allows corporation to buy one train from the Depot prior to running trains:"
+            "#{@game.rush_delivery&.name} allows corporation to buy one train from the Depot prior to running trains:"
           end
 
           def ability(entity)
-            return if !@game.rush_delivery || !entity || @game.rush_delivery.owner != entity
+            return if !@game.rush_delivery || !entity || @game.rush_delivery&.owner != entity
 
             @game.abilities(@game.rush_delivery, :train_buy)
           end

@@ -136,18 +136,28 @@ module Engine
         IMMOBILE_SHARE_PRICE_ABILITY = Ability::Description.new(
           type: 'description',
           description: 'Share price may not change',
-          desc_detail: 'Share price may not change while IC is trainless'
+          desc_detail: 'Share price may not change while IC is trainless.'
         )
         FORCED_WITHHOLD_ABILITY = Ability::Description.new(
           type: 'description',
           description: 'May not pay dividends',
-          desc_detail: 'Must withhold earnings while IC is trainless'
+          desc_detail: 'Must withhold earnings while IC is trainless.'
         )
         BORROW_TRAIN_ABILITY = Ability::BorrowTrain.new(
           type: 'borrow_train',
           train_types: %w[2 3 4 4+2P 5+1P 6 D],
           description: 'Must borrow train',
-          desc_detail: "While trainless, IC must borrow the cheapest-available train from the Depot when running trains"
+          desc_detail: "While trainless, IC must borrow the cheapest-available train from the Depot when running trains."
+        )
+        RECEIVERSHIP_ABILITY = Ability::Description.new(
+          type: 'description',
+          description: "Modified oper. turn (receivership)",
+          desc_detail: 'IC only performs the "run trains" and "buy trains" steps during its operating turns while in receivership.'
+        )
+        OPERATING_ABILITY = Ability::Description.new(
+          type: 'description',
+          description: "Modified operating turn",
+          desc_detail: 'IC only performs the "lay track", "place token", "run trains" and "buy trains" steps during its operating turns.'
         )
 
         def next_round!
@@ -371,6 +381,7 @@ module Engine
         end
 
         def setup
+          @ic_president = nil
           @ic_owns_train = false
           @ic_formation_triggered = nil
           @closed_corporations = []
@@ -836,7 +847,7 @@ module Engine
 
         def or_set_finished
           #no one owns IC if in receivership
-          ic.owner = nil if ic.presidents_share.owner == ic
+          ic.owner = nil if ic_in_receivership?
 
           #convert unstarted corporations at the appropriate time.
           if %w[4 4+2P 5 6 D].include?(@phase.name)
@@ -1394,9 +1405,12 @@ module Engine
           ic.share_price.corporations.delete(ic)
           stock_market.set_par(ic, ic_new_share_price)  
           #IC enters receivership if there is no president (priority deal player operates)
-          if ic.presidents_share.owner == ic
+          add_ic_receivership_ability
+          if ic_in_receivership?
             @log << "#{ic.name} enters receivership (it has no president)"
             ic.owner = priority_deal_player
+          else
+            add_ic_operating_ability
           end
 
           earliest_index = @merged_corps.empty? ? 99 : @merged_corps.map { |n| @round.entities.index(n) }.min
@@ -1410,7 +1424,7 @@ module Engine
               @log << "IC will operate for the first time in this operating round (no merged corporations have operated in this round)"
             end
             #find the corp with the next price below IC's
-            index = @round.entities.find_index { |c| c&.share_price&.price < ic.share_price.price }
+            index = @round.entities.find_index { |c| c.share_price.price < ic.share_price.price }
             if index == nil #if there is no such corp, add IC at the end of the line
               @round.entities << ic
               #if IC's price is higher than the trigger corp's, IC will operate next
@@ -1422,7 +1436,7 @@ module Engine
             end
           else
             @log << "IC will operate for the first time in the next operating round"
-           end
+          end
           
           @log << "-- Event: Illinois Central Formation complete --"
 
@@ -1431,6 +1445,21 @@ module Engine
           ic.ipoed = true
           @merged_corps.each { |c| close_corporation(c) }
           @ic_formation_pending = false
+        end
+
+        def add_ic_operating_ability
+          return if @ic_president == true
+          ic.remove_ability(self.class::RECEIVERSHIP_ABILITY)
+          ic.add_ability(self.class::OPERATING_ABILITY)
+          @ic_president = true if !ic_in_receivership?
+        end
+
+        def add_ic_receivership_ability
+          ic.add_ability(self.class::RECEIVERSHIP_ABILITY)
+        end
+
+        def ic_in_receivership?
+          ic.presidents_share.owner == ic
         end
 
         #-------------------------------------------------------------------------------------------#

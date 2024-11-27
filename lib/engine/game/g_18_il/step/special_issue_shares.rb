@@ -11,7 +11,7 @@ module Engine
           ACTIONS = %w[sell_shares].freeze
 
           def description
-            'Share Premium ability'
+            "Use #{@game.share_premium&.name} ability"
           end
 
           def actions(entity)
@@ -26,8 +26,8 @@ module Engine
           end
 
           def active_entities
-            return [] unless @game.share_premium.owner == @round.current_operator
-              [@game.share_premium.owner]
+            return [] unless @game.share_premium&.owner == @round.current_operator
+              [@game.share_premium&.owner].compact
             end
 
           def pass_description
