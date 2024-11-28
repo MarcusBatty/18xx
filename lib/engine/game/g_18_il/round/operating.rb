@@ -10,7 +10,7 @@ module Engine
 
           def setup
           ic = @game.ic
-          ic.owner = priority_deal_player if ic.receivership?
+          ic.owner = @game.priority_deal_player if @game.ic_in_receivership?
           super
           end
 
