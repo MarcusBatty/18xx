@@ -1161,6 +1161,7 @@ module Engine
               p.price == IC_STARTING_PRICE
           end)
           @bank.spend(IC_STARTING_PRICE * 10, ic)
+@merge_share_prices = [ic.share_price.price] #adds IC's share price to array to be averaged later
           @log << "#{ic.name} is started at #{format_currency(IC_STARTING_PRICE)} and receives #{format_currency(IC_STARTING_PRICE * 10)} from the bank"
       
           place_home_token(ic)
@@ -1249,7 +1250,6 @@ module Engine
 
           # Shares other than president's share are refunded- non-president-owned shares at full price, president-owned shares at half price.
           refund = corporation.share_price.price
-          @merge_share_prices ||= [ic.share_price.price] #adds IC's share price to array to be averaged later
           @merge_share_prices << refund #adds merging corp's share price to array to be averaged later
           @total_refund = 0.0
 
@@ -1394,7 +1394,7 @@ module Engine
           ic_reserve_tokens
 
           #calculate IC's new share price - the average of merged corporations' share prices and $80
-          if @merge_share_prices == nil
+          if @merge_share_prices.one?
             price = ic.share_price.price
           else
             price = @merge_share_prices.sum/@merge_share_prices.count
