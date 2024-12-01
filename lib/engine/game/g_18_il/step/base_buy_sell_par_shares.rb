@@ -31,6 +31,16 @@ module Engine
             actions
           end
 
+          def corporate_actions(entity)
+            return [] if @corporate_action && @corporate_action.entity != entity
+
+            actions = []
+            if @round.current_actions.none?
+              actions << 'buy_shares' unless @game.redeemable_shares(entity).empty?
+            end
+            actions
+          end
+
           def log_pass(entity)
             if @corporate_action
               @log << "#{entity.name} finishes acting for #{@corporate_action.entity.name}"
@@ -41,16 +51,6 @@ module Engine
 
           def can_sell_order?
             !bought?
-          end
-
-          def corporate_actions(entity)
-            return [] if @corporate_action && @corporate_action.entity != entity
-
-            actions = []
-            if @round.current_actions.none?
-              actions << 'buy_shares' unless @game.redeemable_shares(entity).empty?
-            end
-            actions
           end
 
           def any_corporate_actions?(entity)
@@ -81,36 +81,42 @@ module Engine
             false
           end
 
-          def can_buy?(entity, bundle)
-            return unless bundle
-            return unless bundle.buyable
-            return false if entity == bundle.owner
-            #can only buy from corporations the player owns
-            return if bundle.owner.is_a?(Corporation) && bundle.owner != bundle.corporation && bundle.owner.owner != entity
-            return if bundle.owner == @game.ic
-            if entity.corporation?
-              entity.cash >= bundle.price && redeemable_shares(entity).include?(bundle)
-            else
-              corporation = bundle.corporation
-              if corporation != bundle.owner
-                available_cash(entity) >= modify_purchase_price(bundle) &&
-                !@round.players_sold[entity][corporation] &&
-                can_buy_multiple?(entity, corporation, bundle.owner) && can_gain?(entity, bundle) 
-                #(can_buy_multiple?(entity, corporation, bundle.owner) || !bought?) &&
-              else
-                available_cash(entity) >= modify_purchase_price(bundle) &&
-                !@round.players_sold[entity][corporation] && !bought?
-              end
+          def can_buy_any?(entity)
+            (can_buy_any_from_market?(entity) ||
+            can_buy_any_from_ipo?(entity) ||
+            can_buy_any_from_player?(entity) ||
+            can_buy_any_from_reserve?(entity))
+          end
+
+          def can_buy_any_from_reserve?(entity)
+            @game.corporations.each do |corporation|
+              next unless corporation.owner == entity
+              reserve_shares = corporation.shares - corporation.ipo_shares
+              return true if can_buy_shares?(entity, reserve_shares)
             end
+    
+            false
+          end
+
+          def can_buy_any_from_ipo?(entity)
+            @game.corporations.each do |corporation|
+              next unless corporation.ipoed
+              return true if can_buy_shares?(entity, corporation.ipo_shares)
+            end
+    
+            false
+          end
+
+          def can_buy?(entity, bundle)
+            can_gain?(entity, bundle)
           end
 
           def can_buy_multiple?(player, bundle_corporation, bundle_owner)
             return unless player == bundle_owner.owner
-            return true if bundle_owner.is_a?(Corporation) && bundle_owner != bundle_corporation
-           # bundle_corporation.buy_multiple? &&
-             @round.current_actions.none? { |x| x.is_a?(Action::Par) } &&
-             @round.current_actions.none? { |x| x.is_a?(Action::BuyShares) && x.bundle.corporation != bundle_corporation }
-             false
+            return true if reserve_bundle?(bundle_corporation, bundle_owner)
+            @round.current_actions.none? { |x| x.is_a?(Action::Par) } &&
+            @round.current_actions.none? { |x| x.is_a?(Action::BuyShares) && x.bundle.corporation != bundle_corporation }
+            false
           end
 
           def pass!
@@ -129,14 +135,42 @@ module Engine
             super && !@corporate_action
           end
 
+          def check_legal_buy(entity, shares, exchange: nil, swap: nil, allow_president_change: true); end
+
+          def can_dump?(entity, share)
+            return true unless share.president
+
+            sh = share.corporation.player_share_holders
+            (sh.reject { |k, _| k == entity }.values.max || 0) >= share.percent
+          end
+
           def can_gain?(entity, bundle, exchange: false)
-            return if !bundle || !entity
-            return false if bundle.owner.player? && !@game.can_gain_from_player?(entity, bundle)
-    
             corporation = bundle.corporation
+            return false if !bundle || !entity
+            return false if !bundle.buyable
+            return false if bundle.owner.player?
+            return false if reserve_bundle?(corporation, bundle.owner) && bundle.owner.owner != entity
+            return false if bundle.owner == @game.ic
+            return true if reserve_bundle?(corporation, bundle.owner) && @game.num_certs(entity) < @game.cert_limit(entity) && !sold?
+
+            if entity.corporation?
+              entity.cash >= bundle.price && redeemable_shares(entity).include?(bundle)
+            else
+              available_cash(entity) >= modify_purchase_price(bundle) &&
+              !@round.players_sold[entity][corporation] && !bought? &&
+              @game.num_certs(entity) < @game.cert_limit(entity)
+            end
+
+          end
+
+          def must_sell?(entity)
+            return true if @game.num_certs(entity) > @game.cert_limit(entity)
     
-            corporation.holding_ok?(entity, bundle.common_percent) &&
-              (!corporation.counts_for_limit || exchange || @game.num_certs(entity) < @game.cert_limit(entity)) #TODO: edit to allow going above cert limit when buying reserve shares
+            false
+          end
+
+          def reserve_bundle?(bundle_corporation, bundle_owner)
+            bundle_owner != bundle_corporation && bundle_owner.is_a?(Corporation)
           end
 
           def process_buy_shares(action)
@@ -145,19 +179,26 @@ module Engine
             corporation = bundle.corporation
 
             if entity.player?
-              @round.players_bought[action.entity][action.bundle.corporation] += action.bundle.percent
-              @round.bought_from_ipo = true if action.bundle.owner.corporation? && action.bundle.owner == action.bundle.corporation
-              buy_shares(action.purchase_for || action.entity, action.bundle,
+              @round.players_bought[entity][corporation] += bundle.percent
+              @round.bought_from_ipo = true if bundle.owner.corporation? && bundle.owner == corporation
+              reserve_bundle?(corporation, bundle.owner) ? track_action(action, corporation, false) : track_action(action, corporation)
+             # track_action(action, corporation) unless reserve_bundle?(corporation, bundle.owner)
+              buy_shares(action.purchase_for || entity, bundle,
                          swap: action.swap, borrow_from: action.borrow_from,
-                         allow_president_change: allow_president_change?(action.bundle.corporation),
+                         allow_president_change: allow_president_change?(corporation),
                          discounter: action.discounter)
-              track_action(action, action.bundle.corporation)
             else
               buy_shares(entity, bundle)
               track_action(action, corporation, false)
               @corporate_action = action
             end
             @game.add_ic_operating_ability if corporation == @game.ic && !@game.ic_in_receivership?
+          end
+
+          def track_action(action, corporation, player_action = true)
+             @round.last_to_act = action.entity.player
+             @round.current_actions << action if player_action
+             @round.players_history[action.entity.player][corporation] << action
           end
           
           def redeemable_shares(entity)
