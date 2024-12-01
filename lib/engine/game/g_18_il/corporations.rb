@@ -132,20 +132,6 @@ module Engine
               type: 'ten_share',
               always_market_price: true,
               floatable: false,
-              abilities: [
-                {
-                  type: 'description',
-                  description: 'Modified train buy',
-                  desc_detail: "IC can only buy trains from the bank and can only buy one train per round. "\
-                  "IC is not required to own a train, but must buy a train if possible. "\
-                  "IC's last train may not be bought by another corporation."
-                },
-                {
-                  type: 'description',
-                  description: 'Modified stock purchase',
-                  desc_detail: "IC treasury shares are only available for purchase in concession rounds."
-                },
-              ],
             }
           ]
           corporations

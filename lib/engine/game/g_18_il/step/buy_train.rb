@@ -116,7 +116,7 @@ module Engine
 
           def process_buy_train(action)
             check_spend(action)
-            check_ic_last_train(action)
+            check_ic_last_train(action.train)
             buy_train_action(action)
             @game.ic_owns_train if action.entity == @game.ic
 
@@ -124,14 +124,12 @@ module Engine
           end
 
           def buy_train_action(action, entity = nil, borrow_from: nil)
-            #Check if the train is IC's last
-            check_ic_last_train(entity)
             @ic_bought_train = true if action.entity == @game.ic
             super
           end
 
-          def check_ic_last_train(entity)
-            return unless entity == @game.ic && entity.trains.one?
+          def check_ic_last_train(train)
+            return unless train.owner == @game.ic && @game.ic.trains.one?
             raise GameError, "Cannot buy IC's only train"
           end
 

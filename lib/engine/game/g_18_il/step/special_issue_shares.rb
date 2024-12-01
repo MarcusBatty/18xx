@@ -6,7 +6,7 @@ module Engine
   module Game
     module G18IL
       module Step
-        class SpecialIssueShares < IssueShares
+        class SpecialIssueShares < CorporateIssueBuyShares
 
           ACTIONS = %w[sell_shares].freeze
 

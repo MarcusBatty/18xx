@@ -159,6 +159,24 @@ module Engine
           description: "Modified operating turn",
           desc_detail: 'IC only performs the "lay track", "place token", "run trains" and "buy trains" steps during its operating turns.'
         )
+        TRAIN_BUY_ABILITY = Ability::Description.new(
+          type: 'description',
+          description: 'Modified train buy',
+          desc_detail: "IC can only buy trains from the bank and can only buy one train per round. "\
+          "IC is not required to own a train, but must buy a train if possible. "\
+          "IC's last train may not be bought by another corporation."
+        )
+        STOCK_PURCHASE_ABILITY = Ability::Description.new(
+          type: 'description',
+          description: 'Modified stock purchase',
+          desc_detail: "IC treasury shares are only available for purchase in concession rounds."
+        )
+        FORMATION_ABILITY = Ability::Description.new(
+          type: 'description',
+          description: 'Unavailable until IC Formation',
+          desc_detail: "IC is unavailable until the IC Formation, which occurs immediately after the operating turn "\
+          " of the corporation that completes the IC Line."
+        )
 
         def next_round!
           @round =
@@ -201,7 +219,7 @@ module Engine
         end
 
         def operating_round(round_num)
-          G18IL::Round::Operating.new(self, [
+          Engine::Round::Operating.new(self, [
             Engine::Step::Bankrupt,
             G18IL::Step::DiverseCargoChoice,
             G18IL::Step::MineCompanyChoice,
@@ -217,10 +235,7 @@ module Engine
             G18IL::Step::PostConversionShares,
             G18IL::Step::BuyNewTokens,
             G18IL::Step::SpecialIssueShares,
-            G18IL::Step::IssueShares,
-            G18IL::Step::CorporateBuyShares,
-          #  G18IL::Step::CorporateBuySellShares,
-          # G18IL::Step::Corporate41BuyShares,
+            G18IL::Step::CorporateIssueBuyShares,
             G18IL::Step::Track,
             G18IL::Step::ExtraStationChoice,
             G18IL::Step::Token,
@@ -255,6 +270,11 @@ module Engine
           new_concession_round
         end
 
+        #this is not actually true, but forces the corporate_buy_sell_shares view to be used
+        def corporations_can_ipo?
+          true
+        end
+
          def new_concession_round
           @log << "-- Concession Round #{@turn} --"
           concession_round
@@ -283,6 +303,10 @@ module Engine
 
         def finish_stock_round
           return_concessions!
+          if ic_in_receivership? && ic_formation_triggered?
+            ic.owner = priority_deal_player
+            @log << "#{ic.name} is in receivership and will be operated by the player with priority deal (#{priority_deal_player.name})"
+          end
         end
 
         def initial_auction_companies
@@ -381,6 +405,8 @@ module Engine
         end
 
         def setup
+          ic.add_ability(self.class::FORMATION_ABILITY)
+          ic.owner = nil
           @ic_president = nil
           @ic_owns_train = false
           @ic_formation_triggered = nil
@@ -812,7 +838,7 @@ module Engine
 
         def issuable_shares(entity)
           return [] unless entity.corporation?
-          return [] if entity.num_ipo_shares.zero?
+          return [] if entity.num_treasury_shares.zero?
           return bundles_for_corporation(entity, entity).take(1)
         end
 
@@ -1123,8 +1149,7 @@ module Engine
 
         def redeemable_shares(entity)
           return [] unless entity.corporation?
-          return [] unless round.steps.find { |step| step.is_a?(Engine::Step::BuySellParShares) }.active?
-          return [] if entity.share_price.acquisition? || entity.share_price.liquidation?
+          return [] unless @round.steps.find { |step| step.is_a?(G18IL::Step::BaseBuySellParShares) }.active?
 
           bundles_for_corporation(share_pool, entity)
             .reject { |bundle| entity.cash < bundle.price }
@@ -1154,6 +1179,10 @@ module Engine
         end
 
         def ic_setup
+          ic.add_ability(self.class::STOCK_PURCHASE_ABILITY)
+          ic.add_ability(self.class::TRAIN_BUY_ABILITY)
+          ic.remove_ability(self.class::FORMATION_ABILITY)
+
          bundle = ShareBundle.new(ic.shares.last(5))
          @share_pool.transfer_shares(bundle, @share_pool)
 
@@ -1161,7 +1190,7 @@ module Engine
               p.price == IC_STARTING_PRICE
           end)
           @bank.spend(IC_STARTING_PRICE * 10, ic)
-@merge_share_prices = [ic.share_price.price] #adds IC's share price to array to be averaged later
+          @merge_share_prices = [ic.share_price.price] #adds IC's share price to array to be averaged later
           @log << "#{ic.name} is started at #{format_currency(IC_STARTING_PRICE)} and receives #{format_currency(IC_STARTING_PRICE * 10)} from the bank"
       
           place_home_token(ic)
@@ -1408,6 +1437,7 @@ module Engine
           add_ic_receivership_ability
           if ic_in_receivership?
             @log << "#{ic.name} enters receivership (it has no president)"
+            @log << "#{ic.name} will be operated by the player with priority deal (#{priority_deal_player.name})"
             ic.owner = priority_deal_player
           else
             add_ic_operating_ability

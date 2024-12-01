@@ -39,27 +39,15 @@ module Engine
 
             @log << "#{@game.rush_delivery.name} (#{current_entity.name}) closes"
             @game.rush_delivery.close!
-            pass! #unless can_buy_train?(action.entity)
+            pass!
           end
 
           def description
             "Use #{@game.rush_delivery.name} ability"
           end
 
-          def pass!
-            super
-            # return if @round.premature_trains_bought.empty?
-
-            # ability = ability(@game.rush_delivery.owner)
-            # return unless ability
-
-            # ability.use!
-            # @log << "#{@game.rush_delivery.name} (#{current_entity.name}) closes"
-            # @game.rush_delivery.close!
-          end
-
           def can_buy_train?
-            return false if !@round.premature_trains_bought.empty?
+            return false unless @round.premature_trains_bought.empty?
             super
           end
 
