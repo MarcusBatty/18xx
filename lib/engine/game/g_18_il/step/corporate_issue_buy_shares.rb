@@ -13,8 +13,8 @@ module Engine
             return [] unless entity == current_entity
             return [] if entity == @game.ic && @game.ic_in_receivership?
             actions = []
-            actions << 'buy_shares' if can_buy_any?(entity) && @bought == nil
-            actions << 'sell_shares' if !issuable_shares(entity).empty? && @issued == nil
+            actions << 'buy_shares' if can_buy_any?(entity) && !@bought
+            actions << 'sell_shares' if !issuable_shares(entity).empty? && !@issued
             actions << 'pass' unless actions.empty?
             actions
           end
@@ -57,7 +57,7 @@ module Engine
 
           def can_sell?(entity, bundle)
             return unless bundle
-            return true if bundle.owner == entity && bundle.corporation == entity && bundle.num_shares == 1 && @issued == nil
+            return true if bundle.owner == entity && bundle.corporation == entity && bundle.num_shares == 1 && !@issued
             false
           end
 

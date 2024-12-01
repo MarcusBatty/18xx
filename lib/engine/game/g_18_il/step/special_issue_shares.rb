@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'issue_shares'
+require_relative 'corporate_issue_buy_shares'
 
 module Engine
   module Game

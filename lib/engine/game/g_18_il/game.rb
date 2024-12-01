@@ -776,7 +776,7 @@ module Engine
           (count).times { corporation.tokens << Token.new(corporation, price: 0) }
           auto_emr(corporation, total_cost) if corporation.cash < total_cost
           corporation.spend(total_cost, @bank) unless total_cost == 0
-          @log << "#{corporation.name} buys #{count} #{count == 1 ? "token" : "tokens"} for #{format_currency(total_cost)}" if quiet = true
+          @log << "#{corporation.name} buys #{count} #{count == 1 ? "token" : "tokens"} for #{format_currency(total_cost)}" if !quiet
         end
 
         # sell IPO shares to make up shortfall
