@@ -16,7 +16,7 @@ module Engine
           def actions(entity)
             return ['sell_shares'] if entity == current_entity&.player
             return [] if entity != current_entity
-            return %w[buy_train sell_shares] if must_sell_shares?(entity)
+            return %w[buy_train sell_shares] if must_sell_shares?(entity) && @game.other_train_pass == nil
             return %w[buy_train] if must_buy_train?(entity)
             return %w[buy_train pass] if can_buy_train?(entity)
 
@@ -70,7 +70,7 @@ module Engine
           end
 
           def must_buy_train?(entity)
-            return super if entity != @game.ic
+            return super unless entity == @game.ic
             entity.cash > @game.depot.min_depot_price
           end
 

@@ -24,7 +24,7 @@ module Engine
 
         attr_accessor :stl_nodes, :blocking_token, :ic_lines_built, :ic_lines_progress, :mine_corp, :port_corp, :exchange_choice_player,
         :exchange_choice_corp, :exchange_choice_corps, :sp_used, :borrowed_trains, :train_borrowed, :closed_corporations, :ic_owns_train,
-        :ic_needs_train
+        :ic_needs_train, :other_train_pass
 
         attr_reader :merged_corporation
 
@@ -244,6 +244,7 @@ module Engine
             G18IL::Step::Route,
             G18IL::Step::Dividend,
             Engine::Step::SpecialBuyTrain,
+            G18IL::Step::CorporateSellShares,
             G18IL::Step::BuyTrain,
             [G18IL::Step::BuyCompany, { blocks: true }],
           ], round_num: round_num)
@@ -820,12 +821,27 @@ module Engine
           # @emr_active = nil
         end
 
+          # prioritize treasury shares before IPO shares
+          def emr_shares_next(corporation, active, needed)
+            return [] unless needed.positive?
+
+            all_bundles = emr_bundles_all(corporation, active)
+            all_bundles.reject! { |b| b.price >= (needed + b.share_price) }
+            return [] if all_bundles.empty?
+
+            ipo, treasury = all_bundles.partition { |s| s.corporation == corporation }
+
+            return treasury unless treasury.empty?
+
+            ipo unless ipo.empty?
+          end
+
          def emergency_issuable_cash(corporation)
           return 0 if corporation.trains.any?
           emergency_issuable_bundles(corporation).max_by(&:num_shares)&.price || 0
          end
 
-        def emergency_issuable_bundles(entity)
+         def emergency_issuable_bundles(entity)
           return [] unless entity.cash < @depot.min_depot_price
           return [] unless entity.corporation?
           return [] if entity.num_ipo_shares.zero?
