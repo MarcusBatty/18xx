@@ -14,8 +14,8 @@ module Engine
             @game.players.each(&:unpass!)
             setup_auction
             if @game.ic_formation_triggered?
-              ic_shares = @game.companies.dup.select { |c| c.meta[:type] == :share}.each { |c| c.value = @game.ic.share_price.price }
-              ic_presidents_share = @game.companies.dup.select { |c| c.meta[:type] == :presidents_share}.each { |c| c.value = @game.ic.share_price.price * 2 }
+              ic_shares = @game.companies.dup.select { |c| c.meta[:type] == :share}.each { |c| c.value = up_to_nearest_5(@game.ic.share_price.price) }
+              ic_presidents_share = @game.companies.dup.select { |c| c.meta[:type] == :presidents_share}.each { |c| c.value = up_to_nearest_5(@game.ic.share_price.price * 2) }
               @companies = @game.companies.dup.select { |company| company.meta[:type] == :concession } + ic_presidents_share + ic_shares
             else
               @companies = @game.companies.dup.select { |c| c.meta[:type] == :concession }
@@ -23,6 +23,12 @@ module Engine
             @companies = @companies.sort_by {|c| c.meta[:type]}
           end
          
+          def up_to_nearest_5(n)
+            return n if n % 5 == 0
+            rounded = n.round(-1)
+            rounded > n ? rounded : rounded + 5
+          end
+
           def description
             if @auctioning
               'Bid on Selected Concession'
