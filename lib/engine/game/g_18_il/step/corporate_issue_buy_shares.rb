@@ -14,9 +14,14 @@ module Engine
             return [] if entity == @game.ic && @game.ic_in_receivership?
             actions = []
             actions << 'buy_shares' if can_buy_any?(entity) && !@bought
-            actions << 'sell_shares' if !issuable_shares(entity).empty? && !@issued
+            actions << 'sell_shares' if !issuable_shares(entity).empty? && !@issued && !@game.sp_used
             actions << 'pass' unless actions.empty?
             actions
+          end
+
+          def process_pass(entity)
+            @game.sp_used = nil
+            super
           end
 
           def setup
@@ -34,7 +39,10 @@ module Engine
           end
 
           def visible_corporations
-            @game.corporations.select { |c| c.ipoed && !c.ipo_shares.empty?}
+            corps = @game.corporations.select { |c| c.ipoed && !c.ipo_shares.empty?}
+
+            corps = corps.reject {|c| c == current_entity} if current_entity == @game.sp_used
+            corps
           end
 
           def redeemable_shares
@@ -74,6 +82,7 @@ module Engine
                        allow_president_change: allow_president_change?(action.bundle.corporation),
                        discounter: action.discounter)
            @bought = true
+           @game.sp_used = nil
           end
 
           def auto_actions(_entity); end
@@ -113,10 +122,6 @@ module Engine
           def allow_president_change?(_corporation)
             false
           end
-
-          # def source_list(entity)
-          #   @game.corporations.select { |c| c.ipoed && c != entity && !c.ipo_shares.empty? }
-          # end
 
         end
       end

@@ -813,19 +813,34 @@ module Engine
           @log << "#{corp.name} raises #{format_currency(bundle.price)} and completes EMR"
           @round.recalculate_order if @round.respond_to?(:recalculate_order)
         end
+
+        def all_bundles_for_corporation(share_holder, corporation, shares: nil)
+          return [] unless corporation.ipoed
+  
+          shares ||= share_holder.shares_of(corporation)
+          return [] if shares.empty?
+  
+          shares = shares.sort_by { |h| [h.president ? 1 : 0, h.percent] }
+          bundle = []
+          percent = 0
+          all_bundles = shares.each_with_object([]) do |share, bundles|
+            bundle << share
+            percent += share.percent
+            bundles << Engine::ShareBundle.new(bundle, percent)
+          end
+          all_bundles.each { |b| b.share_price = corporation.share_price.price * 2.0 } if corporation == share_premium.owner && @round.steps.find { |step| step.is_a?(G18IL::Step::SpecialIssueShares) }&.active?
+          all_bundles.concat(partial_bundles_for_presidents_share(corporation, bundle, percent)) if shares.last.president
+  
+          all_bundles.sort_by(&:percent)
+        end
         
         def sell_shares_and_change_price(bundle, allow_president_change: true, swap: nil, movement: nil)
           corporation = bundle.corporation
-          if corporation == share_premium.owner && @sp_used == true
-            @bank.spend(corporation.share_price.price, corporation)
-            @log << "#{corporation.name} receives a bonus #{format_currency(corporation.share_price.price)} (#{share_premium.name})"
-            @log << "#{share_premium.name} (#{share_premium.owner.name}) closes"
-            @share_premium.close!
-          end
-           movement = :down_share if emr_active? == true
-           old_price = corporation.share_price
-           was_president = corporation.president?(bundle.owner)
-           @share_pool.sell_shares(bundle, allow_president_change: allow_president_change, swap: swap)
+          movement = :down_share if emr_active?
+          movement = :left_share if @sp_used
+          old_price = corporation.share_price
+          was_president = corporation.president?(bundle.owner)
+          @share_pool.sell_shares(bundle, allow_president_change: allow_president_change, swap: swap)
           case movement || sell_movement(corporation)
             when :down_share
               bundle.num_shares.times { @stock_market.move_down(corporation) }
@@ -836,8 +851,7 @@ module Engine
             else
               raise NotImplementedError
           end
-          # log_share_price(corporation, old_price) unless sell_movement(corporation) == :none && movement == nil
-          # @emr_active = nil
+          @emr_active = nil
         end
 
           # prioritize treasury shares before IPO shares
