@@ -46,6 +46,8 @@ module Engine
             end
             @log << "#{entity.name} earns #{@game.subsidy_name} of #{@game.format_currency(subsidy)}" if subsidy.positive?
             @game.train_borrowed = nil
+            @game.lincoln_funeral_car.close! if @game.lincoln_triggered
+            @game.lincoln_triggered = nil
           end
 
           def dividend_options(entity)

@@ -24,7 +24,7 @@ module Engine
 
         attr_accessor :stl_nodes, :blocking_token, :ic_lines_built, :ic_lines_progress, :mine_corp, :port_corp, :exchange_choice_player,
         :exchange_choice_corp, :exchange_choice_corps, :sp_used, :borrowed_trains, :train_borrowed, :closed_corporations, :ic_owns_train,
-        :ic_needs_train, :other_train_pass
+        :ic_needs_train, :other_train_pass, :lincoln_triggered
 
         attr_reader :merged_corporation, :last_set_triggered
 
@@ -238,6 +238,7 @@ module Engine
             G18IL::Step::Track,
             G18IL::Step::ExtraStationChoice,
             G18IL::Step::Token,
+            G18IL::Step::LincolnChoice,
             G18IL::Step::BorrowTrain,
             G18IL::Step::BuyTrainBeforeRunRoute,
             G18IL::Step::Route,
@@ -416,6 +417,7 @@ module Engine
         def setup
           ic.add_ability(self.class::FORMATION_ABILITY)
           ic.owner = nil
+          @lincoln_triggered = nil
           @last_set_triggered = nil
           @ic_president = nil
           @ic_owns_train = false
@@ -786,7 +788,7 @@ module Engine
           (count).times { corporation.tokens << Token.new(corporation, price: 0) }
           auto_emr(corporation, total_cost) if corporation.cash < total_cost
           corporation.spend(total_cost, @bank) unless total_cost == 0
-          if
+          if corporation == station_subsidy.owner
             @log << "#{corporation.name} uses #{station_subsidy.name} and buys"\
             " #{count} #{count == 1 ? "token" : "tokens"} for #{format_currency(total_cost)}"
             token_ability = corporation.all_abilities.find { |a| a.type == :token }
@@ -1027,6 +1029,21 @@ module Engine
         def revenue_for(route, stops)
           revenue = super
           revenue += ew_ns_bonus(stops)[:revenue] + p_bonus(route, stops)
+
+          if (ability = abilities(route.corporation, :hex_bonus)) && @lincoln_triggered
+            stops.each do |stop|
+              next unless ability.hexes.include?(stop.hex.name)
+
+              revenue += 
+              case phase.current[:tiles].last
+                when 'yellow'; 20
+                when 'green'; 30
+                when 'brown'; 40
+                when 'gray'; 50
+                end
+            end
+          end
+
           return revenue
         end
 
@@ -1034,6 +1051,13 @@ module Engine
           str = super
           bonus = ew_ns_bonus(route.stops)[:description]
           str += " + #{bonus}" if bonus
+          return str unless (ability = abilities(route.corporation, :hex_bonus))
+
+          route.hexes.each { |hex| 
+          str += " + LFC bonus" if ability.hexes.include?(hex.name) 
+          break
+          }
+
           return str
         end
 

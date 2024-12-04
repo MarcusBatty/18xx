@@ -382,10 +382,21 @@ module Engine
               name: 'Lincoln Funeral Car',
               value: 0,
               revenue: 0,
-              desc: 'During the “Run Trains” step of the corporation’s operating turn, one of the corporation’s trains earns an additional $20/$30/$40 for each of the following cities in its route dur-ing a yellow/green/brown phase, '\
+              desc: 'During the “Run Trains” step of the corporation’s operating turn, one of the corporation’s trains earns an additional $20/$30/$40/$50 for each of the following cities in its route during a yellow/green/brown/gray phase, '\
               'respectively: Chicago (H3), Joliet (G6), Bloomington (F9), and Springfield (E12). Once this ability is used, the private company closes.',
               sym: 'LFC',
               meta: {type: :private, class: :B},
+              abilities: [
+                {
+                  type: 'hex_bonus',
+                  when: 'route',
+                  owner_type: 'corporation',
+                  hexes: %w[H3 G6 F9 E12],
+                  amount: 20,
+                  count: 1,
+                  closed_when_used_up: true,
+                },
+              ],
             },
             {
               name: "IC President's Share",
