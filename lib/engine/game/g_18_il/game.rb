@@ -868,7 +868,7 @@ module Engine
           bundles = bundles_for_corporation(entity, entity)
           bundles.each { |b| b.share_price = entity.share_price.price / 2.0 }
           eligible, remaining = bundles.partition { |bundle| bundle.price + entity.cash < @depot.min_depot_price }
-            return remaining.empty? ? [eligible.last] : [remaining.first]
+            return remaining.empty? ? [eligible.last].compact : [remaining.first].compact
         end
 
         def issuable_shares(entity)

@@ -7,12 +7,13 @@ module Engine
   module Game
     module G18IL
       module Step
-        class BuyTrainBeforeRunRoute < Engine::Step::BuyTrain
+        class BuyTrainBeforeRunRoute < G18IL::Step::BuyTrain
 
           ACTIONS = %w[buy_train pass].freeze
 
           def actions(entity)
-            return ACTIONS if can_buy_train?(entity)
+            return %w[buy_train sell_shares pass] if must_sell_shares?(entity.corporation)
+            return %w[buy_train pass] if can_buy_train?(entity)
 
             []
           end
@@ -27,7 +28,11 @@ module Engine
             return [] unless @game.rush_delivery&.owner == @round.current_operator
               [@game.rush_delivery&.owner].compact
             end
-
+            
+          def can_sell?
+            true
+          end
+          
           def process_buy_train(action)
             from_depot = action.train.from_depot?
             raise GameError, 'Premature buys are only allowed from the Depot' unless from_depot
@@ -40,6 +45,15 @@ module Engine
             @log << "#{@game.rush_delivery.name} (#{current_entity.name}) closes"
             @game.rush_delivery.close!
             pass!
+          end
+
+          def buyable_trains(entity)
+            depot_trains = @depot.depot_trains
+    
+            if entity.cash < @depot.min_depot_price
+              depot_trains = [@depot.min_depot_train]
+            end
+            depot_trains
           end
 
           def description
@@ -62,7 +76,6 @@ module Engine
           end
 
           def do_after_buy_train_action(action, _entity)
-            # Trains bought with this ability can be run even if they have already run this OR
             action.train.operated = false
           end
         end
