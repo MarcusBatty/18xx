@@ -88,6 +88,7 @@ module Engine
             #discount on 4th and 5th token
             price -= 10 if num == 4
             price -= 20 if num == 5
+            (price = num < 5 ? 0 : 40) if pending_entity == @game.station_subsidy.owner
             return price
           end
 
@@ -96,13 +97,8 @@ module Engine
               num = i + pending_min
               total = price(num)
               next if (num > pending_min) && (total > pending_corp.cash)
-
-              emr = total > pending_corp.cash ? ' - EMR' : ''
-              if pending_type == :start
-              [num, "#{num} (#{@game.format_currency(total)}#{emr})"]
-              else
-               [num, "#{num} (#{@game.format_currency(total)}#{emr})"]
-              end
+                emr = total > pending_corp.cash ? ' - EMR' : ''
+                [num, "#{num} (#{@game.format_currency(total)}#{emr})"]
             end.compact.to_h
           end
 

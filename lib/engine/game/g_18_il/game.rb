@@ -786,7 +786,15 @@ module Engine
           (count).times { corporation.tokens << Token.new(corporation, price: 0) }
           auto_emr(corporation, total_cost) if corporation.cash < total_cost
           corporation.spend(total_cost, @bank) unless total_cost == 0
-          @log << "#{corporation.name} buys #{count} #{count == 1 ? "token" : "tokens"} for #{format_currency(total_cost)}" if !quiet
+          if
+            @log << "#{corporation.name} uses #{station_subsidy.name} and buys"\
+            " #{count} #{count == 1 ? "token" : "tokens"} for #{format_currency(total_cost)}"
+            token_ability = corporation.all_abilities.find { |a| a.type == :token }
+            count.times { token_ability.use! }
+            station_subsidy.close! unless token_ability.count.positive?
+          else
+            @log << "#{corporation.name} buys #{count} #{count == 1 ? "token" : "tokens"} for #{format_currency(total_cost)}" unless quiet
+          end
         end
 
         # sell IPO shares to make up shortfall

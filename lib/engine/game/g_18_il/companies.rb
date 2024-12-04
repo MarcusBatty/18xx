@@ -209,10 +209,20 @@ module Engine
     
               value: 0,
               revenue: 0,
-              desc: 'This company starts with four subsidy cubes on it. When starting or converting a corporation, one, two, three, or four cubes may be discarded'\
-              ' to receive a discount of $40, $80, $120, or $160 respectively, when buying station markers. Once the fourth cube has been used, the private company closes.',
+              desc: 'This company starts with four subsidies. When starting or converting a corporation, one, two, three, or four subsidies are used'\
+              ' in lieu of payment for one, two, three or four station tokens, respectively. A corporation may use the ability to gain'\
+              ' five station tokens at a total cost of $40.',
               sym: 'SS',
               meta: {type: :private, class: :A},
+              abilities: [
+                {
+                type: 'token',
+                hexes: [],
+                owner_type: 'corporation',
+                count: 4,
+                closed_when_used_up: true,
+                },
+              ],
             },
             {
               name: 'Share Premium',
