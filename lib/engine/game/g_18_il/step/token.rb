@@ -13,6 +13,7 @@ module Engine
           ACTIONS = %w[place_token pass].freeze
 
           def actions(entity)
+            return [] if @game.last_set_triggered
             return [] unless entity == current_entity
             return [] unless can_place_token?(entity)
             return [] if entity == @game.ic && @game.ic_in_receivership?

@@ -44,8 +44,9 @@ module Engine
           def process_buy_shares(action)
             player = action.entity
             buy_shares(player, action.bundle)
-
-            player.pass! if !corporation.president?(player.owner) || !can_buy_any?(player)
+            player.pass! unless corporation.president?(player.owner) && can_buy_any?(player)
+            return if corporation.president?(player.owner)
+            @game.players.insert((@game.players.size - 1), @game.players.delete_at(@game.players.index(player)))
           end
 
           def process_sell_shares(action)
@@ -98,24 +99,24 @@ module Engine
 
           def active_entities
             return [] unless corporation
-           [@game.players.rotate(@game.players.index(corporation.owner))
-           .find { |p| p.active? && (can_buy_any?(p) || can_sell?(p, nil)) }].compact
+           [@game.players.unshift(@game.players.delete(corporation.owner)).find { |p|
+           p.active? && (can_buy_any?(p) || can_sell?(p, nil)) }].compact
           end
 
           def post_convert_pass_step!
             return unless @round.converted
 
-              corp = @round.converted
-              case corp.total_shares
-              when 10
-                min = 3
-                max = 3
-                @log << "#{corp.name} must buy 3 tokens"
-              when 5
-                min = 1
-                max = 1
-                @log << "#{corp.name} must buy 1 token"
-              end
+            corp = @round.converted
+            case corp.total_shares
+            when 10
+              min = 3
+              max = 3
+              @log << "#{corp.name} must buy 3 tokens"
+            when 5
+              min = 1
+              max = 1
+              @log << "#{corp.name} must buy 1 token"
+            end
  
             price = 40
             @log << "Each token costs $40"

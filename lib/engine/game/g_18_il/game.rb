@@ -26,7 +26,7 @@ module Engine
         :exchange_choice_corp, :exchange_choice_corps, :sp_used, :borrowed_trains, :train_borrowed, :closed_corporations, :ic_owns_train,
         :ic_needs_train, :other_train_pass
 
-        attr_reader :merged_corporation
+        attr_reader :merged_corporation, :last_set_triggered
 
         register_colors(red: '#d1232a',
                         orange: '#f58121',
@@ -183,7 +183,6 @@ module Engine
             case @round
             when Engine::Round::Auction
               clear_programmed_actions
-              #reorder_players
               new_stock_round
             when Engine::Round::Stock
               @operating_rounds = 2
@@ -274,6 +273,15 @@ module Engine
         #this is not actually true, but forces the corporate_buy_sell_shares view to be used
         def corporations_can_ipo?
           true
+        end
+
+        def next_sr_position(entity)
+          player_order = if @round.current_entity&.player?
+                             @round.pass_order
+                         else
+                           @players
+                         end
+          player_order.index(entity)
         end
 
          def new_concession_round
@@ -408,6 +416,7 @@ module Engine
         def setup
           ic.add_ability(self.class::FORMATION_ABILITY)
           ic.owner = nil
+          @last_set_triggered = nil
           @ic_president = nil
           @ic_owns_train = false
           @ic_formation_triggered = nil
@@ -909,6 +918,7 @@ module Engine
             #Pullman Strike
             @log << "-- Event: Pullman Strike --"
             event_pullman_strike!
+            @last_set_triggered = true
           end
         end
 

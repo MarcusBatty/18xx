@@ -15,7 +15,7 @@ module Engine
               '14' => 6,
               '15' => 6,
               '57' => 4,
-              '58' => 9,
+              '58' => 10,
               '80' => 5,
               '81' => 5,
               '82' => 8,
@@ -86,14 +86,14 @@ module Engine
               {
                 'count' => 1,
                 'color' => 'green',
-                'code' => 'city=revenue:30,slots:2;path=a:1,b:_0;path=a:2,b:_0;path=a:4,b:_0;path=a:5,b:_0;label=P',
+                'code' => 'city=revenue:40,slots:2;path=a:1,b:_0;path=a:2,b:_0;path=a:4,b:_0;path=a:5,b:_0;label=P',
               },
     
               'S2' => 
               {
                 'count' => 1,
                 'color' => 'green',
-                'code' => 'city=revenue:30;path=a:1,b:_0;path=a:3,b:_0;path=a:4,b:_0;label=S',
+                'code' => 'city=revenue:40;path=a:1,b:_0;path=a:3,b:_0;path=a:4,b:_0;label=S',
               },
     
               'CHI2' =>
@@ -137,14 +137,14 @@ module Engine
                 'count' => 1,
                 'color' => 'brown',
                 'code' =>
-                'city=revenue:40,slots:3;path=a:0,b:_0;path=a:1,b:_0;path=a:2,b:_0;path=a:3,b:_0;path=a:4,b:_0;label=P',
+                'city=revenue:50,slots:3;path=a:0,b:_0;path=a:1,b:_0;path=a:2,b:_0;path=a:3,b:_0;path=a:4,b:_0;label=P',
               },
     
               'S3' => 
               {
                 'count' => 1,
                 'color' => 'brown',
-                'code' => 'city=revenue:40,slots:2;path=a:1,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:5,b:_0;label=S',
+                'code' => 'city=revenue:50,slots:2;path=a:1,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:5,b:_0;label=S',
               },
     
               'CHI3' => 
@@ -179,7 +179,7 @@ module Engine
               {
                 'count' => 1,
                 'color' => 'gray',
-                'code' => 'city=revenue:50,slots:4,blocks_lay:1;path=a:1,b:_0;path=a:2,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:5,b:_0;path=a:0,b:_0;label=P',
+                'code' => 'city=revenue:60,slots:4,blocks_lay:1;path=a:1,b:_0;path=a:2,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:5,b:_0;path=a:0,b:_0;label=P',
               },
     
               'S4' => 
@@ -187,7 +187,7 @@ module Engine
                 'count' => 1,
                 'color' => 'gray',
                 'code' =>
-                'city=revenue:50,slots:3,blocks_lay:1;path=a:1,b:_0;path=a:2,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:5,b:_0;label=S',
+                'city=revenue:60,slots:3,blocks_lay:1;path=a:1,b:_0;path=a:2,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:5,b:_0;label=S',
               },
     
               'CHI4' => 

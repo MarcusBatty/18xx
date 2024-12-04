@@ -22,6 +22,7 @@ module Engine
           ACTIONS = %w[lay_tile pass].freeze
 
           def actions(entity)
+            return [] if @game.last_set_triggered
             return [] unless entity == current_entity
             return [] if entity.company? || !can_lay_tile?(entity)
             return [] if entity == @game.ic && @game.ic_in_receivership?

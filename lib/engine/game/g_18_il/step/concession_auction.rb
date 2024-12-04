@@ -91,9 +91,11 @@ module Engine
               @game.add_ic_operating_ability
             end
 
-            #moves auction winner to the back of the line and starts again from the front of the line
+            #moves auction winner to the back of the line and starts again from the front of the line.
+            @log << "before: #{@game.players}"
             @game.players.insert((@round.entity_index - 1), @game.players.delete_at(@game.players.index(player)))
             @round.entity_index = @game.players.index(player)
+            @log << "after: #{@game.players}"
           end
           
         end
