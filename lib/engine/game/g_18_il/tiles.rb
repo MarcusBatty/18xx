@@ -203,14 +203,14 @@ module Engine
               {
                 'count' => 1,
                 'color' => 'blue',
-                'code' => 'halt=revenue:30,symbol:30;path=a:3,b:_0;path=a:5,b:_0;icon=image:18_il/port,blocks_lay:true',
+                'code' => 'halt=revenue:20,symbol:20;path=a:3,b:_0;path=a:5,b:_0;icon=image:18_il/port,blocks_lay:true',
               },
     
               'SPH' =>
               {
                 'count' => 1,
                 'color' => 'blue',
-                'code' => 'halt=revenue:50,symbol:50;path=a:5,b:_0;icon=image:18_il/port,blocks_lay:true',                       
+                'code' => 'halt=revenue:40,symbol:40;path=a:5,b:_0;icon=image:18_il/port,blocks_lay:true',                       
               },
             }.freeze
         end

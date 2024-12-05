@@ -104,7 +104,6 @@ module Engine
         SPRINGFIELD_HEX = 'E12'.freeze
         CORPORATION_SIZES = { 2 => :small, 5 => :medium, 10 => :large }.freeze
         PORT_ICON = 'port'.freeze
-        PORT_ICON2 = 'port '.freeze
         MINE_ICON = 'mine'.freeze
         IC_STARTING_PRICE = 80.freeze
         IC_LINE_HEXES = %w[H7 G10 F17 E22].freeze
@@ -989,7 +988,6 @@ module Engine
 
         def port_corporation?(corporation)
           return true if corporation.assignments.include?(PORT_ICON)
-          return true if corporation.assignments.include?(PORT_ICON2)
           false
         end
 
@@ -1051,6 +1049,12 @@ module Engine
             end
           end
 
+          if route.corporation == steamboat.owner
+            route.hexes.each { |hex| 
+              revenue += 20 if PORT_HEXES.include?(hex.name)
+            }
+          end
+
           return revenue
         end
 
@@ -1058,12 +1062,24 @@ module Engine
           str = super
           bonus = ew_ns_bonus(route.stops)[:description]
           str += " + #{bonus}" if bonus
-          return str unless (ability = abilities(route.corporation, :hex_bonus))
 
-          route.hexes.each { |hex| 
-          str += " + LFC bonus" if ability.hexes.include?(hex.name) 
-          break
-          }
+          if (ability = abilities(route.corporation, :hex_bonus))
+            route.hexes.each { |hex| 
+              if ability.hexes.include?(hex.name)
+                str += " + LFC bonus"  
+                break
+              end
+            }
+          end
+
+          if route.corporation == steamboat.owner
+            route.hexes.each { |hex| 
+              if PORT_HEXES.include?(hex.name)
+                str += " + SMBT bonus"
+                break
+              end
+            }
+          end
 
           return str
         end
@@ -1260,14 +1276,9 @@ module Engine
             end 
           end
 
-          if action.entity == goodrich_transit_line
+          if action.entity == goodrich_transit_line || action.entity == steamboat
             corp.assign!(PORT_ICON)
             log << "#{corp.name} receives a port marker"
-          end
-          if action.entity == steamboat
-            corp.assign!(PORT_ICON)
-            corp.assign!(PORT_ICON2)
-            log << "#{corp.name} receives two port markers"
           end
           if action.entity == frink_walker_co || action.entity == chicago_virden_coal_company
             corp.assign!(MINE_ICON)
@@ -1691,7 +1702,6 @@ module Engine
           #finds northernmost IC Line hex without track
           hex = hex_by_id(IC_LINE_ORIENTATION.keys.find { |h| hex_by_id(h).tile.name == h})
           #if all IC Line hexes have track, finds the northernmost with a cube still present
-          hex = hex_by_id(IC_LINE_ORIENTATION.keys.find { |h| !hex_by_id(h).tile.icons.empty?}) unless hex
           tile =
           case hex.id
             when 'H7'; tile_by_id('K12-0')
@@ -1704,6 +1714,24 @@ module Engine
             when 'F19'; tile_by_id('8-0')
             when 'E20'; tile_by_id('8-0')
             when 'E22'; tile_by_id('C13-0')
+          end
+          if !hex
+            hex = hex_by_id(IC_LINE_ORIENTATION.keys.find { |h| !hex_by_id(h).tile.icons.empty?})
+            tile = #the tile selected would need adjusted based on what is actually in the hex.
+            #it seems better and easier to just have IC run at the end of every round (priority player set as owner) just to lay track
+            #and limit available hex to the hexes as above
+            case hex.id
+              when 'H7'; tile_by_id('K12-0')
+              when 'G8'; tile_by_id('8-0')
+              when 'G10'; tile_by_id('C13-0')
+              when 'G12'; tile_by_id('9-0')
+              when 'G14'; tile_by_id('8-0')
+              when 'F15'; tile_by_id('8-0')
+              when 'F17'; tile_by_id('C13-0')
+              when 'F19'; tile_by_id('8-0')
+              when 'E20'; tile_by_id('8-0')
+              when 'E22'; tile_by_id('C13-0')
+            end
           end
           #TODO: lay tile with correct rotation
         end
