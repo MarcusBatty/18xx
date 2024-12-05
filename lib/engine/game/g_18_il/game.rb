@@ -257,16 +257,13 @@ module Engine
 
           super
         end
-        
-          def status_str(corp)
-          str = ''
+
+        def status_array(corp)
+          str = []
           company = @companies.find { |c| !c.closed? && c.sym == corp.name }
-          if company&.owner&.player?
-           str += "Concession: #{company.owner.name} "
-           str.strip
-          end
-           return if @option_cubes[corp] == 0
-           "Option cubes: #{@option_cubes[corp]}"
+          str << "Concession: #{company.owner.name}" if company&.owner&.player?
+          str << "Option cubes: #{@option_cubes[corp]}" if @option_cubes[corp] > 0
+          return str.empty? ? nil : str
         end
 
         def init_round

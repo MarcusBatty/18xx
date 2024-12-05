@@ -12,6 +12,7 @@ module Engine
 
           def setup
             @game.players.each(&:unpass!)
+            @passed_players = []
             setup_auction
             if @game.ic_formation_triggered?
               ic_shares = @game.companies.dup.select { |c| c.meta[:type] == :share}.each { |c| c.value = up_to_nearest_5(@game.ic.share_price.price) }
@@ -37,7 +38,33 @@ module Engine
             end
           end
           
+          def actions(entity)
+            return [] if finished?
+
+            correct = false
+    
+            active_auction do |_company, bids|
+              correct = bids.min_by(&:price).entity == entity
+            end
+    
+            correct || entity == current_entity ? ACTIONS : []
+          end
+
+          # def finished?
+          #   if @companies.empty? || entities&.all?(&:passed?)
+          #     post_auction
+          #     return true
+          #   else
+          #     return false
+          #   end
+          # end
+
+          # def post_auction
+          #   @passed_players.each {|p| @game.players << p }
+          # end
+
           def resolve_bids
+
             return unless @bids[@auctioning].one?
     
             bid = @bids[@auctioning].first
@@ -47,7 +74,33 @@ module Engine
             player = bid.entity
             @bids.delete(company)
             buy_company(player, company, price)
-            @round.next_entity_index!
+            if @companies.empty? && @game.players.one?
+              @game.players.delete(player)
+              @passed_players << player
+              @passed_players.each {|p| @game.players << p }
+            else
+              @round.next_entity_index!
+            end
+          end
+
+          def process_pass(action)
+            entity = action.entity
+    
+            if auctioning
+              pass_auction(action.entity)
+            else
+              @log << "#{entity.name} passes bidding"
+              entity.pass!
+              @passed_players << entity
+              @game.players.delete(entity)
+              @passed_players.each {|p| @game.players << p } if @game.players.empty?
+            end
+          end
+
+          def start_auction(bid)
+            super
+            resolve_bids if @game.players.one?
+            post_auction if @companies.empty? && @game.players.one?
           end
           
           def buy_company(player, company, price)
@@ -92,7 +145,7 @@ module Engine
             end
 
             #moves auction winner to the back of the line and starts again from the front of the line.
-            @game.players.insert((@round.entity_index - 1), @game.players.delete_at(@game.players.index(player)))
+            @game.players.insert((@game.players.size - 1), @game.players.delete_at(@game.players.index(player)))
             @round.entity_index = @game.players.index(player)
           end
           
