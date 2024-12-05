@@ -24,6 +24,7 @@ module Engine
           def pass!
             super
             @game.event_ic_formation! if @game.ic_formation_pending?
+            @game.ic_line_auto_build! unless @game.ic_line_completed?
           end
           
         end

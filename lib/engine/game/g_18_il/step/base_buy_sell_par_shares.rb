@@ -133,6 +133,7 @@ module Engine
           def can_sell?(entity, bundle)
             return false if bundle.corporation == @game.ic && @game.ic_in_receivership?
             return false if @game.insolvent_corporations.include?(bundle.corporation)
+            
             super && !@corporate_action
           end
 

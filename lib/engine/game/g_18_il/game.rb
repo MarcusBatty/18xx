@@ -243,7 +243,7 @@ module Engine
             G18IL::Step::Token,
             G18IL::Step::LincolnChoice,
             G18IL::Step::BorrowTrain,
-            G18IL::Step::BuyTrainBeforeRunRoute,
+        #    G18IL::Step::BuyTrainBeforeRunRoute,
             G18IL::Step::Route,
             G18IL::Step::Dividend,
             Engine::Step::SpecialBuyTrain,
@@ -1684,6 +1684,28 @@ module Engine
 
         def lincoln_funeral_car
           @lincoln_funeral_car = @companies.find { |c| c&.name == "Lincoln Funeral Car" }
+        end
+
+        def ic_line_auto_build!
+          return if players.count > 2 || ic_line_completed?
+          #finds northernmost IC Line hex without track
+          hex = hex_by_id(IC_LINE_ORIENTATION.keys.find { |h| hex_by_id(h).tile.name == h})
+          #if all IC Line hexes have track, finds the northernmost with a cube still present
+          hex = hex_by_id(IC_LINE_ORIENTATION.keys.find { |h| !hex_by_id(h).tile.icons.empty?}) unless hex
+          tile =
+          case hex.id
+            when 'H7'; tile_by_id('K12-0')
+            when 'G8'; tile_by_id('8-0')
+            when 'G10'; tile_by_id('C13-0')
+            when 'G12'; tile_by_id('9-0')
+            when 'G14'; tile_by_id('8-0')
+            when 'F15'; tile_by_id('8-0')
+            when 'F17'; tile_by_id('C13-0')
+            when 'F19'; tile_by_id('8-0')
+            when 'E20'; tile_by_id('8-0')
+            when 'E22'; tile_by_id('C13-0')
+          end
+          #TODO: lay tile with correct rotation
         end
 
       end

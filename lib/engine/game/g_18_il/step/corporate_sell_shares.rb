@@ -22,10 +22,10 @@ module Engine
             return [] unless entity == current_entity
             return [] if entity.cash > @game.depot.min_depot_price
             return [] unless entity.shares != entity.ipo_shares
+            return [] unless entity.trains.empty?
             actions = []
             actions << 'corporate_sell_shares' if entity.cash < @game.depot.min_depot_price && entity.trains.empty?
             actions << 'pass' if !other_trains(entity).empty?
-            #actions << 'buy_train' if !other_trains(entity).empty? && entity.trains.empty?
     
             actions
           end
@@ -45,7 +45,7 @@ module Engine
           ]
           end
 
-          def pass!
+          def process_pass
             @game.other_train_pass = true
             super
           end

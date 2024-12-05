@@ -1,14 +1,12 @@
 # frozen_string_literal: true
 
 require_relative '../../../step/buy_train'
-require_relative '../../../step/automatic_loan'
 
 module Engine
   module Game
     module G18IL
       module Step
         class BuyTrain < Engine::Step::BuyTrain
-          include Engine::Step::AutomaticLoan
           def setup
             @ic_bought_train = nil
             super
@@ -17,7 +15,7 @@ module Engine
           def actions(entity)
             return ['sell_shares'] if entity == current_entity&.player
             return [] if entity != current_entity
-            return %w[buy_train sell_shares take_loan] if must_sell_shares?(entity) && @game.other_train_pass == nil
+            return %w[buy_train sell_shares] if must_sell_shares?(entity) && @game.other_train_pass == nil
             return %w[buy_train] if must_buy_train?(entity)
             return %w[buy_train pass] if can_buy_train?(entity)
 
@@ -28,7 +26,6 @@ module Engine
             return false if corporation.cash > @game.depot.min_depot_price
             return false unless must_buy_train?(corporation)
             return false unless @game.emergency_issuable_cash(corporation) < @game.depot.min_depot_price
-
             must_issue_before_ebuy?(corporation)
           end
 
@@ -98,21 +95,15 @@ module Engine
 
           def buyable_trains(entity)
             depot_trains = @depot.depot_trains
-            other_trains = entity == @game.ic ? [] : other_trains(entity)
-    
-            if entity.cash < @depot.min_depot_price
-              depot_trains = [@depot.min_depot_train] if ebuy_offer_only_cheapest_depot_train?
-    
-              if @last_share_sold_price
-                  other_trains = []
-              end
-            end
-    
-            other_trains = [] if entity.cash.zero? && !@game.class::EBUY_OTHER_VALUE
-    
-            other_trains.reject! { |t| entity.cash < t.price && must_buy_at_face_value?(t, entity) }
-    
+            depot_trains = [@depot.min_depot_train] if entity.cash < @depot.min_depot_price
+            other_trains = other_trains(entity)
+            other_trains = [] if entity.cash.zero? || @emr || entity == @game.ic
             depot_trains + other_trains
+          end
+
+          def process_sell_shares(action)
+            @emr = true
+            super
           end
 
           def process_buy_train(action)
@@ -120,7 +111,6 @@ module Engine
             check_ic_last_train(action.train)
             buy_train_action(action)
             @game.ic_owns_train if action.entity == @game.ic
-
             pass! if !can_buy_train?(action.entity) && pass_if_cannot_buy_train?(action.entity)
           end
 
@@ -180,6 +170,7 @@ module Engine
 
           
           def must_take_loan?(corporation)
+            return false if sellable_shares?(corporation.owner)
             price = @game.depot.min_depot_price
             @game.buying_power(corporation) < price
           end
