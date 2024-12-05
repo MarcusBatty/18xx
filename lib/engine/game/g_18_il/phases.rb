@@ -17,7 +17,6 @@ module Engine
                   name: '2',
                   train_limit: 4,
                   tiles: [:yellow],
-                  status: ['can_buy_companies'],
                   operating_rounds: 2,
                   corporation_sizes: [2, 5, 10]
                 },
@@ -26,7 +25,6 @@ module Engine
                   on: '3',
                   train_limit: 4,
                   tiles: %i[yellow green],
-                  status: ['can_buy_companies'],
                   operating_rounds: 2,
                   corporation_sizes: [2, 5, 10]
                 },
@@ -35,7 +33,6 @@ module Engine
                   on: '4',
                   train_limit: 3,
                   tiles: %i[yellow green],
-                  status: ['can_buy_companies'],
                   operating_rounds: 2,
                   corporation_sizes: [5, 10]
                 },
@@ -44,7 +41,6 @@ module Engine
                   on: '4+2P',
                   train_limit: 2,
                   tiles: %i[yellow green brown],
-                  status: ['can_buy_companies'],
                   operating_rounds: 2,
                   corporation_sizes: [10]
                 },
@@ -53,7 +49,6 @@ module Engine
                   on: '5+1P',
                   train_limit: 2,
                   tiles: %i[yellow green brown],
-                  status: ['can_buy_companies'],
                   operating_rounds: 2,
                   corporation_sizes: [10]
                 },
@@ -62,7 +57,6 @@ module Engine
                   on: '6',
                   train_limit: 2,
                   tiles: %i[yellow green brown],
-                  status: ['can_buy_companies'],
                   operating_rounds: 2,
                   corporation_sizes: [10]
                 },
@@ -71,9 +65,9 @@ module Engine
                   on: 'D',
                   train_limit: 2,
                   tiles: %i[yellow green brown gray],
-                  status: ['can_buy_companies'],
                   operating_rounds: 2,
-                  corporation_sizes: [10]
+                  corporation_sizes: [10],
+                  status: ['pullman_strike']
                 }
               ].freeze
         end

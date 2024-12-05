@@ -112,7 +112,7 @@ module Engine
           },
 
           red: {
-              ['A10'] => 'label=W;offboard=revenue:yellow_20|brown_0,groups:West;path=a:4,b:_0;path=a:5,b:_0;border=edge:4,type:water,cost:20;border=edge:5,type:water,cost:20',
+              ['A10'] => 'label=W;offboard=revenue:yellow_20|brown_50,groups:West;path=a:4,b:_0;path=a:5,b:_0;border=edge:4,type:water,cost:20;border=edge:5,type:water,cost:20',
               ['B3'] => 'label=W;offboard=revenue:yellow_20|brown_40,groups:West;path=a:4,b:_0;path=a:0,b:_0;border=edge:0;border=edge:4,type:water,cost:20;border=edge:5',
               ['B5'] => 'path=a:3,b:5;border=edge:3;border=edge:4;border=edge:5,type:water,cost:20',
               ['B15'] => 'offboard=revenue:0,groups:STL;path=a:4,b:5;border=edge:0;border=edge:3,type:water;border=edge:4,type:water,cost:20;border=edge:5',

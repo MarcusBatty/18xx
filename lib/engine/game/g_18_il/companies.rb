@@ -15,7 +15,7 @@ module Engine
             {
               name: 'Peoria and Bureau Valley Railroad',
               sym: 'P&BV',
-              value: 0,
+              value: 10,
               revenue: 0,
               desc: 'Can start P&BV in stock round',
               corporation: 'P&BV',
@@ -26,7 +26,7 @@ module Engine
             {
               name: 'Northern Cross Railroad',
               sym: 'NC',
-              value: 0,
+              value: 10,
               revenue: 0,
               desc: 'Can start NC in stock round',
               corporation: 'P&BV',
@@ -37,7 +37,7 @@ module Engine
             {
               name: 'Galena and Chicago Union Railroad',
               sym: 'G&CU',
-              value: 0,
+              value: 10,
               revenue: 0,
               desc: 'Can start G&CU in stock round',
               corporation: 'G&CU',
@@ -48,7 +48,7 @@ module Engine
             {
               name: 'Rock Island Line',
               sym: 'RI',
-              value: 0,
+              value: 10,
               revenue: 0,
               desc: 'Can start RI in stock round',
               corporation: 'RI',
@@ -59,7 +59,7 @@ module Engine
             {
               name: 'Chicago and Alton Railroad',
               sym: 'C&A',
-              value: 0,
+              value: 10,
               revenue: 0,
               desc: 'Can start C&A in stock round',
               corporation: 'C&A',
@@ -70,7 +70,7 @@ module Engine
             {
               name: 'Vandalia Railroad',
               sym: 'V',
-              value: 0,
+              value: 10,
               revenue: 0,
               desc: 'Can start V in stock round',
               corporation: 'V',
@@ -81,7 +81,7 @@ module Engine
             {
               name: 'Wabash Railroad',
               sym: 'WAB',
-              value: 0,
+              value: 10,
               revenue: 0,
               desc: 'Can start WAB in stock round',
               corporation: 'WAB',
@@ -92,7 +92,7 @@ module Engine
             {
               name: 'Chicago and Eastern Illinois Railroad',
               sym: 'C&EI',
-              value: 0,
+              value: 10,
               revenue: 0,
               desc: 'Can start C&EI in stock round',
               corporation: 'C&EI',

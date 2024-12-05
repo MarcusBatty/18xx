@@ -42,16 +42,18 @@ module Engine
         TILE_RESERVATION_BLOCKS_OTHERS = :always
         CURRENCY_FORMAT_STR = '$%s'
         NEXT_SR_PLAYER_ORDER = :first_to_pass
-        BANK_CASH = 99_000
+        BANK_CASH = 99_999
         CAPITALIZATION = :incremental
         CERT_LIMIT = { 2 => 22, 3 => 18, 4 => 15, 5 => 13 }.freeze
-        STARTING_CASH = { 2 => 10000, 3 => 480, 4 => 420, 5 => 360 }.freeze
+        STARTING_CASH = { 2 => 900, 3 => 720, 4 => 560, 5 => 420 }.freeze
 
         EVENTS_TEXT = Base::EVENTS_TEXT.merge(
-          'pullman_strike' => ['Pullman Strike','4+2P is downgraded to 4', '5+1P is downgraded to 5'], #TODO: not showing up on info page
           'signal_end_game' => ['Signal End Game','Game Ends 3 ORs after purchase/export of first D train']
         ).freeze
 
+        STATUS_TEXT = Base::STATUS_TEXT.merge(
+          'pullman_strike' => ['Pullman Strike (after end of next OR)','4+2P and 5+1P trains are downgraded to 4- and 5-trains'], #TODO: not showing up on info page
+        )
         POOL_SHARE_DROP = :down_share
         BANKRUPTCY_ALLOWED = false
         CERT_LIMIT_INCLUDES_PRIVATES = false
@@ -926,7 +928,7 @@ module Engine
 
           #convert unstarted corporations at the appropriate time.
           if %w[4 4+2P 5 6 D].include?(@phase.name)
-            @corporations.reject { |c| c.floated? }.each do |c|
+            @corporations.reject { |c| c.floated? || @closed_corporations.include?(c) }.each do |c|
               convert(c) if c.total_shares == 2
               return if @phase.name == '4'
               convert(c) if c.total_shares == 5
