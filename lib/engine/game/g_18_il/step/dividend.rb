@@ -12,14 +12,19 @@ module Engine
           
           DIVIDEND_TYPES = %i[payout half withhold].freeze
 
+          def setup
+            @log << "#{current_entity.name} has a loan of #{@game.format_currency(current_entity.loans.first.amount)}"\
+            " and must withhold during the dividend step" if @game.insolvent_corporations.include?(current_entity)
+            super
+          end
+
           def dividend_types
-            return %i[withhold] if current_entity == @game.ic && @game.ic_in_receivership?
+            return %i[withhold] if (current_entity == @game.ic && @game.ic_in_receivership?) || !current_entity.loans.empty?
             return DIVIDEND_TYPES
           end
 
           def share_price_change(entity, revenue = 0)
             price = entity.share_price.price
-          #  return { share_direction: :left, share_times: 2 } if entity == @game.ic && @game.ic_in_receivership?
             return { share_direction: :down, share_times: 1 } if revenue == 0 && price == 20
             return { share_direction: :left, share_times: 1 } if revenue == 0
             return { share_direction: :down, share_times: 1 } if revenue < price / 2
@@ -27,7 +32,6 @@ module Engine
             return { share_direction: :right, share_times: 1 } if revenue < price * 2
             return { share_direction: :right, share_times: 2 } if revenue < price * 3
             return { share_direction: :right, share_times: 3 } 
-            #TODO: Overwrite 'up' and 'down' text with 'up diag' and 'down diag'
           end
 
           def log_run_payout(entity, kind, revenue, subsidy, action, payout)
@@ -58,6 +62,11 @@ module Engine
               payout[:divs_to_corporation] = corporation_dividends(entity, payout[:per_share])
               [type, payout.merge(share_price_change(entity, revenue - payout[:corporation]))]
             end
+          end
+
+          def process_dividend(action)
+            super
+            @game.payoff_loan(action.entity) unless action.entity.loans.empty?
           end
 
           def skip!

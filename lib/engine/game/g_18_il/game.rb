@@ -8,6 +8,7 @@ require_relative 'tiles'
 require_relative 'trains'
 require_relative 'market'
 require_relative 'phases'
+require_relative '../../loan'
 
 module Engine
   module Game
@@ -44,7 +45,7 @@ module Engine
         NEXT_SR_PLAYER_ORDER = :first_to_pass
         BANK_CASH = 99_999
         CAPITALIZATION = :incremental
-        CERT_LIMIT = { 2 => 22, 3 => 18, 4 => 15, 5 => 13 }.freeze
+        CERT_LIMIT = { 2 => 25, 3 => 18, 4 => 15, 5 => 13 }.freeze
         STARTING_CASH = { 2 => 900, 3 => 720, 4 => 560, 5 => 420 }.freeze
 
         EVENTS_TEXT = Base::EVENTS_TEXT.merge(
@@ -419,6 +420,8 @@ module Engine
         def setup
           ic.add_ability(self.class::FORMATION_ABILITY)
           ic.owner = nil
+          @corporation_debts = Hash.new { |h, k| h[k] = 0 }
+          @insolvent_corporations = []
           @lincoln_triggered = nil
           @last_set_triggered = nil
           @ic_president = nil
@@ -525,9 +528,8 @@ module Engine
           @emr_active
         end
 
-        #TODO: add stuff to this
-        def timeline
-          []
+        def insolvent_corporations
+          @insolvent_corporations
         end
 
         def company_sellable(company); end
@@ -811,8 +813,12 @@ module Engine
 
           bundle = ShareBundle.new(corp.shares_of(corp).take(num_shares))
           bundle.share_price = corp.share_price.price / 2.0
+          @emr_active = true
+          old_price = corp.share_price.price
           sell_shares_and_change_price(bundle)
+          new_price = corp.share_price.price
           @log << "#{corp.name} raises #{format_currency(bundle.price)} and completes EMR"
+          @log << "#{corp.name}'s share price moves down from #{format_currency(old_price)} to #{format_currency(new_price)}"
           @round.recalculate_order if @round.respond_to?(:recalculate_order)
         end
 
@@ -855,21 +861,6 @@ module Engine
           end
           @emr_active = nil
         end
-
-          # prioritize treasury shares before IPO shares
-          def emr_shares_next(corporation, active, needed)
-            return [] unless needed.positive?
-
-            all_bundles = emr_bundles_all(corporation, active)
-            all_bundles.reject! { |b| b.price >= (needed + b.share_price) }
-            return [] if all_bundles.empty?
-
-            ipo, treasury = all_bundles.partition { |s| s.corporation == corporation }
-
-            return treasury unless treasury.empty?
-
-            ipo unless ipo.empty?
-          end
 
          def emergency_issuable_cash(corporation)
           return 0 if corporation.trains.any?
@@ -1129,6 +1120,69 @@ module Engine
           check_rogers(route, visits)
 
           return super
+        end
+
+        def try_take_loan(entity, price)
+          return if !price.positive? || price <= entity.cash
+
+          @game.take_loan(entity) while entity.cash < price
+        end
+
+        def init_loans
+          #this is only used for view purposes
+          Array.new(8) { |id| Loan.new(id, 0) }
+        end
+
+        def maximum_loans(entity)
+          1
+        end
+        
+        def can_pay_interest?(_entity, _extra_cash = 0)
+          false
+        end
+
+        def interest_owed(_entity)
+          0
+        end
+
+        def corporation_show_interest?(_corporation)
+          false
+        end
+
+        def corporation_show_loans?(corporation)
+          insolvent_corporations.include?(corporation)
+        end
+
+        def take_loan(corporation, loan)
+          corporation.cash += loan
+          if insolvent_corporations.include?(corporation)
+            @log << "#{corporation.name} adds #{format_currency(loan)} to its existing loan"
+            old_loan = corporation.loans.first.amount
+            corporation.loans.shift
+            corporation.loans << Loan.new(corporation, loan + old_loan)
+          else
+            @log << "-- #{corporation.name} is now insolvent --"
+            @log << "#{corporation.name} takes a loan of #{format_currency(loan)}"
+            corporation.loans << Loan.new(corporation, loan)
+            @insolvent_corporations << corporation
+          end
+        end
+
+        def payoff_loan(corporation, payoff_amount: nil)
+          loan_balance = corporation.loans.first.amount
+          payoff_amount = corporation.cash if !payoff_amount || payoff_amount > corporation.cash
+          payoff_amount = [payoff_amount, loan_balance].min
+          corporation.loans.shift
+          corporation.loans << Loan.new(corporation, loan_balance - payoff_amount)
+          corporation.cash -= payoff_amount
+            if payoff_amount == loan_balance
+              @log << "#{corporation.name} pays off their loan of #{format_currency(loan_balance)}"
+              @log << "-- #{corporation.name} is now solvent --"
+              @insolvent_corporations.delete(corporation)
+            else
+              @log <<  "#{corporation.name} decreases their loan amount by #{format_currency(payoff_amount)} "\
+                "(#{format_currency(corporation.loans.first.amount)} remaining)"
+            end
         end
 
         def event_signal_end_game!
