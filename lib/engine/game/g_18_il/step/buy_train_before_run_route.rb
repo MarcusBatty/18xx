@@ -12,10 +12,13 @@ module Engine
           ACTIONS = %w[buy_train pass].freeze
 
           def actions(entity)
-            return %w[buy_train sell_shares pass] if must_sell_shares?(entity.corporation)
-            return %w[buy_train pass] if can_buy_train?(entity)
+            actions = []
 
-            []
+            actions << %w[buy_train sell_shares] if must_sell_shares?(entity.corporation)
+            actions << %w[buy_train] if can_buy_train?(entity)
+            actions << %w[pass] unless @acted
+
+            actions.flatten
           end
 
           def round_state

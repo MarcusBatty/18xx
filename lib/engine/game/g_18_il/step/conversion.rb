@@ -13,8 +13,20 @@ module Engine
           def actions(entity)
             return [] if !entity.corporation? || entity != current_entity || entity == @round.converts[-1]
 
+            price = entity.share_price.price
+            shares = entity.total_shares
+            cash = entity.cash
+
+            #can't convert if corp would not have enough money to purchase tokens after issuing all shares
+            case shares
+              when 2
+                return [] if price * 1.5 + cash < 40
+              when 5
+                return [] if price * 2.5 + cash < 120
+            end
+
             actions = []
-            actions << 'convert' if [2, 5].include?(entity.total_shares)
+            actions << 'convert' if [2, 5].include?(shares)
             actions << 'pass' if actions.any?
             actions
           end

@@ -45,8 +45,8 @@ module Engine
         NEXT_SR_PLAYER_ORDER = :first_to_pass
         BANK_CASH = 99_999
         CAPITALIZATION = :incremental
-        CERT_LIMIT = { 2 => 25, 3 => 18, 4 => 15, 5 => 13 }.freeze
-        STARTING_CASH = { 2 => 900, 3 => 720, 4 => 560, 5 => 420 }.freeze
+        CERT_LIMIT = { 2 => 24, 3 => 18, 4 => 15, 5 => 13, 6 => 11 }.freeze
+        STARTING_CASH = { 2 => 900, 3 => 720, 4 => 560, 5 => 420, 6 => 360 }.freeze
 
         EVENTS_TEXT = Base::EVENTS_TEXT.merge(
           'signal_end_game' => ['Signal End Game','Game Ends 3 ORs after purchase/export of first D train']
@@ -242,7 +242,7 @@ module Engine
             G18IL::Step::Token,
             G18IL::Step::LincolnChoice,
             G18IL::Step::BorrowTrain,
-        #    G18IL::Step::BuyTrainBeforeRunRoute,
+            G18IL::Step::BuyTrainBeforeRunRoute,
             G18IL::Step::Route,
             G18IL::Step::Dividend,
             Engine::Step::SpecialBuyTrain,

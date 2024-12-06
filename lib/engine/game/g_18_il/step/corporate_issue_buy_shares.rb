@@ -38,6 +38,10 @@ module Engine
             true
           end
 
+          def log_skip(entity)
+            @log << "#{entity.name} skips #{description.downcase}"
+          end
+
           def visible_corporations
             corps = @game.corporations.select { |c| c.ipoed && !c.ipo_shares.empty?}
 

@@ -150,7 +150,7 @@ module Engine
               value: 0,
               revenue: 0,
               desc: 'At any time during the tile-laying step of the corporation’s operating turn, place either the “St. Paul Harbor” tile at B1 or the “Port of Memphis” tile at D23.'\
-              ' It does not have to be connected to a station marker and does not count as a tile lay. Place one port marker on the charter. Grants the corporation a +20 bonus per port.',
+              ' It does not have to be connected to a station marker and does not count as a tile lay. Place one port marker on the charter. Grants the corporation a $20 bonus per port.',
               sym: 'SMBT',
               meta: {type: :private, class: :A},
               abilities: [
