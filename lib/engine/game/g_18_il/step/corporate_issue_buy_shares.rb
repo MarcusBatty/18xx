@@ -10,6 +10,7 @@ module Engine
         class CorporateIssueBuyShares < Engine::Step::BuySellParShares
 
           def actions(entity)
+            return [] if @game.last_set_triggered
             return [] unless entity == current_entity
             return [] if entity == @game.ic && @game.ic_in_receivership?
             actions = []

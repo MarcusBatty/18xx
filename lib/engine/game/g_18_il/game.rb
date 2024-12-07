@@ -23,20 +23,11 @@ module Engine
         include Market
         include Phases
 
-        attr_accessor :stl_nodes, :blocking_token, :ic_lines_built, :ic_lines_progress, :mine_corp, :port_corp, :exchange_choice_player,
-        :exchange_choice_corp, :exchange_choice_corps, :sp_used, :borrowed_trains, :train_borrowed, :closed_corporations, :ic_owns_train,
-        :ic_needs_train, :other_train_pass, :lincoln_triggered
+        attr_accessor :stl_nodes, :blocking_token, :exchange_choice_player, :exchange_choice_corp,
+        :exchange_choice_corps, :sp_used, :borrowed_trains, :train_borrowed, :closed_corporations,
+        :ic_owns_train, :ic_needs_train, :other_train_pass, :lincoln_triggered
 
-        attr_reader :merged_corporation, :last_set_triggered
-
-        register_colors(red: '#d1232a',
-                        orange: '#f58121',
-                        black: '#110a0c',
-                        blue: '#025aaa',
-                        lightBlue: '#8dd7f6',
-                        yellow: '#ffe600',
-                        green: '#32763f',
-                        brightGreen: '#6ec037')
+        attr_reader :merged_corporation, :last_set_triggered, :ic_line_completed_hexes
 
         TRACK_RESTRICTION = :permissive
         SELL_BUY_ORDER = :sell_buy
@@ -53,8 +44,9 @@ module Engine
         ).freeze
 
         STATUS_TEXT = Base::STATUS_TEXT.merge(
-          'pullman_strike' => ['Pullman Strike (after end of next OR)','4+2P and 5+1P trains are downgraded to 4- and 5-trains'], #TODO: not showing up on info page
+          'pullman_strike' => ['Pullman Strike (after end of next OR)','4+2P and 5+1P trains are downgraded to 4- and 5-trains'],
         )
+
         POOL_SHARE_DROP = :down_share
         BANKRUPTCY_ALLOWED = false
         CERT_LIMIT_INCLUDES_PRIVATES = false
@@ -65,11 +57,6 @@ module Engine
         TILE_LAYS = [
           { lay: true, upgrade: true, cost:0},
           { lay: true, upgrade: :not_if_upgraded, cost: 20, cannot_reuse_same_hex: true },
-        ].freeze
-
-        ENGINEERING_MASTERY_TILE_LAYS = [
-          { lay: true, upgrade: true, cost:0},
-          { lay: true, upgrade: true, cost: 20, cannot_reuse_same_hex: true },
         ].freeze
 
         HOME_TOKEN_TIMING = :float
@@ -253,9 +240,12 @@ module Engine
         end
 
         def tile_lays(entity)
-          return ENGINEERING_MASTERY_TILE_LAYS if engineering_mastery&.owner == entity
-
-          super
+          return super unless engineering_mastery&.owner == entity
+          tile_lays = [{ lay: true, upgrade: true, cost: 0, cannot_reuse_same_hex: true }]
+          #Engineering Mastery gets first upgrade for $20 or second upgrade for $30
+          tile_lays += [{ lay: true, upgrade: true, cost: 20, cannot_reuse_same_hex: true }] if !@round.upgraded_track
+          tile_lays += [{ lay: true, upgrade: true, cost: 20, upgrade_cost: 30, cannot_reuse_same_hex: true }] if @round.upgraded_track
+          tile_lays
         end
 
         def status_array(corp)
@@ -263,6 +253,7 @@ module Engine
           company = @companies.find { |c| !c.closed? && c.sym == corp.name }
           str << "Concession: #{company.owner.name}" if company&.owner&.player?
           str << "Option cubes: #{@option_cubes[corp]}" if @option_cubes[corp] > 0
+          str << "Loan amount: #{format_currency(corp.loans.first.amount)}" unless corp.loans.empty?
           return str.empty? ? nil : str
         end
 
@@ -431,19 +422,7 @@ module Engine
           @emr_active = nil
           @ic_formation_pending = false
           @option_cubes ||= Hash.new(0)
-          @ic_lines_built = 0
-          @ic_line_progress = {
-            'H7' => 0,
-            'G8' => 0,
-            'G10' => 0,
-            'G12' => 0,
-            'G14' => 0,
-            'F15' => 0,
-            'F17' => 0,
-            'F19' => 0,
-            'E20' => 0,
-            'E22' => 0,
-          }
+          @ic_line_completed_hexes = []
 
           # Northern Cross starts with the 'Rogers' train
           train = @depot.upcoming[0]
@@ -674,10 +653,6 @@ module Engine
            close_corporations_in_close_cell!
         end
 
-        def trade_assets
-         #@log << "#{current_entity.name} skips Trade Assets"
-        end
-
         def ic_line_hex?(hex)
           IC_LINE_ORIENTATION[hex.name]
         end
@@ -688,29 +663,29 @@ module Engine
           icons = action.hex.tile.icons
           corp = action.entity.corporation
 
-          return false if (@ic_line_progress[hex] == 1)
+          return if @ic_line_completed_hexes.include?(hex)
 
-          result = ic_line_connections(hex)
-          if (result > 0) then
+          connection_count = ic_line_connections(hex)
+
+          if connection_count > 0
             if tile.color == 'yellow'
-              @log << "#{corp.name} receives a #{format_currency("20")} subsidy for IC Line improvement"
-              corp.cash += 20
+              @log << "#{corp.name} receives a #{format_currency(20)} subsidy for IC Line improvement"
+              @bank.spend(20, corp)
             end
-            lines = @ic_lines_built
-            if (result == 2) then
-              @ic_line_progress[hex] = 1
+
+            if connection_count == 2
+              @ic_line_completed_hexes << hex
               icons.each do |icon|
-                if (icon.sticky) then 
+                if icon.sticky
                   icons.delete(icon)
-                  
                   @option_cubes[corp] += 1
                   @log << "#{corp.name} receives an option cube"
                 end
               end
 
-              @ic_lines_built = lines + 1
-              @log << "IC Line hexes built: #{ic_lines_built} of 10"
-              if (@ic_lines_built == 10) then
+              @log << "IC Line hexes completed: #{@ic_line_completed_hexes.size} of 10"
+
+              if ic_line_completed?
                 @log << "IC Line is complete"
                 @log << "The Illinois Central Railroad will form at the end of #{action.entity.name}'s turn"
                 @ic_formation_triggered = true
@@ -719,7 +694,6 @@ module Engine
               end
             end
           end
-          result
         end
 
         def ic_formation_pending?
@@ -727,14 +701,12 @@ module Engine
         end
 
         def ic_line_connections(hex)
-          return 0 unless (orientation = IC_LINE_ORIENTATION[hex.name])
+          return 0 unless exits = IC_LINE_ORIENTATION[hex.name]
           paths = hex.tile.paths
-          exits = [orientation[0], orientation[1]]
-
           count = 0
           paths.each do |path|
             path.exits.each do |exit|
-              (count += 1) if exits.include? exit
+              (count += 1) if exits.include?(exit)
             end
           end
           return count
@@ -745,7 +717,7 @@ module Engine
         end
 
         def ic_line_completed?
-          @ic_lines_built == IC_LINE_COUNT
+          @ic_line_completed_hexes.size == IC_LINE_COUNT
         end
 
         def remove_icon(hex, icon_names)
@@ -1199,8 +1171,8 @@ module Engine
         end
 
         def event_signal_end_game!
-          # Play one more OR, then Pullman Strike and blocking token events occur, then play one final set (CR, SR, 2 ORs)
-          @final_operating_rounds = 2
+          # Play one more OR, then Pullman Strike and blocking token events occur, then play one final set (CR, SR, 3 ORs)
+          @final_operating_rounds = 3
           game_end_check
           @operating_rounds = 3 if phase.name == 'D' && round.round_num == 2
           @log << "First D train bought/exported, game ends at the end of #{@turn + 1}.#{@final_operating_rounds}"

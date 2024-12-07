@@ -11,6 +11,7 @@ module Engine
 
 
           def actions(entity)
+            return [] if @game.last_set_triggered
             return [] if !entity.corporation? || entity != current_entity || entity == @round.converts[-1]
 
             price = entity.share_price.price

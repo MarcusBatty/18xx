@@ -13,6 +13,7 @@ module Engine
           end
           
           def actions(entity)
+            return [] if @game.last_set_triggered
             return ['sell_shares'] if entity == current_entity&.player
             return [] if entity != current_entity
             return %w[buy_train sell_shares] if must_sell_shares?(entity) && @game.other_train_pass == nil

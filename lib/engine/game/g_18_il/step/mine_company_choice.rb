@@ -11,6 +11,7 @@ module Engine
             end
   
             def actions(entity)
+              return [] if @game.last_set_triggered
               return [] unless entity == current_entity
               return [] if @mine_pass
   

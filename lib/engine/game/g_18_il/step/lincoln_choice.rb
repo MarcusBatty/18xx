@@ -10,6 +10,7 @@ module Engine
           end
 
           def actions(entity)
+            return [] if @game.last_set_triggered
             return [] unless entity == current_entity
             return [] unless @game.lincoln_funeral_car&.owner == @round.current_operator
             return [] if @lincoln_pass

@@ -10,6 +10,7 @@ module Engine
           end
 
           def actions(entity)
+            return [] if @game.last_set_triggered
             return [] unless entity == current_entity
             return [] unless @game.diverse_cargo&.owner == @round.current_operator
             return [] if @diverse_cargo_pass

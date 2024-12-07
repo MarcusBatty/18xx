@@ -6,19 +6,6 @@ module Engine
       module Step
         class Track < Engine::Step::Track
 
-          IC_LINE_HEXES = [
-            [7, 6], 
-            [6, 7],
-            [6, 9],
-            [6, 11],
-            [6, 13],
-            [5, 14],
-            [5, 16],
-            [5, 18],
-            [4, 19],
-            [4, 21]
-          ].freeze
-
           ACTIONS = %w[lay_tile pass].freeze
 
           def actions(entity)
@@ -30,21 +17,18 @@ module Engine
             ACTIONS
           end
 
-          def setup
-            super
-            @ic_line_improvement = nil
-          end
-
           def process_lay_tile(action)
+            
             lay_tile_action(action)
             return if action.entity.company?
-            improvement = @game.ic_line_improvement(action)
-            @ic_line_improvement = improvement if improvement
             hex = action.hex
             tile = action.hex.tile
             city = tile.cities.first
 
             if @game.ic_line_hex?(hex)
+              old_count = @game.ic_line_completed_hexes.size
+              @game.ic_line_improvement(action)
+              new_count = @game.ic_line_completed_hexes.size
               case tile.color
                 when 'yellow'
                   #checks for one IC Line connection when laying yellow
@@ -55,6 +39,10 @@ module Engine
                   #checks for both IC Line connections when laying green
                   if @game.ic_line_connections(hex) < 2
                     raise GameError, "Tile must complete IC Line"
+                  #disallows Engineering Master corp from upgrading two incomplete IC Line hexes 
+                  elsif old_count != new_count && @round.upgraded_track &&
+                    @round.num_laid_track > 1 && @game.ic_line_connections(hex) == 2
+                      raise GameError, "Cannot upgrade two incomplete IC Line hexes in one turn"
                   end
                   #adds reservation to IC Line hex when new tile is green city
                   tile.add_reservation!(@game.ic, city) if @game.class::IC_LINE_HEXES.include?(hex.id)

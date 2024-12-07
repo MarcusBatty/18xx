@@ -16,6 +16,7 @@ module Engine
 
           def actions(entity)
             actions = []
+            return actions if @game.last_set_triggered
             return actions unless entity.corporation?
             return actions unless entity == current_entity
     

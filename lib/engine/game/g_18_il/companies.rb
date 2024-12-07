@@ -105,7 +105,7 @@ module Engine
               sym: 'ES',
               value: 0,
               revenue: 0,
-              desc: 'Place an additional station marker on the charter for free. Once this ability is used, the private company closes. ',
+              desc: 'Receive an additional station marker. Once this ability is used, the private company closes.',
               color: nil,
               meta: {type: :private, class: :A},
 
@@ -124,7 +124,7 @@ module Engine
               name: 'Goodrich Transit Line',
               value: 0,
               revenue: 0,
-              desc: 'Place an available station marker in Chicago (H3) in the indicated GTL station slot. A port marker is placed on the charter. '\
+              desc: 'Place an available station marker in Chicago (H3) in the indicated GTL station slot. The corporation receives a port marker. '\
               'Once this ability is used, the private company closes. If this company is still open when Chicago is upgraded with a brown tile, it closes immediately.',
               sym: 'GTL',
               meta: {type: :private, class: :A},
@@ -150,7 +150,8 @@ module Engine
               value: 0,
               revenue: 0,
               desc: 'At any time during the tile-laying step of the corporation’s operating turn, place either the “St. Paul Harbor” tile at B1 or the “Port of Memphis” tile at D23.'\
-              ' It does not have to be connected to a station marker and does not count as a tile lay. Place one port marker on the charter. Grants the corporation a $20 bonus per port.',
+              ' It does not have to be connected to a station marker and does not count as a tile lay. The corporation receives a port marker.'\
+              ' Steamboat additionally grants the corporation a $20 bonus per port.',
               sym: 'SMBT',
               meta: {type: :private, class: :A},
               abilities: [
@@ -271,7 +272,7 @@ module Engine
               value: 0,
               revenue: 0,
               desc: 'During the tile-laying step of the corporation operating turn, place the G tile in Galena for free, ignoring terrain costs. It '\
-              'does not have to be connected to a station marker and does not count as a tile lay. Place a mine marker on the corporation charter. Once'\
+              'does not have to be connected to a station marker and does not count as a tile lay. The corporation receives a mine marker. Once'\
               ' this ability is used, the private company closes.',
               sym: 'FWC',
               meta: {type: :private, class: :B},
@@ -318,8 +319,8 @@ module Engine
               value: 0,
               revenue: 0,
               desc: 'During the tile-laying step of the corporation’s operating turn, place a mine tile in a mine hex (except Galena), paying any terrain costs. '\
-              'It must be connected to one of the corporation’s existing station markers but does not count as a tile lay. Place a mine marker '\
-              'on the corporation’s charter. Once this ability is used, the private company closes.',
+              'It must be connected to one of the corporation’s existing station markers but does not count as a tile lay. The corporation receives a mine marker. '\
+              'Once this ability is used, the private company closes.',
               sym: 'CVCC',
               meta: {type: :private, class: :B},
               abilities: [
@@ -340,8 +341,8 @@ module Engine
               name: 'Advanced Track',
               value: 0,
               revenue: 0,
-              desc: 'This company starts with two subsidy cubes on it. At any time during the tile-laying step of the corporation’s operating turn, discard one cube to lay or upgrade one additional tile for free,'\
-              'except for any terrain costs. Only one cube may be used per turn. Once the second cube has been used, the private company closes.',
+              desc: 'At any time during the tile-laying step of the corporation’s operating turn, it may lay or upgrade one additional tile for free,'\
+              'except for any terrain costs. Once this ability has been used twice, the private company closes.',
               sym: 'AT',
               meta: {type: :private, class: :B},
               abilities: [
@@ -364,7 +365,7 @@ module Engine
               name: 'Diverse Cargo',
               value: 0,
               revenue: 0,
-              desc: "Place either a mine or port marker on the corporation’s charter. Once this ability is used, the private company closes.",
+              desc: "The corporation receives either a mine or port marker. Once this ability is used, the private company closes.",
               sym: 'DC',
               meta: {type: :private, class: :B},
             },
@@ -373,7 +374,7 @@ module Engine
               value: 0,
               revenue: 0,
               desc: 'During the tile-laying step of the corporation’s operating turn, upgrade two tiles from yellow to green (instead of two lays or one lay and one upgrade), '\
-              'paying the normal $20 fee and any terrain costs. This may not be done in any of the IC Line hexes',
+              'paying a $30 fee (instead of $20) and any terrain costs. This may not be used to upgrade two incomplete IC Line hexes in one turn.',
               sym: 'EM',
               meta: {type: :private, class: :B},
             },

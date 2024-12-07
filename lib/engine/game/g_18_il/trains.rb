@@ -48,7 +48,7 @@ module Engine
               distance: [{ 'nodes' => %w[town halt], 'pay' => 0, 'visit' => 99 },
                           { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }],
               price: 800,
-              num: 2
+              num: 4
               },
               {
               name: '5+1P',
@@ -62,9 +62,9 @@ module Engine
               distance: [{ 'nodes' => %w[town halt], 'pay' => 0, 'visit' => 99 },
                           { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }],
               price: 600,
-              num: 4
+              num: 2
               },
-              { name: 'D', distance: 999, price: 1000, num: 9,
+              { name: 'D', distance: 999, price: 1000, num: 99,
                 events: [
                   { 'type' => 'signal_end_game' },
                   ],
