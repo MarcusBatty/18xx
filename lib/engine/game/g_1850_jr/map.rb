@@ -2,9 +2,10 @@
 
 module Engine
   module Game
-    module G1850JR
+    module G1850Jr
       module Map
         TILES = {
+          # yellow
           '1' => 1,
           '2' => 1,
           '3' => 2,
@@ -12,6 +13,12 @@ module Engine
           '7' => 4,
           '8' => 8,
           '9' => 7,
+          '55' => 1,
+          '56' => 1,
+          '57' => 4,
+          '58' => 2,
+          '69' => 1,
+          # green
           '14' => 3,
           '15' => 2,
           '16' => 1,
@@ -20,11 +27,25 @@ module Engine
           '20' => 1,
           '23' => 3,
           '24' => 3,
-          '25' => 1, 
+          '25' => 1,
           '26' => 1,
           '27' => 1,
-          '28' => 1, 
+          '28' => 1,
           '29' => 1,
+          '53' =>
+          {
+            'count' => 1,
+            'color' => 'green',
+            'code' => 'city=revenue:50;path=a:0,b:_0;path=a:2,b:_0;path=a:4,b:_0;label=C',
+          },
+          '54' =>
+          {
+            'count' => 1,
+            'color' => 'green',
+            'code' => 'city=revenue:60;city=revenue:60;path=a:0,b:_0;path=a:5,b:_0;path=a:1,b:_1;path=a:2,b:_1;label=P',
+          },
+          '59' => 1,
+          # brown
           '39' => 1,
           '40' => 1,
           '41' => 2,
@@ -34,87 +55,77 @@ module Engine
           '45' => 2,
           '46' => 2,
           '47' => 1,
-          '53' => 2,
-          '54' => 1,
-          '55' => 1,
-          '56' => 1,
-          '57' => 4,
-          '58' => 2,
-          '59' => 2,
-          '61' => 2,
-          '62' => 1,
-          '63' => 3,
+          '61' =>
+          {
+            'count' => 1,
+            'color' => 'brown',
+            'code' => 'city=revenue:60;path=a:0,b:_0;path=a:2,b:_0;path=a:4,b:_0;path=a:1,b:_0;label=C',
+          },
+          '62' =>
+          {
+            'count' => 1,
+            'color' => 'brown',
+            'code' => 'city=revenue:80,slots:2;city=revenue:80,slots:2;path=a:0,b:_0;'\
+                      'path=a:5,b:_0;path=a:1,b:_1;path=a:2,b:_1;label=P',
+          },
+          '63' => 2,
           '64' => 1,
           '65' => 1,
           '66' => 1,
           '67' => 1,
           '68' => 1,
-          '69' => 1,
           '70' => 1,
         }.freeze
 
         LOCATION_NAMES = {
-          'C2' => 'Tabarka',
-          'E2' => 'Bizerte',
-          'F1' => 'Port of Bizerte',
-          'F5' => 'Tunis',
-          'G4' => 'Port of Rades',
-          'D5' => 'Beja',
-          'D3' => 'Mateur',
-          'E4' => 'Djedeida',
-          'B5' => 'Ghardimaou',
-          'B7' => 'La Kef',
-          'H5' => 'Nabeul',
-          'G8' => 'Sousse',
-          'H7' => 'Port of Sousse',
-          'C10' => 'Kasserine',
-          'D15' => 'Gafsa',
-          'B17' => 'Tozeur',
-          'G14' => 'Sfax',
-          'H15' => 'Port of Sfax',
-          'F17' => 'Gabes',
-          'G18' => 'Port of Gabes',
-          'H9' => 'Mahdia',
-          'F9' => 'Kairouan',
-          'A6' => 'Souk Ahras, Algeria',
-          'A12' => 'Tebessa, Algeria',
-          'E12' => 'Sidi Bouzid',
-          'C14' => 'Métlaoui',
+          'A5' => 'Tunisia',
+          'B4' => 'Trapani & Marsala',
+          'C1' => 'Genova',
+          'C3' => 'Partinico & Alcamo',
+          'D2' => 'Palermo',
+          'D6' => 'Girgenti',
+          'E5' => 'Caltanissetta',
+          'E9' => 'Malta',
+          'F2' => 'San Stefano',
+          'F6' => 'Caltagirone',
+          'F8' => 'Terranova',
+          'G5' => 'Catania',
+          'H0' => 'Napoli',
+          'H2' => 'Messina',
+          'H8' => 'Siracusa',
+          'I1' => 'Villa San Giovanni',
+          'I3' => 'Taranto',
         }.freeze
 
         HEXES = {
           blue: {
-            ['F1'] => 'offboard=revenue:yellow_0,groups:port,route:never;path=a:1,b:_0;icon=image:port',
-            ['G4'] => 'offboard=revenue:yellow_0,groups:port,route:never;path=a:1,b:_0;icon=image:port',
-            ['H7'] => 'offboard=revenue:yellow_0,groups:port,route:never;path=a:1,b:_0;icon=image:port',
-            ['H15'] => 'offboard=revenue:yellow_0,groups:port,route:never;path=a:2,b:_0;icon=image:port',
-            ['G18'] => 'offboard=revenue:yellow_0,groups:port,route:never;path=a:2,b:_0;icon=image:port',
+            %w[A5 E9] => 'offboard=revenue:yellow_0,groups:port,route:never;path=a:4,b:_0;icon=image:port;',
+            ['C1'] => 'offboard=revenue:yellow_0,groups:port,route:never;path=a:5,b:_0;icon=image:port;'\
+                      'border=edge:0,type:impassable',
+            ['H0'] => 'offboard=revenue:yellow_0,groups:port,route:never;path=a:0,b:_0;icon=image:port',
+            ['I1'] => 'offboard=revenue:yellow_0,groups:port,route:never;path=a:1,b:_0;icon=image:port',
+            ['I3'] => 'offboard=revenue:yellow_0,groups:port,route:never;path=a:2,b:_0;icon=image:port',
           },
           white: {
-            %w[C4 C6 C8 C12 C16 B9 B11 B13 B15 D7 D9 D11 D13 E6 E8 E10 E14 E16 F3 F7 F11 F13 F15] => '',
-            %w[G6 G10 G12 H11] => '',
-            %w[E14 F13 C4 D3 B9 C8 E8 C10] => 'upgrade=cost:40,terrain:mountain',
-            %w[E2 D5 G8 B7 C10 D15 F17 B17] => 'city=revenue:0',
-            %w[B5 C2 D3 E4 H9 F9 E12 C14] => 'town=revenue:0',
+            %w[B2 E3 E7 G9 H4] => '',
+            %w[C5 D4 F4 G7] => 'upgrade=cost:120,terrain:mountain',
+            %w[D6 F8 H2] => 'city=revenue:0',
+            %w[F2 F6] => 'town=revenue:0;upgrade=cost:120,terrain:mountain',
+            ['G3'] => 'upgrade=cost:120,terrain:mountain;border=edge:0,type:impassable',
+            ['C3'] => 'town=revenue:0;town=revenue:0;border=edge:3,type:impassable',
+            ['E5'] => 'city=revenue:0;upgrade=cost:120,terrain:mountain',
           },
           yellow: {
-            ['G14'] => 'city=revenue:10;path=a:3,b:_0;path=a:5,b:_0;label=C',
-            ['F5'] => 'label=O;city=revenue:30;city=revenue:30;city=revenue:30;path=a:2,b:_1;path=a:4,b:_2',
+            ['B4'] => 'city=revenue:0;city=revenue:0;label=OO',
+            ['D2'] => 'city=revenue:40;city=revenue:40;path=a:2,b:_0;path=a:5,b:_1;label=P',
+            ['G5'] => 'city=revenue:30;path=a:0,b:_0;path=a:4,b:_0;border=edge:3,type:impassable;label=C',
           },
-
           gray: {
-            ['H5'] => 'town=revenue:30;path=a:1,b:_0;'
+            ['A3'] => 'path=a:4,b:5',
+            ['G1'] => 'path=a:1,b:5',
+            ['H6'] => 'path=a:0,b:1',
+            ['H8'] => 'city=revenue:30;path=a:1,b:_0;path=a:3,b:_0',
           },
-
-          red: {
-            ['A6'] =>
-                     'offboard=revenue:yellow_30|brown_60;path=a:4,b:_0',
-            ['A12'] =>
-                     'offboard=revenue:yellow_20|brown_50;path=a:4,b:_0;path=a:5,b:_0',
-
-          },
-
-
         }.freeze
 
         LAYOUT = :flat

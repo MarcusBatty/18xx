@@ -407,7 +407,6 @@ module Engine
                   hexes: %w[H3 G6 F9 E12],
                   amount: 20,
                   count: 1,
-                  closed_when_used_up: true,
                 },
               ],
             },

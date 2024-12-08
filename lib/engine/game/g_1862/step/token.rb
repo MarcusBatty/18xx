@@ -34,7 +34,7 @@ module Engine
           end
 
           def london_reachable?(entity)
-                        @log << "#{@game.london_nodes}"
+            @log << @game.london_nodes.to_s
             @game.london_nodes.any? do |node|
               @game.graph.connected_nodes(entity)[node]
             end

@@ -548,7 +548,6 @@ module Engine
           @merging = nil
           @london_nodes = LONDON_HEXES.map do |h|
             hex_by_id(h).tile.nodes.find { |n| n.offboard? && n.groups.include?('London') }
-
           end
         end
 
@@ -564,11 +563,11 @@ module Engine
           @double_parliament = true
 
           # randomize order of corporations, then remove some based on player count
-          @offer_order = @corporations.sort_by { rand } 
+          @offer_order = @corporations.sort_by { rand }
           num_removed = case @players.size
                         when 8
                           2
-                        when 7 
+                        when 7
                           3
                         else
                           4

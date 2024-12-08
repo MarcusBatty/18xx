@@ -1279,14 +1279,14 @@ module Engine
             end
           end
 
-          if action.entity == goodrich_transit_line || action.entity == steamboat
+          case action.entity
+          when goodrich_transit_line, steamboat
             corp.assign!(PORT_ICON)
             log << "#{corp.name} receives a port marker"
+          when frink_walker_co, chicago_virden_coal_company
+            corp.assign!(MINE_ICON)
+            log << "#{corp.name} receives a mine marker"
           end
-          return if !action.entity == frink_walker_co && !action.entity == chicago_virden_coal_company
-
-          corp.assign!(MINE_ICON)
-          log << "#{corp.name} receives a mine marker"
         end
 
         def redeemable_shares(entity)

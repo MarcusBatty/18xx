@@ -7,9 +7,9 @@ require_relative '../base'
 
 module Engine
   module Game
-    module G1850JR
+    module G1850Jr
       class Game < Game::Base
-        include_meta(G1850JR::Meta)
+        include_meta(G1850Jr::Meta)
         include Entities
         include Map
 
@@ -110,9 +110,39 @@ module Engine
                     discount: { '4' => 300, '5' => 300, '6' => 300 },
                   }].freeze
 
+        def operating_round(round_num)
+          Round::Operating.new(self, [
+            Engine::Step::Bankrupt,
+            Engine::Step::Exchange,
+            Engine::Step::SpecialTrack,
+            Engine::Step::BuyCompany,
+            Engine::Step::HomeToken,
+            Engine::Step::Track,
+            Engine::Step::Token,
+            Engine::Step::Route,
+            Engine::Step::Dividend,
+            Engine::Step::DiscardTrain,
+            Engine::Step::SingleDepotTrainBuy,
+            [Engine::Step::BuyCompany, { blocks: true }],
+          ], round_num: round_num)
+        end
+
+        STATUS_TEXT = Base::STATUS_TEXT.merge(Engine::Step::SingleDepotTrainBuy::STATUS_TEXT).freeze
+
+        def revenue_for(route, stops)
+          revenue = super
+
+          port = stops.find { |stop| stop.groups.include?('port') }
+
+          if port
+            raise GameError, "#{port.tile.location_name} must contain 2 other stops" if stops.size < 3
+
+            revenue += (revenue / 2).floor(-1)
+          end
+
+          revenue
+        end
       end
     end
   end
 end
-
-
