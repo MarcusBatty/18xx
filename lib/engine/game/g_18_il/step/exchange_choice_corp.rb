@@ -7,7 +7,6 @@ module Engine
     module G18IL
       module Step
         class ExchangeChoiceCorp < Engine::Step::Base
-
           def actions(entity)
             return [] unless entity == current_entity
 
@@ -36,12 +35,14 @@ module Engine
             price = @game.ic.share_price.price / 2
             choices = []
             choices << ["Sell for #{@game.format_currency(price)}"]
-            choices << ["Exchange for #{@game.ic.name} share for #{@game.format_currency(price)}"] if @game.ic.num_market_shares.positive? #&& @game.exchange_choice_corp.cash >= price #TODO
+            if @game.ic.num_market_shares.positive?
+              choices << ["Exchange for #{@game.ic.name} share for #{@game.format_currency(price)}"]
+            end
             choices
           end
 
           def choice_name
-            "Option Cube Decision"
+            'Option Cube Decision'
           end
 
           def process_choose(action)
@@ -56,7 +57,6 @@ module Engine
             @game.exchange_choice_corp = nil
             @game.exchange_choice_corps.delete_at(0)
           end
-
         end
       end
     end

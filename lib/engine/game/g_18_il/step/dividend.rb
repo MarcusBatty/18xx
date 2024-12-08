@@ -9,42 +9,47 @@ module Engine
       module Step
         class Dividend < Engine::Step::Dividend
           include Engine::Step::HalfPay
-          
+
           DIVIDEND_TYPES = %i[payout half withhold].freeze
 
           def setup
-            @log << "#{current_entity.name} has a loan of #{@game.format_currency(current_entity.loans.first.amount)}"\
-            " and must withhold during the dividend step" if @game.insolvent_corporations.include?(current_entity)
+            if @game.insolvent_corporations.include?(current_entity)
+              @log << "#{current_entity.name} has a loan of #{@game.format_currency(current_entity.loans.first.amount)}"\
+                      ' and must withhold during the dividend step'
+            end
             super
           end
 
           def dividend_types
             return %i[withhold] if (current_entity == @game.ic && @game.ic_in_receivership?) || !current_entity.loans.empty?
-            return DIVIDEND_TYPES
+
+            DIVIDEND_TYPES
           end
 
           def share_price_change(entity, revenue = 0)
             price = entity.share_price.price
-            return { share_direction: :down, share_times: 1 } if revenue == 0 && price == 20
-            return { share_direction: :left, share_times: 1 } if revenue == 0
+            return { share_direction: :down, share_times: 1 } if revenue.zero? && price == 20
+            return { share_direction: :left, share_times: 1 } if revenue.zero?
             return { share_direction: :down, share_times: 1 } if revenue < price / 2
             return { share_direction: :up, share_times: 1 } if revenue < price
             return { share_direction: :right, share_times: 1 } if revenue < price * 2
             return { share_direction: :right, share_times: 2 } if revenue < price * 3
-            return { share_direction: :right, share_times: 3 } 
+
+            { share_direction: :right, share_times: 3 }
           end
 
           def log_run_payout(entity, kind, revenue, subsidy, action, payout)
             unless Dividend::DIVIDEND_TYPES.include?(kind)
               @log << "#{entity.name} runs for #{@game.format_currency(revenue)} and pays #{action.kind}"
             end
-    
+
             if payout[:corporation].positive?
-              if @game.train_borrowed
-                @log << "#{entity.name} withholds #{@game.format_currency(payout[:corporation])} (#{@game.format_currency(payout[:corporation])} paid to bank as lease payment)"
-              else
-                @log << "#{entity.name} withholds #{@game.format_currency(payout[:corporation])}"
-              end
+              @log << if @game.train_borrowed
+                        "#{entity.name} withholds #{@game.format_currency(payout[:corporation])} '\
+                '(#{@game.format_currency(payout[:corporation])} paid to bank as lease payment)"
+                      else
+                        "#{entity.name} withholds #{@game.format_currency(payout[:corporation])}"
+                      end
             elsif payout[:per_share].zero?
               @log << "#{entity.name} does not run"
             end
@@ -79,7 +84,6 @@ module Engine
             @log << "#{current_entity.name} is in receivership and does not own a train."
             share_price_change(current_entity)
           end
-
         end
       end
     end

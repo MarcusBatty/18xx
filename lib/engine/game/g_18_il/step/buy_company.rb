@@ -7,26 +7,24 @@ module Engine
     module G18IL
       module Step
         class BuyCompany < Engine::Step::BuyCompany
+          ACTIONS = %w[buy_company pass].freeze
+          ACTIONS_NO_PASS = %w[buy_company].freeze
+          PASS = %w[pass].freeze
 
-      ACTIONS = %w[buy_company pass].freeze
-      ACTIONS_NO_PASS = %w[buy_company].freeze
-      PASS = %w[pass].freeze
+          def actions(entity)
+            return [] if entity == @game.ic && @game.ic_in_receivership?
+            return blocks? ? ACTIONS : ACTIONS_NO_PASS if can_buy_company?(entity)
 
-      def actions(entity)
-        return [] if entity == @game.ic && @game.ic_in_receivership?
-        return blocks? ? ACTIONS : ACTIONS_NO_PASS if can_buy_company?(entity)
+            return PASS if blocks? && entity.corporation? && @game.abilities(entity, passive_ok: false)
 
-        return PASS if blocks? && entity.corporation? && @game.abilities(entity, passive_ok: false)
-
-        []
-      end
+            []
+          end
 
           def pass!
             super
             @game.event_ic_formation! if @game.ic_formation_pending?
             @game.ic_line_auto_build! unless @game.ic_line_completed?
           end
-          
         end
       end
     end

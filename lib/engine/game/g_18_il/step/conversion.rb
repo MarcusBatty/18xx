@@ -8,8 +8,6 @@ module Engine
     module G18IL
       module Step
         class Conversion < Engine::Step::Base
-
-
           def actions(entity)
             return [] if @game.last_set_triggered
             return [] if !entity.corporation? || entity != current_entity || entity == @round.converts[-1]
@@ -18,12 +16,12 @@ module Engine
             shares = entity.total_shares
             cash = entity.cash
 
-            #can't convert if corp would not have enough money to purchase tokens after issuing all shares
+            # can't convert if corp would not have enough money to purchase tokens after issuing all shares
             case shares
-              when 2
-                return [] if price * 1.5 + cash < 40
-              when 5
-                return [] if price * 2.5 + cash < 120
+            when 2
+              return [] if (price * 1.5) + cash < 40
+            when 5
+              return [] if (price * 2.5) + cash < 120
             end
 
             actions = []
@@ -38,7 +36,7 @@ module Engine
 
           def help
             [
-              "Convert #{current_entity.name} to a #{current_entity.total_shares == 2 ? "5" : "10"}-share corporation or pass:"
+              "Convert #{current_entity.name} to a #{current_entity.total_shares == 2 ? '5' : '10'}-share corporation or pass:",
             ]
           end
 

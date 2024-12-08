@@ -8,11 +8,11 @@ module Engine
     module G18IL
       module Step
         class CorporateIssueBuyShares < Engine::Step::BuySellParShares
-
           def actions(entity)
             return [] if @game.last_set_triggered
             return [] unless entity == current_entity
             return [] if entity == @game.ic && @game.ic_in_receivership?
+
             actions = []
             actions << 'buy_shares' if can_buy_any?(entity) && !@bought
             actions << 'sell_shares' if !issuable_shares(entity).empty? && !@issued && !@game.sp_used
@@ -34,19 +34,15 @@ module Engine
           def description
             'Corporate Issue/Buy a Share'
           end
-          
-          def can_sell?(_entity, _bundle)
-            true
-          end
 
           def log_skip(entity)
             @log << "#{entity.name} skips #{description.downcase}"
           end
 
           def visible_corporations
-            corps = @game.corporations.select { |c| c.ipoed && !c.ipo_shares.empty?}
+            corps = @game.corporations.select { |c| c.ipoed && !c.ipo_shares.empty? }
 
-            corps = corps.reject {|c| c == current_entity} if current_entity == @game.sp_used
+            corps = corps.reject { |c| c == current_entity } if current_entity == @game.sp_used
             corps
           end
 
@@ -71,6 +67,7 @@ module Engine
           def can_sell?(entity, bundle)
             return unless bundle
             return true if bundle.owner == entity && bundle.corporation == entity && bundle.num_shares == 1 && !@issued
+
             false
           end
 
@@ -78,6 +75,7 @@ module Engine
             return unless bundle
             return if entity == bundle.owner
             return unless bundle.owner == bundle.corporation
+
             available_cash(entity) >= bundle.price
           end
 
@@ -86,8 +84,8 @@ module Engine
                        swap: action.swap, borrow_from: action.borrow_from,
                        allow_president_change: allow_president_change?(action.bundle.corporation),
                        discounter: action.discounter)
-           @bought = true
-           @game.sp_used = nil
+            @bought = true
+            @game.sp_used = nil
           end
 
           def auto_actions(_entity); end
@@ -107,27 +105,23 @@ module Engine
 
           def can_buy_shares?(entity, shares)
             return false if shares.empty?
-    
-            sample_share = shares.first
-            corporation = sample_share.corporation
-            owner = sample_share.owner    
+
             min_share = nil
             shares.each do |share|
               next unless share.buyable
-    
+
               min_share = share if !min_share || share.percent < min_share.percent
             end
-    
+
             bundle = min_share&.to_bundle
             return unless bundle
-    
+
             available_cash(entity) >= bundle.price
           end
 
           def allow_president_change?(_corporation)
             false
           end
-
         end
       end
     end

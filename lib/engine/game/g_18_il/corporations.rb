@@ -4,9 +4,8 @@ module Engine
   module Game
     module G18IL
       module Corporations
-        
         def game_corporations
-          corporations = [
+          [
               {
                 float_percent: 100,
                 sym: 'P&BV',
@@ -41,7 +40,7 @@ module Engine
                 name: 'Galena and Chicago Union Railroad',
                 logo: '18_il/G&CU',
                 simple_logo: '18_il/G&CU.alt',
-                shares: [40,20,20,20],
+                shares: [40, 20, 20, 20],
                 tokens: [0],
                 coordinates: 'E2',
                 color: '#F40006',
@@ -54,7 +53,7 @@ module Engine
                 name: 'Rock Island Line',
                 logo: '18_il/RI',
                 simple_logo: '18_il/RI.alt',
-                shares: [40,20,20,20],
+                shares: [40, 20, 20, 20],
                 tokens: [0],
                 coordinates: 'C6',
                 color: '#FF9007',
@@ -68,7 +67,7 @@ module Engine
                 name: 'Chicago and Alton Railroad',
                 logo: '18_il/C&A',
                 simple_logo: '18_il/C&A.alt',
-                shares: [40,20,20,20],
+                shares: [40, 20, 20, 20],
                 tokens: [0],
                 coordinates: 'D15',
                 color: '#45DF00',
@@ -82,7 +81,7 @@ module Engine
                 name: 'Vandalia Railroad',
                 logo: '18_il/V',
                 simple_logo: '18_il/V.alt',
-                shares: [40,20,20,20],
+                shares: [40, 20, 20, 20],
                 tokens: [0],
                 coordinates: 'G16',
                 color: '#FFFD44',
@@ -96,7 +95,7 @@ module Engine
                 name: 'Wabash Railroad',
                 logo: '18_il/WAB',
                 simple_logo: '18_il/WAB.alt',
-                shares: [20,10,10,10,10,10,10,10,10],
+                shares: [20, 10, 10, 10, 10, 10, 10, 10, 10],
                 tokens: [0],
                 coordinates: 'I6',
                 color: '#ABABAB',
@@ -110,7 +109,7 @@ module Engine
                 name: 'Chicago and Eastern Illinois Railroad',
                 logo: '18_il/C&EI',
                 simple_logo: '18_il/C&EI.alt',
-                shares: [20,10,10,10,10,10,10,10,10],
+                shares: [20, 10, 10, 10, 10, 10, 10, 10, 10],
                 tokens: [0],
                 coordinates: 'H21',
                 color: '#740013',
@@ -119,22 +118,21 @@ module Engine
                 text_color: 'white',
               },
               {
-              float_percent: 100,
-              sym: 'IC',
-              name: 'Illinois Central Railroad',
-              logo: '18_il/IC',
-              simple_logo: '18_il/IC.alt',
-              shares: [20,10,10,10,10,10,10,10,10],
-              tokens: [0],
-              coordinates: 'H3',
-              city: 2,
-              color: "#006A14",
-              type: 'ten_share',
-              always_market_price: true,
-              floatable: false,
-            }
+                float_percent: 100,
+                sym: 'IC',
+                name: 'Illinois Central Railroad',
+                logo: '18_il/IC',
+                simple_logo: '18_il/IC.alt',
+                shares: [20, 10, 10, 10, 10, 10, 10, 10, 10],
+                tokens: [0],
+                coordinates: 'H3',
+                city: 2,
+                color: '#006A14',
+                type: 'ten_share',
+                always_market_price: true,
+                floatable: false,
+              },
           ]
-          corporations
         end
       end
     end

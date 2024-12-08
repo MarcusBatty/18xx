@@ -7,7 +7,6 @@ module Engine
     module G18IL
       module Step
         class Merge < Engine::Step::Base
-
           ACTIONS = %w[merge pass].freeze
 
           def actions(_entity)
@@ -79,7 +78,6 @@ module Engine
           def mergee
             @game.mergeable_candidates.first
           end
-
         end
       end
     end

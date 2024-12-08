@@ -44,7 +44,6 @@ module Engine
             @game.borrow_train(action)
             pass!
           end
-          
         end
       end
     end

@@ -1,9 +1,10 @@
+# frozen_string_literal: true
+
 module Engine
   module Game
     module G18IL
       module Step
         class LincolnChoice < Engine::Step::Base
-
           def setup
             super
             @lincoln_pass = nil
@@ -15,11 +16,13 @@ module Engine
             return [] unless @game.lincoln_funeral_car&.owner == @round.current_operator
             return [] if @lincoln_pass
             return [] if @game.lincoln_triggered
+
             ['choose']
           end
 
           def active_entities
-          return [] unless @game.lincoln_funeral_car&.owner == @round.current_operator
+            return [] unless @game.lincoln_funeral_car&.owner == @round.current_operator
+
             [@game.lincoln_funeral_car&.owner].compact
           end
 
@@ -37,8 +40,8 @@ module Engine
 
           def choices
             choices = []
-            choices << ["Use"]
-            choices << ["Pass"]
+            choices << ['Use']
+            choices << ['Pass']
             choices
           end
 
@@ -48,18 +51,16 @@ module Engine
 
           def process_choose(action)
             corp = action.entity
-            company = @game.diverse_cargo
             case action.choice
-              when "Use"
-                @log << "#{corp.name} chooses to use Lincoln Funeral Car ability"
-                @game.lincoln_triggered = true
-              when "Pass"
-                @log << "#{corp.name} passes using Lincoln Funeral Car ability"
-                @lincoln_pass = true
-                pass!
+            when 'Use'
+              @log << "#{corp.name} chooses to use Lincoln Funeral Car ability"
+              @game.lincoln_triggered = true
+            when 'Pass'
+              @log << "#{corp.name} passes using Lincoln Funeral Car ability"
+              @lincoln_pass = true
+              pass!
             end
           end
-
         end
       end
     end

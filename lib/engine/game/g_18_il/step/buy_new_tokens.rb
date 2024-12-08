@@ -7,9 +7,9 @@ module Engine
     module G18IL
       module Step
         class BuyNewTokens < Engine::Step::Base
-
           def actions(entity)
             return [] unless entity == pending_entity
+
             %w[choose]
           end
 
@@ -65,7 +65,6 @@ module Engine
           def process_choose(action)
             num = action.choice.to_i
             total = price(num)
-            type = pending_type
             entity = pending_entity
             @round.buy_tokens.shift
             @game.purchase_tokens!(entity, num, total)
@@ -85,11 +84,11 @@ module Engine
             return 0 if num.zero?
 
             price = pending_first_price + ((num - 1) * pending_price)
-            #discount on 4th and 5th token
+            # discount on 4th and 5th token
             price -= 10 if num == 4
             price -= 20 if num == 5
             (price = num < 5 ? 0 : 40) if pending_entity == @game.station_subsidy.owner
-            return price
+            price
           end
 
           def choices
@@ -97,8 +96,9 @@ module Engine
               num = i + pending_min
               total = price(num)
               next if (num > pending_min) && (total > pending_corp.cash)
-                emr = total > pending_corp.cash ? ' - EMR' : ''
-                [num, "#{num} (#{@game.format_currency(total)}#{emr})"]
+
+              emr = total > pending_corp.cash ? ' - EMR' : ''
+              [num, "#{num} (#{@game.format_currency(total)}#{emr})"]
             end.compact.to_h
           end
 

@@ -8,7 +8,6 @@ module Engine
     module G18IL
       module Step
         class CorporateSellShares < Engine::Step::BuyTrain
-
           def description
             'Emergency Sell Shares'
           end
@@ -23,10 +22,11 @@ module Engine
             return [] if entity.cash > @game.depot.min_depot_price
             return [] unless entity.shares != entity.ipo_shares
             return [] unless entity.trains.empty?
+
             actions = []
             actions << 'corporate_sell_shares' if entity.cash < @game.depot.min_depot_price && entity.trains.empty?
-            actions << 'pass' if !other_trains(entity).empty?
-    
+            actions << 'pass' unless other_trains(entity).empty?
+
             actions
           end
 
@@ -40,8 +40,8 @@ module Engine
 
           def help
             [
-            "If emergency money raising, corporation must sell reserve shares before issuing.",
-            "Pass if buying a train from another corporation"
+            'If emergency money raising, corporation must sell reserve shares before issuing.',
+            'Pass if buying a train from another corporation',
           ]
           end
 
@@ -57,26 +57,23 @@ module Engine
           def can_sell_any?(entity)
             entity.corporate_shares.select { |share| can_sell?(entity, share.to_bundle) }.any?
           end
-    
+
           def can_sell?(entity, bundle)
             return unless bundle
             return false if entity != bundle.owner
-    
+
             entity != bundle.corporation
           end
-    
+
           def sell_shares(entity, shares, swap: nil)
             raise GameError, "Cannot sell shares of #{shares.corporation.name}" if !can_sell?(entity, shares) && !swap
-    
+
             @game.sell_shares_and_change_price(shares, swap: swap)
           end
-    
+
           def source_list(entity)
-            entity.corporate_shares.map do |share|
-              share.corporation
-            end.compact.uniq
+            entity.corporate_shares.map(&:corporation).compact.uniq
           end
-          
         end
       end
     end

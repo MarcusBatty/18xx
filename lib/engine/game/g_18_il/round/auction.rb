@@ -7,7 +7,6 @@ module Engine
     module G18IL
       module Round
         class Auction < Engine::Round::Auction
-
           def name
             'Concession Round'
           end
@@ -15,7 +14,6 @@ module Engine
           def self.short_name
             'CR'
           end
-          
         end
       end
     end

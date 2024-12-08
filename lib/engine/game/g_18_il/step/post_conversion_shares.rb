@@ -13,9 +13,10 @@ module Engine
             super
             @game.players.each(&:unpass!)
           end
-          
+
           def actions(entity)
             return [] if !entity.player? || !@round.converted
+
             actions = []
             actions << 'buy_shares' if can_buy_any?(entity)
             actions << 'sell_shares' if can_sell?(entity, nil)
@@ -34,7 +35,7 @@ module Engine
           end
 
           def visible_corporations
-            [corporation] 
+            [corporation]
           end
 
           def show_other_players
@@ -44,8 +45,9 @@ module Engine
           def process_buy_shares(action)
             player = action.entity
             buy_shares(player, action.bundle)
-            player.pass! unless corporation.president?(player.owner) && can_buy_any?(player)
+            player.pass! if !corporation.president?(player.owner) || !can_buy_any?(player)
             return if corporation.president?(player.owner)
+
             @game.players.insert((@game.players.size - 1), @game.players.delete_at(@game.players.index(player)))
           end
 
@@ -64,7 +66,7 @@ module Engine
           end
 
           def help
-            [ "Select corporation to buy a share or pass:"]
+            ['Select corporation to buy a share or pass:']
           end
 
           def can_buy?(entity, bundle)
@@ -99,8 +101,10 @@ module Engine
 
           def active_entities
             return [] unless corporation
-           [@game.players.unshift(@game.players.delete(corporation.owner)).find { |p|
-           p.active? && (can_buy_any?(p) || can_sell?(p, nil)) }].compact
+
+            [@game.players.unshift(@game.players.delete(corporation.owner)).find do |p|
+               p.active? && (can_buy_any?(p) || can_sell?(p, nil))
+             end].compact
           end
 
           def post_convert_pass_step!
@@ -117,9 +121,9 @@ module Engine
               max = 1
               @log << "#{corp.name} must buy 1 token"
             end
- 
+
             price = 40
-            @log << "Each token costs $40"
+            @log << 'Each token costs $40'
             @round.buy_tokens << {
               entity: corp,
               type: :convert,
@@ -129,7 +133,6 @@ module Engine
               max: max,
             }
           end
-
         end
       end
     end

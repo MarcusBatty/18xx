@@ -7,7 +7,6 @@ module Engine
     module G18IL
       module Step
         class ExchangeChoicePlayer < Engine::Step::Base
-
           def actions(entity)
             return [] unless entity == current_entity
 
@@ -56,7 +55,6 @@ module Engine
             @game.exchange_choice_player = nil
             @game.merge_corporation_part_two
           end
-
         end
       end
     end
