@@ -87,8 +87,6 @@ module Engine
         STL_HEXES = %w[B15 B17 C16 C18].freeze
         STL_TOKEN_HEXES = %w[C18].freeze
         CHICAGO_HEX = ['H3'].freeze
-        PORT_MARKER_ICON = 'port'.freeze
-        MINE_MARKER_ICON = 'mine'.freeze
         SPRINGFIELD_HEX = 'E12'.freeze
         CORPORATION_SIZES = { 2 => :small, 5 => :medium, 10 => :large }.freeze
         PORT_ICON = 'port'.freeze
@@ -210,7 +208,7 @@ module Engine
 
         def operating_round(round_num)
           Engine::Round::Operating.new(self, [
-            Engine::Step::Bankrupt,
+            #   Engine::Step::Bankrupt,
             G18IL::Step::DiverseCargoChoice,
             G18IL::Step::MineCompanyChoice,
             Engine::Step::Exchange,
@@ -234,7 +232,7 @@ module Engine
             G18IL::Step::BuyTrainBeforeRunRoute,
             G18IL::Step::Route,
             G18IL::Step::Dividend,
-            Engine::Step::SpecialBuyTrain,
+            G18IL::Step::SpecialBuyTrain,
             G18IL::Step::CorporateSellShares,
             G18IL::Step::BuyTrain,
             [G18IL::Step::BuyCompany, { blocks: true }],
@@ -1138,11 +1136,11 @@ module Engine
           super
         end
 
-        def try_take_loan(entity, price)
-          return if !price.positive? || price <= entity.cash
+        # def try_take_loan(entity, price)
+        #   return if !price.positive? || price <= entity.cash
 
-          @game.take_loan(entity) while entity.cash < price
-        end
+        #   @game.take_loan(entity) while entity.cash < price
+        # end
 
         def init_loans
           # this is only used for view purposes
@@ -1159,6 +1157,10 @@ module Engine
 
         def interest_owed(_entity)
           0
+        end
+
+        def can_go_bankrupt?(_player, _corp)
+          false
         end
 
         def corporation_show_interest?(_corporation)

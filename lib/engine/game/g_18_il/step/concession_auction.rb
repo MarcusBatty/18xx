@@ -52,19 +52,6 @@ module Engine
             correct || entity == current_entity ? ACTIONS : []
           end
 
-          # def finished?
-          #   if @companies.empty? || entities&.all?(&:passed?)
-          #     post_auction
-          #     return true
-          #   else
-          #     return false
-          #   end
-          # end
-
-          # def post_auction
-          #   @passed_players.each {|p| @game.players << p }
-          # end
-
           def resolve_bids
             return unless @bids[@auctioning].one?
 

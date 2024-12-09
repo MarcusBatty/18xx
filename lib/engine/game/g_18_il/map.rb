@@ -124,7 +124,7 @@ module Engine
             ['H3'] => 'label=Chi;city=revenue:10,loc:1.5;city=revenue:10,loc:3.5;city=revenue:10,loc:5.5;'\
                       'path=a:4,b:_1;path=a:0,b:_2',
             ['H5'] => 'path=a:3,b:0',
-            ['E8'] => 'label=P;city=revenue:20;path=a:3,b:_0;upgrade=cost:20,terrain:water',
+            ['E8'] => 'label=P;city=revenue:30;path=a:3,b:_0;upgrade=cost:20,terrain:water',
           },
 
           gray: {

@@ -15,6 +15,7 @@ module Engine
             return [] if @game.last_set_triggered
             return [] unless entity == current_entity
             return [] if @mine_pass
+            return [] if entity.assignments.include?(@game.class::MINE_ICON)
 
             ['choose']
           end
@@ -35,6 +36,8 @@ module Engine
 
             [@active_company&.owner].compact
           end
+
+          def log_skip(entity); end
 
           def description
             "Use #{@active_company&.name} ability"

@@ -51,10 +51,10 @@ module Engine
             case action.choice
             when 'Extra Station'
               @log << "#{corp.name} gains an extra station"
-              company.close!
               @log << "#{company.name} (#{corp.name}) closes"
+              company.close!
 
-              action.corporation.tokens << Token.new(corporation, price: 0)
+              @game.purchase_tokens!(corp, 1, 0, true)
 
             when 'Pass'
               @log << "#{corp.name} passes gaining extra station"

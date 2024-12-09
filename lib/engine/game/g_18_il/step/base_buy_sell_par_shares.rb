@@ -163,7 +163,8 @@ module Engine
             else
               available_cash(entity) >= modify_purchase_price(bundle) &&
               !@round.players_sold[entity][corporation] && !bought? &&
-              @game.num_certs(entity) < @game.cert_limit(entity)
+              @game.num_certs(entity) < @game.cert_limit(entity) &&
+              corporation.holding_ok?(entity, bundle.common_percent)
             end
           end
 

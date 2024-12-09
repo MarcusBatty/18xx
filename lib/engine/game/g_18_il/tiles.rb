@@ -36,7 +36,7 @@ module Engine
           {
             'count' => 1,
             'color' => 'yellow',
-            'code' => 'city=revenue:20;path=a:1,b:_0;path=a:3,b:_0;label=S',
+            'code' => 'city=revenue:30;path=a:1,b:_0;path=a:3,b:_0;label=S',
           },
 
           'C11' =>

@@ -171,8 +171,8 @@ module Engine
               name: 'Train Subsidy',
               value: 0,
               revenue: 0,
-              desc: 'Receive a 25% discount on non-permanent trains and a 20% discount on permanent trains. '\
-                    'Once this ability is used, the private company closes.',
+              desc: 'Receive a 25% discount on non-permanent trains and a 20% discount on permanent trains '\
+                    'during a single train-buying step. Once this ability is used, the private company closes.',
               sym: 'TS',
               meta: { type: :private, class: :A },
               abilities: [
@@ -182,7 +182,7 @@ module Engine
                   owner_type: 'corporation',
                   use_across_ors: false,
                   trains: %w[2 3 4 3P 4+2P 5+1P 6 D],
-                  count: 4,
+                  count: 99,
                   closed_when_used_up: true,
                   when: 'buy_train',
                 },

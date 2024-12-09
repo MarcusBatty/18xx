@@ -41,17 +41,17 @@ module Engine
           def help
             [
             'If emergency money raising, corporation must sell reserve shares before issuing.',
-            'Pass if buying a train from another corporation',
+            'Pass if buying a train from another corporation:',
           ]
           end
 
-          def process_pass
+          def process_pass(entity)
             @game.other_train_pass = true
             super
           end
 
           def process_corporate_sell_shares(action)
-            sell_shares(action.entity, action.bundle, swap: action.swap)
+            sell_shares(action.entity, action.bundle)
           end
 
           def can_sell_any?(entity)
@@ -65,10 +65,10 @@ module Engine
             entity != bundle.corporation
           end
 
-          def sell_shares(entity, shares, swap: nil)
-            raise GameError, "Cannot sell shares of #{shares.corporation.name}" if !can_sell?(entity, shares) && !swap
+          def sell_shares(entity, bundle)
+            raise GameError, "Cannot sell shares of #{bundle.corporation.name}" unless can_sell?(entity, bundle)
 
-            @game.sell_shares_and_change_price(shares, swap: swap)
+            @game.sell_shares_and_change_price(bundle)
           end
 
           def source_list(entity)

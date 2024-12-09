@@ -15,7 +15,7 @@ module Engine
             return actions if @game.last_set_triggered
 
             actions << %w[buy_train sell_shares] if must_sell_shares?(entity.corporation)
-            actions << %w[buy_train] if can_buy_train?(entity)
+            actions << %w[buy_train] if can_buy_train?(entity.corporation)
             actions << %w[pass] unless @acted
 
             actions.flatten
@@ -33,7 +33,7 @@ module Engine
             [@game.rush_delivery&.owner].compact
           end
 
-          def can_sell?
+          def can_sell?(_entity, _bundle)
             true
           end
 
@@ -43,10 +43,10 @@ module Engine
 
             buy_train_action(action)
 
-            @round.bought_trains << corporation if from_depot && @round.respond_to?(:bought_trains)
-            @round.premature_trains_bought << action.entity
+            # @round.bought_trains << action.entity if from_depot && @round.respond_to?(:bought_trains)
+            #  @round.premature_trains_bought << action.entity
 
-            @log << "#{@game.rush_delivery.name} (#{current_entity.name}) closes"
+            @log << "#{@game.rush_delivery.name} (#{action.entity.name}) closes"
             @game.rush_delivery.close!
             pass!
           end
@@ -62,7 +62,7 @@ module Engine
             "Use #{@game.rush_delivery.name} ability"
           end
 
-          def can_buy_train?
+          def can_buy_train?(entity)
             return false unless @round.premature_trains_bought.empty?
 
             super

@@ -40,13 +40,34 @@ module Engine
           end
 
           def visible_corporations
-            corps = @game.corporations.select { |c| c.ipoed && !c.ipo_shares.empty? }
+            corps = @game.corporations.select { |c| c.ipoed && !c.ipo_shares.empty? && c.share_price.price <= current_entity.cash }
 
             corps = corps.reject { |c| c == current_entity } if current_entity == @game.sp_used
             corps
           end
 
-          def redeemable_shares
+          # def available_cash(entity)
+          #   entity.cash
+          # end
+
+          def help
+            if current_entity.num_ipo_shares.zero? || @issued
+              return [
+                'Buy a share of another corporation:',
+              ]
+            end
+            if @bought
+              return [
+                "Issue a share of #{current_entity.name}:",
+                 ]
+            end
+
+            [
+            "Issue a share of #{current_entity.name} and/or buy a share of another corporation:",
+             ]
+          end
+
+          def redeemable_shares(_entity)
             []
           end
 
@@ -80,10 +101,7 @@ module Engine
           end
 
           def process_buy_shares(action)
-            buy_shares(action.purchase_for || action.entity, action.bundle,
-                       swap: action.swap, borrow_from: action.borrow_from,
-                       allow_president_change: allow_president_change?(action.bundle.corporation),
-                       discounter: action.discounter)
+            buy_shares(action.entity, action.bundle)
             @bought = true
             @game.sp_used = nil
           end
@@ -118,6 +136,23 @@ module Engine
 
             available_cash(entity) >= bundle.price
           end
+
+          #TODO this is included to bypass check_cash, which was throwing false messages during testing. Remove if not needed
+          # def buy_shares(entity, shares)
+          #   @log << "#{entity.name} buys a #{shares.corporation.share_percent}% share of "\
+          #           "#{shares.owner.name} from the Treasury for #{@game.format_currency(shares.price)}"
+          #   shares.owner.share_holders[shares.owner] -= shares.percent
+          #   shares.owner.share_holders[entity] += shares.percent
+          #   entity.spend(shares.price, shares.owner, check_cash: false)
+          #   shares.shares.each { |s| move_share(s, entity) }
+          # end
+
+          # def move_share(share, to_entity)
+          #   corporation = share.corporation
+          #   share.owner.shares_by_corporation[corporation].delete(share)
+          #   to_entity.shares_by_corporation[corporation] << share
+          #   share.owner = to_entity
+          # end
 
           def allow_president_change?(_corporation)
             false

@@ -31,13 +31,19 @@ module Engine
             must_issue_before_ebuy?(corporation)
           end
 
+          def must_buy_train?(entity)
+            return super unless entity == @game.ic
+
+            entity.cash > @game.depot.min_depot_price
+          end
+
           def ebuy_president_can_contribute?(corporation)
             return false unless @game.emergency_issuable_cash(corporation) < @game.depot.min_depot_price
 
             !must_issue_before_ebuy?(corporation)
           end
 
-          def can_buy_train?
+          def can_buy_train?(entity)
             return false if @ic_bought_train
 
             super
@@ -58,7 +64,10 @@ module Engine
               @game.borrowed_trains[current_entity] = nil
             end
             company = @game.train_subsidy
-            company.close! if company.ability_uses.first < 4
+            if company.ability_uses.first < 4
+              company.close!
+              @log << "#{company.name} (#{@round.current_operator.name}) closes"
+            end
             super
           end
 
@@ -68,12 +77,6 @@ module Engine
 
           def scrap_button_text(_train)
             'Scrap'
-          end
-
-          def must_buy_train?(entity)
-            return super unless entity == @game.ic
-
-            entity.cash > @game.depot.min_depot_price
           end
 
           def check_spend(action)
@@ -97,6 +100,10 @@ module Engine
             end
           end
 
+          def train_variant_helper(train, _entity)
+            train.variants.values
+          end
+
           def buyable_trains(entity)
             depot_trains = @depot.depot_trains
             depot_trains = [@depot.min_depot_train] if entity.cash < @depot.min_depot_price
@@ -115,7 +122,7 @@ module Engine
             check_ic_last_train(action.train)
             buy_train_action(action)
             @game.ic_owns_train if action.entity == @game.ic
-            pass! if !can_buy_train?(action.entity) && pass_if_cannot_buy_train?(action.entity)
+            pass! unless can_buy_train?(action.entity)
           end
 
           def buy_train_action(action, entity = nil, borrow_from: nil)
@@ -127,8 +134,9 @@ module Engine
             price = action.price
 
             # Check if the train is actually buyable in the current situation
-            if !@game.depot.available(entity).include?(train) && !buyable_trains(entity).include?(train)
-              raise GameError, "Not a buyable train: #{train.id}"
+            if entity.cash < price && sellable_shares?(entity.owner)
+              raise GameError, "#{entity.name} has #{@game.format_currency(entity.cash)} and "\
+                               "cannot spend #{@game.format_currency(price)}"
             end
             raise GameError, 'Must pay face value' if must_pay_face_value?(train, entity, price)
             raise GameError, 'An entity cannot buy a train from itself' if train.owner == entity
@@ -156,7 +164,6 @@ module Engine
 
             @game.buy_train(entity, train, price)
             @game.phase.buying_train!(entity, train, train.owner)
-            pass! if !can_buy_train?(entity) && pass_if_cannot_buy_train?(entity)
           end
 
           def check_ic_last_train(train)
