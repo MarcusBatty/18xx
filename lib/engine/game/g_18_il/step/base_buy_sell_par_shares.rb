@@ -61,13 +61,18 @@ module Engine
           end
 
           def round_state
-            super.merge({ corp_started: nil })
+            super.merge(
+              { corp_started: nil },
+              # { reserve_shares_bought: []},
+              { reserve_bought: Hash.new { |h, k| h[k] = Hash.new { |h2, k2| h2[k2] = [] } } },
+            )
           end
 
           def setup
             super
             @round.corp_started = nil
             @corporate_action = nil
+            #  @round.reserve_shares_bought = []
           end
 
           def visible_corporations
@@ -134,18 +139,12 @@ module Engine
           def can_sell?(entity, bundle)
             return false if bundle.corporation == @game.ic && @game.ic_in_receivership?
             return false if @game.insolvent_corporations.include?(bundle.corporation)
+            return false unless @round.reserve_bought[entity][bundle.corporation].empty?
 
             super && !@corporate_action
           end
 
           def check_legal_buy(entity, shares, exchange: nil, swap: nil, allow_president_change: true); end
-
-          def can_dump?(entity, share)
-            return true unless share.president
-
-            sh = share.corporation.player_share_holders
-            (sh.reject { |k, _| k == entity }.values.max || 0) >= share.percent
-          end
 
           def can_gain?(entity, bundle, exchange: false)
             corporation = bundle.corporation
@@ -186,13 +185,15 @@ module Engine
             if entity.player?
               @round.players_bought[entity][corporation] += bundle.percent
               @round.bought_from_ipo = true if bundle.owner.corporation? && bundle.owner == corporation
-              if reserve_bundle?(corporation,
-                                 bundle.owner)
+
+              if reserve_bundle?(corporation, bundle.owner)
                 track_action(action, corporation, false)
+                if reserve_bundle?(corporation, action.bundle.owner)
+                  action.bundle.shares.each { |s| @round.reserve_bought[entity][corporation] << s }
+                end
               else
                 track_action(action, corporation)
               end
-              # track_action(action, corporation) unless reserve_bundle?(corporation, bundle.owner)
               buy_shares(action.purchase_for || entity, bundle,
                          swap: action.swap, borrow_from: action.borrow_from,
                          allow_president_change: allow_president_change?(corporation),

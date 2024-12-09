@@ -65,7 +65,7 @@ module Engine
         DISCARDED_TRAINS = :remove
 
         GAME_END_CHECK = { final_phase: :one_more_full_or_set }.freeze
-        SELL_AFTER = :p_any_operate
+        SELL_AFTER = :operate
         SELL_MOVEMENT = :none
 
         SOLD_OUT_INCREASE = true

@@ -20,11 +20,6 @@ module Engine
             actions
           end
 
-          def process_pass(entity)
-            @game.sp_used = nil
-            super
-          end
-
           def setup
             super
             @issued = nil
@@ -36,22 +31,26 @@ module Engine
           end
 
           def log_skip(entity)
-            @log << "#{entity.name} skips #{description.downcase}"
+            if @game.sp_used == @game.share_premium.owner
+              @game.share_premium.close!
+              @log << "#{@game.share_premium.name} (#{entity.name}) closes"
+            else
+              @log << "#{entity.name} skips #{description.downcase}"
+            end
           end
 
           def visible_corporations
-            corps = @game.corporations.select { |c| c.ipoed && !c.ipo_shares.empty? && c.share_price.price <= current_entity.cash }
+            corps = @game.corporations.select do |c|
+              c.ipoed && !c.ipo_shares.empty? && c.share_price.price <= current_entity.cash
+            end
+            corps = [current_entity] if @bought
+            corps = corps.reject { |c| c == current_entity } if @game.sp_used == @game.share_premium.owner
 
-            corps = corps.reject { |c| c == current_entity } if current_entity == @game.sp_used
             corps
           end
 
-          # def available_cash(entity)
-          #   entity.cash
-          # end
-
           def help
-            if current_entity.num_ipo_shares.zero? || @issued
+            if current_entity.num_ipo_shares.zero? || @issued || @game.sp_used == @game.share_premium.owner
               return [
                 'Buy a share of another corporation:',
               ]
@@ -72,7 +71,20 @@ module Engine
           end
 
           def pass_description
-            'Pass'
+            if current_entity.num_ipo_shares.zero? || @issued || @game.sp_used == @game.share_premium.owner
+              return [
+                'Pass (Buy)',
+              ]
+            end
+            if @bought
+              return [
+                'Pass (Issue)',
+                 ]
+            end
+
+            [
+            'Pass (Issue/Buy)',
+             ]
           end
 
           def issuable_shares(entity)
@@ -100,10 +112,21 @@ module Engine
             available_cash(entity) >= bundle.price
           end
 
+          def process_pass(action)
+            if @game.sp_used == @game.share_premium.owner
+              @game.share_premium.close!
+              @log << "#{@game.share_premium.name} (#{action.entity.name}) closes"
+            end
+            super
+          end
+
           def process_buy_shares(action)
             buy_shares(action.entity, action.bundle)
             @bought = true
-            @game.sp_used = nil
+            return unless @game.sp_used == @game.share_premium.owner
+
+            @game.share_premium.close!
+            @log << "#{@game.share_premium.name} (#{action.entity.name}) closes"
           end
 
           def auto_actions(_entity); end
@@ -137,7 +160,7 @@ module Engine
             available_cash(entity) >= bundle.price
           end
 
-          #TODO this is included to bypass check_cash, which was throwing false messages during testing. Remove if not needed
+          # TODO: this is included to bypass check_cash, which was throwing false messages during testing. Remove if not needed
           # def buy_shares(entity, shares)
           #   @log << "#{entity.name} buys a #{shares.corporation.share_percent}% share of "\
           #           "#{shares.owner.name} from the Treasury for #{@game.format_currency(shares.price)}"

@@ -19,8 +19,10 @@ module Engine
 
           def process_place_token(action)
             hex = action.city.hex
-            raise GameError, "Cannot place token on #{hex.name} as the hex is not available" unless available_hex(action.entity,
-                                                                                                                  hex)
+            unless available_hex(action.entity, hex)
+              raise GameError, "Cannot place token on #{hex.name} as '\
+              'the hex is not available"
+            end
 
             if @game.eligible_tokens?(action.entity)
               replace_token(action)

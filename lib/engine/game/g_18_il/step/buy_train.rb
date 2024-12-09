@@ -107,6 +107,7 @@ module Engine
           def buyable_trains(entity)
             depot_trains = @depot.depot_trains
             depot_trains = [@depot.min_depot_train] if entity.cash < @depot.min_depot_price
+            depot_trains = [] if @game.other_train_pass
             other_trains = other_trains(entity)
             other_trains = [] if entity.cash.zero? || @emr || entity == @game.ic
             depot_trains + other_trains

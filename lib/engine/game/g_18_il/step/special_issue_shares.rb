@@ -36,14 +36,14 @@ module Engine
           end
 
           def pass_description
-            'Skip (Special Issue)'
+            'Pass (Special Issue)'
           end
 
           def help
             return [] unless active?
 
             [
-              'Issue in this step to use Share Premium to issue share at double the current share price',
+              'Issue in this step to use Share Premium to issue share at double the current share price:',
             ]
           end
 
@@ -57,12 +57,11 @@ module Engine
           end
 
           def process_sell_shares(action)
-            @game.sp_used = current_entity
+            @game.sp_used = action.entity
             old = action.bundle.corporation.share_price.price
             @game.sell_shares_and_change_price(action.bundle)
             new = action.bundle.corporation.share_price.price
             @log << "#{action.bundle.corporation.name}'s share price moves left horizontally from $#{old} to $#{new}"
-            @game.share_premium.close!
             pass!
           end
 

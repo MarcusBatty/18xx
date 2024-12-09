@@ -383,8 +383,8 @@ module Engine
               name: 'Engineering Mastery',
               value: 0,
               revenue: 0,
-              desc: 'During the tile-laying step of the corporation’s operating turn, upgrade two tiles from '\
-                    'yellow to green (instead of two lays or one lay and one upgrade), paying a $30 fee (instead of $20) '\
+              desc: 'During the tile-laying step of the corporation’s operating turn, upgrade two tiles '\
+                    '(instead of two lays or one lay and one upgrade), paying a $30 fee (instead of $20) '\
                     'and any terrain costs. This may not be used to upgrade two incomplete IC Line hexes in one turn.',
               sym: 'EM',
               meta: { type: :private, class: :B },

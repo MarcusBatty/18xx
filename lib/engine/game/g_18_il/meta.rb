@@ -15,7 +15,7 @@ module Engine
         GAME_DESIGNER = 'Scott Ninmer'
         GAME_PUBLISHER = :self_published
         GAME_LOCATION = 'Illinois, USA'
-        GAME_RULES_URL = 'https://www.dropbox.com/scl/fi/5ixxffqyu1phm2r57sz53/18IL_Rulebook_v0.7.5.pdf?rlkey=hpco6xb3fet4a1y58o17u1lao&dl=0'
+        GAME_RULES_URL = 'https://www.dropbox.com/scl/fi/yokl67tz84id9ps03quqk/18IL_Rulebook_v0.7.6.pdf?rlkey=qoeqx0optqkghry03r0o42blx&dl=0'
         GAME_INFO_URL = ''
         # GAME_INFO_URL = 'https://github.com/tobymao/18xx/wiki/18IL'
         # TODO: make wiki entry once in alpha
