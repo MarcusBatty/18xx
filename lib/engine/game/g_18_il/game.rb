@@ -211,7 +211,7 @@ module Engine
             G18IL::Step::DiverseCargoChoice,
             G18IL::Step::MineCompanyChoice,
             Engine::Step::Exchange,
-            G18IL::Step::SpecialTrack,
+            Engine::Step::SpecialTrack,
             Engine::Step::SpecialToken,
             Engine::Step::HomeToken,
             G18IL::Step::ExchangeChoiceCorp,
@@ -668,16 +668,8 @@ module Engine
           corp = action.entity.corporation
 
           return if @ic_line_completed_hexes.include?(hex)
-
           connection_count = ic_line_connections(hex)
-
           return unless connection_count.positive?
-
-          if tile.color == 'yellow'
-            @log << "#{corp.name} receives a #{format_currency(20)} subsidy for IC Line improvement"
-            @bank.spend(20, corp)
-          end
-
           return unless connection_count == 2
 
           @ic_line_completed_hexes << hex

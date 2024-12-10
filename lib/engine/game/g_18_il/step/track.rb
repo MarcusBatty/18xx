@@ -8,6 +8,7 @@ module Engine
       module Step
         class Track < Engine::Step::Track
           ACTIONS = %w[lay_tile pass].freeze
+          IC_LINE_HEXES = %w[H7 G8 G10 G12 G14 F15 F17 F19 E20 E22].freeze
 
           def actions(entity)
             return [] if @game.last_set_triggered
@@ -20,21 +21,21 @@ module Engine
 
           def process_lay_tile(action)
             lay_tile_action(action)
-            return if action.entity.company?
-
+            
             hex = action.hex
             tile = action.hex.tile
             city = tile.cities.first
-
             if @game.ic_line_hex?(hex)
               old_count = @game.ic_line_completed_hexes.size
               @game.ic_line_improvement(action)
               new_count = @game.ic_line_completed_hexes.size
               case tile.color
-              when 'yellow'
+              when :yellow
                 # checks for one IC Line connection when laying yellow
                 raise GameError, 'Tile must overlay at least one dashed path' if @game.ic_line_connections(hex) < 1
-              when 'green'
+                  @log << "#{action.entity.name} receives a #{@game.format_currency(20)} subsidy for IC Line improvement"
+                  action.entity.cash += 20
+              when :green
                 # checks for both IC Line connections when laying green
                 raise GameError, 'Tile must complete IC Line' if @game.ic_line_connections(hex) < 2
                 # disallows Engineering Master corp from upgrading two incomplete IC Line hexes
@@ -48,6 +49,7 @@ module Engine
               end
             end
 
+            #closes GTL if Chicago is upgraded to brown
             if tile.name == 'CHI3' && !@game.goodrich_transit_line.closed?
               company = @game.goodrich_transit_line
               @log << "#{company.name} (#{company.owner.name}) closes"
@@ -55,6 +57,13 @@ module Engine
             end
 
             pass! unless can_lay_tile?(action.entity)
+          end
+
+          def lay_tile(action, extra_cost: 0, entity: nil, spender: nil)
+            super
+            # @log << "color: #{action.hex.tile.color == "yellow"}"
+            # @log << "#{IC_LINE_HEXES.include?(action.hex) && action.hex.tile.color == "yellow"}"
+            # action.entity.cash += 20 if IC_LINE_HEXES.include?(action.hex.name) && action.hex.tile.color == "yellow"
           end
 
           def can_lay_tile?(entity)
