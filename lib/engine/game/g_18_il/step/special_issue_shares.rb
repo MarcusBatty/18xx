@@ -43,12 +43,8 @@ module Engine
             return [] unless active?
 
             [
-              'Issue in this step to use Share Premium to issue share at double the current share price:',
+              'Use Share Premium to issue a share at double the current share price:',
             ]
-          end
-
-          def sell_shares_description
-            'test'
           end
 
           def issuable_shares(entity)
@@ -56,12 +52,18 @@ module Engine
             @game.issuable_shares(entity)
           end
 
+          def process_pass(action)
+            log_pass(action.entity)
+            pass!
+          end
+
           def process_sell_shares(action)
             @game.sp_used = action.entity
-            old = action.bundle.corporation.share_price.price
-            @game.sell_shares_and_change_price(action.bundle)
-            new = action.bundle.corporation.share_price.price
-            @log << "#{action.bundle.corporation.name}'s share price moves left horizontally from $#{old} to $#{new}"
+            old_price = action.bundle.corporation.share_price.price
+            @game.sell_shares_and_change_price(action.bundle, allow_president_change: false, swap: nil, movement: :left_share)
+            new_price = action.bundle.corporation.share_price.price
+            @log << "#{action.bundle.corporation.name}'s share price moves left horizontally "\
+            "from #{@game.format_currency(old_price)} to #{@game.format_currency(new_price)}"
             pass!
           end
 

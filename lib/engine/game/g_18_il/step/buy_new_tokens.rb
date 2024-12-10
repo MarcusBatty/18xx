@@ -15,7 +15,6 @@ module Engine
 
           def active?
             pending_entity
-            pending_entity
           end
 
           def active_entities
@@ -75,9 +74,9 @@ module Engine
           end
 
           def choice_name
-            return "Number of Additional Tokens to Buy for #{pending_corp.name}" unless pending_type == :start
+            return "Number of additional tokens to buy for #{pending_corp.name}" unless pending_type == :start
 
-            "Number of Tokens to Buy for #{pending_corp.name}"
+            "Number of tokens to buy for #{pending_corp.name}"
           end
 
           def price(num)

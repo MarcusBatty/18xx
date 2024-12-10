@@ -7,7 +7,7 @@ module Engine
   module Game
     module G18IL
       module Companies
-        MINE_HEXES = %w[D9 D13 D17 E6 E14 F5 F13 F21 G22 H11].freeze
+        MINE_HEXES = %w[D9 D13 D17 E6 E14 E16 F5 F13 F21 G22 H11].freeze
 
         def game_companies
           [

@@ -26,7 +26,7 @@ module Engine
 
         attr_accessor :stl_nodes, :blocking_token, :exchange_choice_player, :exchange_choice_corp,
                       :exchange_choice_corps, :sp_used, :borrowed_trains, :train_borrowed, :closed_corporations,
-                      :other_train_pass, :lincoln_triggered
+                      :other_train_pass, :lincoln_triggered, :corporate_buy
 
         attr_reader :merged_corporation, :last_set_triggered, :ic_line_completed_hexes, :insolvent_corporations
 
@@ -75,7 +75,7 @@ module Engine
         CLOSED_CORP_RESERVATIONS_REMOVED = false
 
         PORT_HEXES = %w[B1 D23 H1 I2].freeze
-        MINE_HEXES = %w[C2 D9 D13 D17 E6 E14 F5 F13 F21 G22 H11].freeze
+        MINE_HEXES = %w[C2 D9 D13 D17 E6 E14 E16 F5 F13 F21 G22 H11].freeze
         DETROIT = ['I6'].freeze
         ST_PAUL = ['B1'].freeze
         PORT_OF_MEMPHIS = ['D23'].freeze
@@ -208,11 +208,10 @@ module Engine
 
         def operating_round(round_num)
           Engine::Round::Operating.new(self, [
-            #   Engine::Step::Bankrupt,
             G18IL::Step::DiverseCargoChoice,
             G18IL::Step::MineCompanyChoice,
             Engine::Step::Exchange,
-            Engine::Step::SpecialTrack,
+            G18IL::Step::SpecialTrack,
             Engine::Step::SpecialToken,
             Engine::Step::HomeToken,
             G18IL::Step::ExchangeChoiceCorp,
@@ -326,6 +325,7 @@ module Engine
         end
 
         def company_status_str(company)
+          return if company.owner
           return if @optional_rules&.include?(:intro_game)
 
           case company.meta[:type]
@@ -813,11 +813,22 @@ module Engine
             percent += share.percent
             bundles << Engine::ShareBundle.new(bundle, percent)
           end
-          if corporation == share_premium.owner && @round.steps.find do |step|
-                                                     step.is_a?(G18IL::Step::SpecialIssueShares)
-                                                   end&.active?
+          if corporation == share_premium.owner && 
+            @round.steps.find do |step| 
+              step.instance_of?(G18IL::Step::SpecialIssueShares)
+              end&.active?
             all_bundles.each do |b|
               b.share_price = corporation.share_price.price * 2.0
+            end
+          #halves the value of corporate-held shares if EMRing
+          elsif @round.steps.find do |step| 
+            step.instance_of?(G18IL::Step::CorporateSellShares)
+            end&.active? &&
+            !@round.steps.find do |step| 
+              step.instance_of?(G18IL::Step::CorporateIssueBuyShares)
+              end&.active?
+          all_bundles.each do |b|
+            b.share_price = corporation.share_price.price / 2.0
             end
           end
           all_bundles.concat(partial_bundles_for_presidents_share(corporation, bundle, percent)) if shares.last.president
@@ -827,7 +838,7 @@ module Engine
 
         def sell_shares_and_change_price(bundle, allow_president_change: true, swap: nil, movement: nil)
           corporation = bundle.corporation
-          movement = :down_share if emr_active?
+          movement = :down_share if emr_active? && bundle.owner == bundle.corporation
           movement = :left_share if @sp_used
           @share_pool.sell_shares(bundle, allow_president_change: allow_president_change, swap: swap)
           case movement || sell_movement(corporation)

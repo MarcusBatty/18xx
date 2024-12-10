@@ -43,9 +43,9 @@ module Engine
             "Use #{@active_company&.name} ability"
           end
 
-          def active?
-            !active_entities.empty?
-          end
+          # def active?
+          #   !active_entities.empty?
+          # end
 
           def choice_available?(entity)
             entity == @active_company&.owner

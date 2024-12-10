@@ -22,6 +22,7 @@ module Engine
             return [] if entity.cash > @game.depot.min_depot_price
             return [] unless entity.shares != entity.ipo_shares
             return [] unless entity.trains.empty?
+            return [] unless can_sell_any?(entity)
 
             actions = []
             actions << 'corporate_sell_shares' if entity.cash < @game.depot.min_depot_price && entity.trains.empty?
@@ -45,6 +46,10 @@ module Engine
           ]
           end
 
+          # def active?
+          #   !active_entities.empty?
+          # end
+
           def process_pass(entity)
             @game.other_train_pass = true
             super
@@ -59,6 +64,7 @@ module Engine
           end
 
           def can_sell?(entity, bundle)
+            bundle.shares.each { |s| return false if @game.corporate_buy&.shares.include?(s) }
             return unless bundle
             return false if entity != bundle.owner
 
@@ -67,7 +73,6 @@ module Engine
 
           def sell_shares(entity, bundle)
             raise GameError, "Cannot sell shares of #{bundle.corporation.name}" unless can_sell?(entity, bundle)
-
             @game.sell_shares_and_change_price(bundle)
           end
 

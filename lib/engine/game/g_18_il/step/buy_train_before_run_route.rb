@@ -43,8 +43,8 @@ module Engine
 
             buy_train_action(action)
 
-            # @round.bought_trains << action.entity if from_depot && @round.respond_to?(:bought_trains)
-            #  @round.premature_trains_bought << action.entity
+            @round.bought_trains << action.entity if from_depot && @round.respond_to?(:bought_trains)
+            @round.premature_trains_bought << action.entity
 
             @log << "#{@game.rush_delivery.name} (#{action.entity.name}) closes"
             @game.rush_delivery.close!
@@ -81,6 +81,7 @@ module Engine
           def do_after_buy_train_action(action, _entity)
             action.train.operated = false
           end
+
         end
       end
     end

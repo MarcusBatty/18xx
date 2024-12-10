@@ -26,9 +26,9 @@ module Engine
             "Use #{@game.extra_station&.name} ability"
           end
 
-          def active?
-            !active_entities.empty?
-          end
+          # def active?
+          #   !active_entities.empty?
+          # end
 
           def choice_available?(entity)
             entity == @game.extra_station&.owner

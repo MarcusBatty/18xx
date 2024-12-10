@@ -177,6 +177,10 @@ module Engine
             bundle_owner != bundle_corporation && bundle_owner.is_a?(Corporation)
           end
 
+          def log_pass(entity)
+            return @log << "#{entity.name} passes" if @round.current_actions.empty?
+          end
+
           def process_buy_shares(action)
             entity = action.entity
             bundle = action.bundle
@@ -246,7 +250,7 @@ module Engine
                 return
               end
               price = 40
-              @log << 'Each token costs $40'
+
               @round.buy_tokens << {
                 entity: corp,
                 type: :start,

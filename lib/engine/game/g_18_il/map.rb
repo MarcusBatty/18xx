@@ -142,7 +142,7 @@ module Engine
             # ['H21'] => 'city=revenue:20;path=a:2,b:_0;path=a:3,b:_0;border=edge:0,type:water;border=edge:1,type:water;'\
             # ['H21'] => 'city=revenue:20;path=a:2,b:_0;path=a:3,b:_0;border=edge:0,type:water;'\
             #            'border=edge:2,type:water,cost:20;border=edge:4,type:water;border=edge:5,type:water',
-            ['H21'] => 'city=revenue:20;path=a:2,b:_0;path=a:3,b:_0;border=edge:2,type:water,cost:20',
+            ['H21'] => 'city=revenue:30;path=a:2,b:_0;path=a:3,b:_0;border=edge:2,type:water,cost:20',
 
           },
 

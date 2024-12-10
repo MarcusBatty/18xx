@@ -40,6 +40,10 @@ module Engine
             end
           end
 
+          def entities
+            @round.entities.reject {|e| @passed_players.include?(e)}
+          end
+
           def actions(entity)
             return [] if finished?
 
@@ -62,8 +66,7 @@ module Engine
             player = bid.entity
             @bids.delete(company)
             buy_company(player, company, price)
-            if @companies.empty? && @game.players.one?
-              @game.players.delete(player)
+            if @companies.empty? && entities.one?
               @passed_players << player
               @passed_players.each { |p| @game.players << p }
             else
@@ -77,18 +80,16 @@ module Engine
             if auctioning
               pass_auction(action.entity)
             else
-              @log << "#{entity.name} passes bidding"
+              @log << "#{entity.name} declines to start auction"
               entity.pass!
               @passed_players << entity
-              @game.players.delete(entity)
-              @passed_players.each { |p| @game.players << p } if @game.players.empty?
             end
           end
 
           def start_auction(bid)
             super
-            resolve_bids if @game.players.one?
-            post_auction if @companies.empty? && @game.players.one?
+            resolve_bids if entities.one?
+            post_auction if @companies.empty? && entities.one?
           end
 
           def buy_company(player, company, price)

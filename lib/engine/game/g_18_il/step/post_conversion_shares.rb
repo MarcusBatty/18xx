@@ -123,7 +123,6 @@ module Engine
             end
 
             price = 40
-            @log << 'Each token costs $40'
             @round.buy_tokens << {
               entity: corp,
               type: :convert,

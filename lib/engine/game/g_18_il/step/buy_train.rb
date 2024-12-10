@@ -32,9 +32,8 @@ module Engine
           end
 
           def must_buy_train?(entity)
-            return super unless entity == @game.ic
-
-            entity.cash > @game.depot.min_depot_price
+            return (entity.cash > @game.depot.min_depot_price) if entity == @game.ic
+            entity.trains.empty?
           end
 
           def ebuy_president_can_contribute?(corporation)
@@ -122,6 +121,7 @@ module Engine
             check_spend(action)
             check_ic_last_train(action.train)
             buy_train_action(action)
+            @round.bought_trains << action.entity if @round.respond_to?(:bought_trains)
             @game.ic_owns_train if action.entity == @game.ic
             pass! unless can_buy_train?(action.entity)
           end
@@ -133,17 +133,12 @@ module Engine
             train = action.train
             train.variant = action.variant
             price = action.price
-
-            # Check if the train is actually buyable in the current situation
-            if entity.cash < price && sellable_shares?(entity.owner)
-              raise GameError, "#{entity.name} has #{@game.format_currency(entity.cash)} and "\
-                               "cannot spend #{@game.format_currency(price)}"
-            end
-            raise GameError, 'Must pay face value' if must_pay_face_value?(train, entity, price)
-            raise GameError, 'An entity cannot buy a train from itself' if train.owner == entity
+            raise GameError, 'Must issue shares before the president may contribute' if entity.cash < price &&
+             !entity.num_ipo_shares.zero? && must_buy_train?(entity)
 
             remaining = price - buying_power(entity)
-            if remaining.positive? && president_may_contribute?(entity, action.shell)
+            player = entity.owner
+            if remaining.positive? && must_buy_train?(entity)
               check_for_cheapest_train(train)
 
               raise GameError, 'Cannot buy for more than cost' if price > train.price

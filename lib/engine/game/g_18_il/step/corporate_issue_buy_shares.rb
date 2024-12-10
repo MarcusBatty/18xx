@@ -15,7 +15,7 @@ module Engine
 
             actions = []
             actions << 'buy_shares' if can_buy_any?(entity) && !@bought
-            actions << 'sell_shares' if !issuable_shares(entity).empty? && !@issued && !@game.sp_used
+            actions << 'sell_shares' if !issuable_shares(entity).empty? && !@issued && @game.sp_used != @game.share_premium.owner
             actions << 'pass' unless actions.empty?
             actions
           end
@@ -24,6 +24,7 @@ module Engine
             super
             @issued = nil
             @bought = nil
+            @game.corporate_buy = nil
           end
 
           def description
@@ -112,19 +113,25 @@ module Engine
             available_cash(entity) >= bundle.price
           end
 
+          def log_pass(entity)
+            @log << "#{entity.name} passes #{description.downcase}"
+          end
+
           def process_pass(action)
+            log_pass(action.entity)
             if @game.sp_used == @game.share_premium.owner
               @game.share_premium.close!
               @log << "#{@game.share_premium.name} (#{action.entity.name}) closes"
             end
-            super
+            pass!
           end
 
           def process_buy_shares(action)
             buy_shares(action.entity, action.bundle)
+            @game.corporate_buy = action.bundle
             @bought = true
             return unless @game.sp_used == @game.share_premium.owner
-
+            @issued = true
             @game.share_premium.close!
             @log << "#{@game.share_premium.name} (#{action.entity.name}) closes"
           end
@@ -159,23 +166,6 @@ module Engine
 
             available_cash(entity) >= bundle.price
           end
-
-          # TODO: this is included to bypass check_cash, which was throwing false messages during testing. Remove if not needed
-          # def buy_shares(entity, shares)
-          #   @log << "#{entity.name} buys a #{shares.corporation.share_percent}% share of "\
-          #           "#{shares.owner.name} from the Treasury for #{@game.format_currency(shares.price)}"
-          #   shares.owner.share_holders[shares.owner] -= shares.percent
-          #   shares.owner.share_holders[entity] += shares.percent
-          #   entity.spend(shares.price, shares.owner, check_cash: false)
-          #   shares.shares.each { |s| move_share(s, entity) }
-          # end
-
-          # def move_share(share, to_entity)
-          #   corporation = share.corporation
-          #   share.owner.shares_by_corporation[corporation].delete(share)
-          #   to_entity.shares_by_corporation[corporation] << share
-          #   share.owner = to_entity
-          # end
 
           def allow_president_change?(_corporation)
             false
