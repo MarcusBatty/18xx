@@ -28,6 +28,12 @@ module Engine
             desc: 'The private companies are removed from the game. Each corporation randomly receives a port or mine marker. '\
                   'One random port tile is placed on the map; the other is removed from the game.',
           },
+          {
+            sym: :two_player_share_limit,
+            short_name: '(2p only) 70% Corporation Holding Limit',
+            desc: 'When enabled, a player can gain up to 70% of a corporation\'s shares through normal means in a 2p game. '\
+                  'Players can still gain more than 70% through corporation reserve share purchase.',
+          },
         ].freeze
       end
     end

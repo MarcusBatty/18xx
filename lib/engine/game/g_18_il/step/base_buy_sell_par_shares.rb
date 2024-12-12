@@ -32,8 +32,14 @@ module Engine
             actions
           end
 
+          def process_sell_shares(action)
+            super
+            action.bundle.shares.each { |s| s.buyable = true }
+          end
+
           def corporate_actions(entity)
             return [] if @corporate_action && @corporate_action.entity != entity
+            return [] if entity == @game.ic
 
             actions = []
             actions << 'buy_shares' if @round.current_actions.none? && !@game.redeemable_shares(entity).empty?
@@ -43,8 +49,8 @@ module Engine
           def log_pass(entity)
             if @corporate_action
               @log << "#{entity.name} finishes acting for #{@corporate_action.entity.name}"
-            else
-              super
+            elsif @round.current_actions.empty?
+              @log << "#{entity.name} passes"
             end
           end
 
@@ -63,7 +69,6 @@ module Engine
           def round_state
             super.merge(
               { corp_started: nil },
-              # { reserve_shares_bought: []},
               { reserve_bought: Hash.new { |h, k| h[k] = Hash.new { |h2, k2| h2[k2] = [] } } },
             )
           end
@@ -72,7 +77,6 @@ module Engine
             super
             @round.corp_started = nil
             @corporate_action = nil
-            #  @round.reserve_shares_bought = []
           end
 
           def visible_corporations
@@ -144,6 +148,13 @@ module Engine
             super && !@corporate_action
           end
 
+          def can_dump?(entity, bundle)
+            return true unless bundle.presidents_share
+
+            sh = bundle.corporation.player_share_holders(corporate: false)
+            (sh.reject { |k, _| k == entity }.values.max || 0) >= bundle.presidents_share.percent
+          end
+
           def check_legal_buy(entity, shares, exchange: nil, swap: nil, allow_president_change: true); end
 
           def can_gain?(entity, bundle, exchange: false)
@@ -153,9 +164,10 @@ module Engine
             return false if bundle.owner.player?
             return false if reserve_bundle?(corporation, bundle.owner) && bundle.owner.owner != entity
             return false if bundle.owner == @game.ic
-            return false if @game.insolvent_corporations.include?(bundle.corporation)
+            return false if @game.insolvent_corporations.include?(corporation)
             return true if reserve_bundle?(corporation,
-                                           bundle.owner) && @game.num_certs(entity) < @game.cert_limit(entity) && !sold?
+                                           bundle.owner) && @game.num_certs(entity) < @game.cert_limit(entity) &&
+                                           !@round.players_sold[entity][corporation]
 
             if entity.corporation?
               entity.cash >= bundle.price && redeemable_shares(entity).include?(bundle)
@@ -177,10 +189,6 @@ module Engine
             bundle_owner != bundle_corporation && bundle_owner.is_a?(Corporation)
           end
 
-          def log_pass(entity)
-            return @log << "#{entity.name} passes" if @round.current_actions.empty?
-          end
-
           def process_buy_shares(action)
             entity = action.entity
             bundle = action.bundle
@@ -189,12 +197,11 @@ module Engine
             if entity.player?
               @round.players_bought[entity][corporation] += bundle.percent
               @round.bought_from_ipo = true if bundle.owner.corporation? && bundle.owner == corporation
+              @game.add_ic_operating_ability if corporation == @game.ic && !@game.ic_in_receivership?
 
               if reserve_bundle?(corporation, bundle.owner)
                 track_action(action, corporation, false)
-                if reserve_bundle?(corporation, action.bundle.owner)
-                  action.bundle.shares.each { |s| @round.reserve_bought[entity][corporation] << s }
-                end
+                bundle.shares.each { |s| @round.reserve_bought[entity][corporation] << s }
               else
                 track_action(action, corporation)
               end
@@ -207,7 +214,6 @@ module Engine
               track_action(action, corporation, false)
               @corporate_action = action
             end
-            @game.add_ic_operating_ability if corporation == @game.ic && !@game.ic_in_receivership?
           end
 
           def track_action(action, corporation, player_action = true)

@@ -45,8 +45,8 @@ module Engine
 
             if payout[:corporation].positive?
               @log << if @game.train_borrowed
-                        "#{entity.name} withholds #{@game.format_currency(payout[:corporation])} '\
-                '(#{@game.format_currency(payout[:corporation])} paid to bank as lease payment)"
+                        "#{entity.name} withholds #{@game.format_currency(payout[:corporation])} "\
+                          "(#{@game.format_currency(payout[:corporation])} paid to bank as lease payment)"
                       else
                         "#{entity.name} withholds #{@game.format_currency(payout[:corporation])}"
                       end
@@ -65,6 +65,8 @@ module Engine
             dividend_types.to_h do |type|
               payout = send(type, entity, revenue)
               payout[:divs_to_corporation] = corporation_dividends(entity, payout[:per_share])
+              # shares remaining in concession auction do not pay to IC
+              payout[:divs_to_corporation] = 0 if entity == @game.ic
               [type, payout.merge(share_price_change(entity, revenue - payout[:corporation]))]
             end
           end
@@ -72,6 +74,24 @@ module Engine
           def process_dividend(action)
             super
             @game.payoff_loan(action.entity) unless action.entity.loans.empty?
+          end
+
+          def payout_shares(entity, revenue)
+            per_share = payout_per_share(entity, revenue)
+
+            payouts = {}
+            (@game.players + @game.corporations).each do |payee|
+              # shares remaining in concession auction do not pay to IC
+              next if payee == @game.ic
+
+              payout_entity(entity, payee, per_share, payouts)
+            end
+
+            receivers = payouts
+                          .sort_by { |_r, c| -c }
+                          .map { |receiver, cash| "#{@game.format_currency(cash)} to #{receiver.name}" }.join(', ')
+
+            log_payout_shares(entity, revenue, per_share, receivers)
           end
 
           def skip!

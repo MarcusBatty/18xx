@@ -153,7 +153,7 @@ module Engine
           description: 'Modified train buy',
           desc_detail: 'IC can only buy trains from the bank and can only buy one train per round. '\
                        'IC is not required to own a train, but must buy a train if possible. '\
-                       "IC's last train may not be bought by another corporation."
+                       'Corporations may not purchase permanent trains from IC.'
         )
         STOCK_PURCHASE_ABILITY = Ability::Description.new(
           type: 'description',
@@ -174,7 +174,7 @@ module Engine
               clear_programmed_actions
               new_stock_round
             when Engine::Round::Stock
-              @operating_rounds = 2
+              @operating_rounds = @final_operating_rounds || @phase.operating_rounds
               reorder_players
               new_operating_round
             when Engine::Round::Operating
@@ -301,7 +301,8 @@ module Engine
         end
 
         def return_concessions!
-          companies.each do |c|
+          companies.select { |company| company.meta[:type] == :concession }
+            .each do |c|
             next unless c&.owner&.player?
 
             player = c.owner
@@ -313,11 +314,12 @@ module Engine
 
         def finish_stock_round
           return_concessions!
+
           return if !ic_in_receivership? || !ic_formation_triggered?
 
           ic.owner = priority_deal_player
-          @log << "#{ic.name} is in receivership and will be operated '\
-          'by the player with priority deal (#{priority_deal_player.name})"
+          @log << "#{ic.name} is in receivership and will be operated "\
+                  "by the player with priority deal (#{priority_deal_player.name})"
         end
 
         def initial_auction_companies
@@ -439,7 +441,8 @@ module Engine
           train = @depot.upcoming[0]
           train.buyable = false
           buy_train(nc, train, :free)
-
+          nc.max_ownership_percent = 100
+          corporation_by_id('P&BV').max_ownership_percent = 100
           @stl_nodes = STL_HEXES.map do |h|
             hex_by_id(h).tile.nodes.find { |n| n.offboard? && n.groups.include?('STL') }
           end
@@ -533,10 +536,19 @@ module Engine
         def upgrades_to?(from, to, special = false, selected_company: nil)
           return true if PORT_TILE_HEXES.include?(from.hex.id) && (from.color == :blue && to.color == :blue)
 
-          if BOOM_HEXES.include?(from.hex.id) && @round.current_operator == central_illinois_boom.owner && phase.name == 'D'
-            return true if from.hex.id == 'E8' && to.name == 'P4'
-            return true if from.hex.id == 'E12' && to.name == 'S4'
+          if BOOM_HEXES.include?(from.hex.id)
+            if selected_company != central_illinois_boom || phase.name != 'D'
+              return false if to.name == 'P4' || to.name == 'S4'
+            else
+              case from.hex.id
+              when 'E8'
+                return to.name == 'P4'
+              when 'E12'
+                return to.name == 'S4'
+              end
+            end
           end
+
           super
         end
 
@@ -663,11 +675,11 @@ module Engine
 
         def ic_line_improvement(action)
           hex = action.hex
-          tile = action.hex.tile
           icons = action.hex.tile.icons
           corp = action.entity.corporation
 
           return if @ic_line_completed_hexes.include?(hex)
+
           connection_count = ic_line_connections(hex)
           return unless connection_count.positive?
           return unless connection_count == 2
@@ -686,7 +698,7 @@ module Engine
           return unless ic_line_completed?
 
           @log << 'IC Line is complete'
-          @log << "The Illinois Central Railroad will form at the end of #{action.entity.name}'s turn"
+          @log << "-- The Illinois Central Railroad will form at the end of #{action.entity.name}'s turn --"
           @ic_formation_triggered = true
           @ic_formation_pending = true
           @ic_trigger_entity = action.entity
@@ -725,21 +737,29 @@ module Engine
           end
         end
 
+        def corporation_opts
+          two_player? && @optional_rules&.include?(:two_player_share_limit) ? { max_ownership_percent: 70 } : {}
+        end
+
         def convert(corporation)
           shares = @_shares.values.select { |share| share.corporation == corporation }
           corporation.share_holders.clear
-          case corporation.total_shares
+          size = corporation.total_shares
+          case size
           when 2
             shares[0].percent = 40
+            corporation.float_percent = 40
             new_shares = Array.new(3) { |i| Share.new(corporation, percent: 20, index: i + 1) }
           when 5
             shares.each { |share| share.percent = 10 }
             shares[0].percent = 20
+            corporation.float_percent = 20
             new_shares = Array.new(5) { |i| Share.new(corporation, percent: 10, index: i + 4) }
           else
             raise GameError, 'Cannot convert 10-share corporation'
           end
           corporation.max_ownership_percent = 60
+          corporation.max_ownership_percent = (two_player? && @optional_rules&.include?(:two_player_share_limit) ? 70 : 60)
           shares.each { |share| corporation.share_holders[share.owner] += share.percent }
           new_shares.each { |share| add_new_share(share) }
           new_shares
@@ -776,10 +796,6 @@ module Engine
           return unless diff.positive?
 
           num_shares = ((2.0 * diff) / corp.share_price.price).ceil
-          if num_shares > corp.shares_of(corp).size
-            raise GameError, 'Corporation cannot raise enough money to convert - please undo'
-          end
-
           bundle = ShareBundle.new(corp.shares_of(corp).take(num_shares))
           bundle.share_price = corp.share_price.price / 2.0
           @emr_active = true
@@ -805,22 +821,22 @@ module Engine
             percent += share.percent
             bundles << Engine::ShareBundle.new(bundle, percent)
           end
-          if corporation == share_premium.owner && 
-            @round.steps.find do |step| 
+          if corporation == share_premium.owner &&
+            @round.steps.find do |step|
               step.instance_of?(G18IL::Step::SpecialIssueShares)
-              end&.active?
+            end&.active?
             all_bundles.each do |b|
               b.share_price = corporation.share_price.price * 2.0
             end
-          #halves the value of corporate-held shares if EMRing
-          elsif @round.steps.find do |step| 
-            step.instance_of?(G18IL::Step::CorporateSellShares)
-            end&.active? &&
-            !@round.steps.find do |step| 
-              step.instance_of?(G18IL::Step::CorporateIssueBuyShares)
-              end&.active?
-          all_bundles.each do |b|
-            b.share_price = corporation.share_price.price / 2.0
+          # halves the value of corporate-held shares if EMRing
+          elsif @round.steps.find do |step|
+                  step.instance_of?(G18IL::Step::CorporateSellShares)
+                end&.active? &&
+            !@round.steps.find do |step|
+               step.instance_of?(G18IL::Step::CorporateIssueBuyShares)
+             end&.active?
+            all_bundles.each do |b|
+              b.share_price = corporation.share_price.price / 2.0
             end
           end
           all_bundles.concat(partial_bundles_for_presidents_share(corporation, bundle, percent)) if shares.last.president
@@ -830,8 +846,7 @@ module Engine
 
         def sell_shares_and_change_price(bundle, allow_president_change: true, swap: nil, movement: nil)
           corporation = bundle.corporation
-          movement = :down_share if emr_active? && bundle.owner == bundle.corporation
-          movement = :left_share if @sp_used
+          movement = :down_share if emr_active? && bundle.owner == corporation
           @share_pool.sell_shares(bundle, allow_president_change: allow_president_change, swap: swap)
           case movement || sell_movement(corporation)
           when :down_share
@@ -998,22 +1013,14 @@ module Engine
               next
             end
             train_num = train.name[0].to_i
-            if mine_corporation?(corporation) && port_corporation?(corporation)
-              train.distance = [{ 'nodes' => %w[town halt], 'pay' => 99, 'visit' => 99 },
-                                { 'nodes' => %w[city offboard], 'pay' => train_num, 'visit' => train_num }]
-              next
-            end
+            train_num = 6 if train.name == '5+1P' || train.name == '4+2P'
+
             train.distance = if mine_corporation?(corporation)
                                [{ 'nodes' => %w[town], 'pay' => 99, 'visit' => 99 },
-                                { 'nodes' => %w[halt], 'pay' => 0, 'visit' => 99 },
-                                { 'nodes' => %w[city offboard], 'pay' => train_num, 'visit' => train_num }]
-                             elsif port_corporation?(corporation)
-                               [{ 'nodes' => %w[halt], 'pay' => 99, 'visit' => 99 },
-                                { 'nodes' => %w[town], 'pay' => 0, 'visit' => 99 },
-                                { 'nodes' => %w[city offboard], 'pay' => train_num, 'visit' => train_num }]
+                                { 'nodes' => %w[city offboard halt], 'pay' => train_num, 'visit' => train_num }]
                              else
-                               [{ 'nodes' => %w[town halt], 'pay' => 0, 'visit' => 99 },
-                                { 'nodes' => %w[city offboard], 'pay' => train_num, 'visit' => train_num }]
+                               [{ 'nodes' => %w[town], 'pay' => 0, 'visit' => 99 },
+                                { 'nodes' => %w[city offboard halt], 'pay' => train_num, 'visit' => train_num }]
                              end
           end
         end
@@ -1126,6 +1133,12 @@ module Engine
           raise GameError, "'Rogers' train can only run between Springfield and Jacksonville"
         end
 
+        def check_port(route, visits)
+          return if visits.none? { |v| PORT_HEXES.find { |h| v.hex == hex_by_id(h) } } || port_corporation?(route.corporation)
+
+          raise GameError, 'Corporation must own a port marker to visit a port'
+        end
+
         def check_distance(route, visits)
           # checks STL for permit token
           check_stl(visits)
@@ -1136,14 +1149,11 @@ module Engine
           # disallows Rogers train from running outside of Springfield/Jacksonville
           check_rogers(route, visits)
 
+          # disallows corporations without a port token from running to a port
+          check_port(route, visits)
+
           super
         end
-
-        # def try_take_loan(entity, price)
-        #   return if !price.positive? || price <= entity.cash
-
-        #   @game.take_loan(entity) while entity.cash < price
-        # end
 
         def init_loans
           # this is only used for view purposes
@@ -1211,14 +1221,14 @@ module Engine
           @final_operating_rounds = 3
           game_end_check
           @operating_rounds = 3 if phase.name == 'D' && round.round_num == 2
-          @log << "First D train bought/exported, game ends at the end of #{@turn + 1}.#{@final_operating_rounds}"
+          @log << "-- First D train bought/exported, game ends at the end of OR #{@turn + 1}.#{@final_operating_rounds} --"
         end
 
         def remove_unparred_corporations!
           @blocking_log = []
           @removed_corp_log = []
           @corporations.reject(&:ipoed).reject(&:closed?).each do |corporation|
-            place_home_blocking_token(corporation)
+            place_home_blocking_token(corporation) if corporation.coordinates
             @removed_corp_log << corporation.name
             @corporations.delete(corporation)
             company = company_by_id(corporation.name)
@@ -1226,7 +1236,9 @@ module Engine
             @cert_limit -= 1
           end
           @log << "#{@removed_corp_log.join(', ')} removed from the game"
-          @log << "Blocking #{@blocking_log.count == 1 ? 'token' : 'tokens'} placed on #{@blocking_log.join(', ')}"
+          unless @blocking_log.empty?
+            @log << "Blocking #{@blocking_log.count == 1 ? 'token' : 'tokens'} placed on #{@blocking_log.join(', ')}"
+          end
           @log << 'Concessions removed from the game'
         end
 
@@ -1278,8 +1290,10 @@ module Engine
             tile = action.hex.tile
             case tile.name
             when 'P4'
+              @log << 'Tile #S4 is removed from the game'
               tiles.delete_if { |t| t.name == 'S4' }
             when 'S4'
+              @log << 'Tile #P4 is removed from the game'
               tiles.delete_if { |t| t.name == 'P4' }
             end
           end
@@ -1301,8 +1315,6 @@ module Engine
           bundles_for_corporation(share_pool, entity)
             .reject { |bundle| entity.cash < bundle.price }
         end
-
-        #--------------------------------IC Formation-------------------------------------------------------#
 
         def ic
           @ic_corporation ||= corporation_by_id('IC')
@@ -1332,14 +1344,17 @@ module Engine
 
           bundle = ShareBundle.new(ic.shares.last(5))
           @share_pool.transfer_shares(bundle, @share_pool)
+          ic.shares.each do |s|
+            s.buyable = false
+          end
 
           stock_market.set_par(ic, @stock_market.par_prices.find do |p|
             p.price == IC_STARTING_PRICE
           end)
           @bank.spend(IC_STARTING_PRICE * 10, ic)
           @merge_share_prices = [ic.share_price.price] # adds IC's share price to array to be averaged later
-          @log << "#{ic.name} is started at #{format_currency(IC_STARTING_PRICE)} and '\
-          'receives #{format_currency(IC_STARTING_PRICE * 10)} from the bank"
+          @log << "#{ic.name} starts at #{format_currency(IC_STARTING_PRICE)} and "\
+                  "receives #{format_currency(IC_STARTING_PRICE * 10)} from the bank"
 
           place_home_token(ic)
         end
@@ -1373,8 +1388,8 @@ module Engine
           corp.spend(cost, @bank)
           bundle = ShareBundle.new(@share_pool.shares_of(ic).last)
           @share_pool.transfer_shares(bundle, corp)
-          @log << "#{corp.name} pays #{format_currency(cost)} and exchanges option cube '\
-          'for a 10% share of #{ic.name}"
+          @log << "#{corp.name} pays #{format_currency(cost)} and exchanges option cube "\
+                  "for a 10% share of #{ic.name}"
           @option_cubes[corp] -= 1
         end
 
@@ -1384,8 +1399,8 @@ module Engine
           @log << if ic.num_market_shares.positive?
                     "#{corp.name} sells option cube for #{format_currency(refund)}"
                   else
-                    "#{corp.name} sells option cube for #{format_currency(refund)} '\
-                    '(#{ic.name} has no market shares to exchange)"
+                    "#{corp.name} sells option cube for #{format_currency(refund)} "\
+                      "(#{ic.name} has no market shares to exchange)"
                   end
           @option_cubes[corp] -= 1
         end
@@ -1408,7 +1423,7 @@ module Engine
           ic_line_corporations = []
           4.times do |i|
             corp = @corporations.find { |c| c.tokens.find { |t| t.hex == hex_by_id(IC_LINE_HEXES[i]) } }
-            ic_line_corporations << corp if !corp.nil? && !corp == ic
+            ic_line_corporations << corp if corp && corp != ic
           end
           ic_line_corporations.uniq
         end
@@ -1519,18 +1534,17 @@ module Engine
           # If the corporation has any trains, they are transferred to IC
           if corporation.trains.any?
             trains_transfered = transfer(:trains, corporation, ic).map(&:name)
-            @log << "#{ic.name} receives #{trains_transfered.one? ? 'a train' : 'trains'} '\
-            'from #{corporation.name}: #{trains_transfered.join(', ')}"
+            @log << "#{ic.name} receives #{trains_transfered.one? ? 'a train' : 'trains'} "\
+                    "from #{corporation.name}: #{trains_transfered.join(', ')}"
           end
 
-          # close_corporation(corporation)
           post_ic_formation if @mergeable_candidates.empty?
         end
 
         def replace_ic_token(corporation, corporation_token, ic_tokens)
           city = corporation_token.city
-          @log << "#{corporation.name}'s token in #{city.hex.name} (#{city.hex.tile.location_name}) '\
-          'is replaced with an #{ic.name} token"
+          @log << "#{corporation.name}'s token in #{city.hex.name} (#{city.hex.tile.location_name}) "\
+                  "is replaced with an #{ic.name} token"
           ic_replacement = ic_tokens.first
           corporation_token.remove!
           city.place_token(ic, ic_replacement, free: true, check_tokenable: false)
@@ -1615,27 +1629,33 @@ module Engine
                         '(no merged corporations have operated in this round)'
                     end
             # find the corp with the next price below IC's
-            index = @round.entities.find_index { |c| c.share_price.price < ic.share_price.price }
+            index_corp = @round.entities.sort.find { |c| c.share_price.price < ic.share_price.price }
+            index = @round.entities.find_index(index_corp)
             if index.nil? # if there is no such corp, add IC at the end of the line
               @round.entities << ic
               # if IC's price is higher than the trigger corp's, IC will operate next
             elsif ic.share_price.price > @ic_trigger_entity.share_price.price
               @round.entities.insert(current_corp_index + 1, ic)
             else
-              # if IC's price is lower than the trigger corp's, IC will be placed in the proper place in order
+              # if IC's price is equal to or lower than the trigger corp's, IC will be placed in the proper place in order
               @round.entities.insert(index, ic)
             end
           else
             @log << 'IC will operate for the first time in the next operating round'
+
           end
-
-          @log << '-- Event: Illinois Central Formation complete --'
-
           ic.floatable = true
           ic.floated = true
           ic.ipoed = true
-          @merged_corps.each { |c| close_corporation(c) }
+
+          @merged_corps.each do |c|
+            close_corporation(c)
+            # moves the index back by one for each merged corp if the merged corp had already operated
+            @round.entity_index -= 1 if c.operated?
+          end
+
           @ic_formation_pending = false
+          @log << '-- Event: Illinois Central Formation complete --'
         end
 
         def add_ic_operating_ability
@@ -1643,7 +1663,7 @@ module Engine
 
           ic.remove_ability(self.class::RECEIVERSHIP_ABILITY)
           ic.add_ability(self.class::OPERATING_ABILITY)
-          @ic_president = true unless ic_in_receivership?
+          @ic_president = true
         end
 
         def add_ic_receivership_ability
@@ -1653,8 +1673,6 @@ module Engine
         def ic_in_receivership?
           ic.presidents_share.owner == ic
         end
-
-        #-------------------------------------------------------------------------------------------#
 
         def extra_station
           @extra_station = @companies.find { |c| c&.name == 'Extra Station' }

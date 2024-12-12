@@ -30,10 +30,6 @@ module Engine
             "Use #{@game.lincoln_funeral_car&.name} ability"
           end
 
-          # def active?
-          #   !active_entities.empty?
-          # end
-
           def choice_available?(entity)
             entity == @game.diverse_cargo&.owner
           end

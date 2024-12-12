@@ -27,14 +27,6 @@ module Engine
             @game.finish_stock_round
           end
 
-          def help
-            if @ic_formation_triggered && !@game.ic.num_ipo_shares.zero?
-              return ['Note: Treasury shares of IC cannot be purchased in stock round']
-            end
-
-            []
-          end
-
           def sold_out_stock_movement(corp)
             @game.stock_market.move_up(corp)
             @game.stock_market.move_up(corp) if corp.total_shares == 10

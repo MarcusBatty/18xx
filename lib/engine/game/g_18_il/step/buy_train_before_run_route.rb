@@ -81,7 +81,6 @@ module Engine
           def do_after_buy_train_action(action, _entity)
             action.train.operated = false
           end
-
         end
       end
     end

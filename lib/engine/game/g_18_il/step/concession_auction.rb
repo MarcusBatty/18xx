@@ -9,19 +9,23 @@ module Engine
         class ConcessionAuction < Engine::Step::ConcessionAuction
           def setup
             @game.players.each(&:unpass!)
-            @passed_players = []
+            @declined_players = []
+            @bought_shares = []
             setup_auction
             if @game.ic_formation_triggered?
               ic_shares = @game.companies.dup.select { |c| c.meta[:type] == :share }
               ic_shares = ic_shares.each { |c| c.value = up_to_nearest_5(@game.ic.share_price.price) }
+
               ic_presidents_share = @game.companies.dup.select { |c| c.meta[:type] == :presidents_share }
               ic_presidents_share = ic_presidents_share.each { |c| c.value = up_to_nearest_5(@game.ic.share_price.price * 2) }
+
               @companies = @game.companies.dup.select do |company|
                 company.meta[:type] == :concession
               end + ic_presidents_share + ic_shares
             else
               @companies = @game.companies.dup.select { |c| c.meta[:type] == :concession }
             end
+            @companies = @companies.sort_by(&:sym)
             @companies = @companies.sort_by { |c| c.meta[:type] }
           end
 
@@ -41,19 +45,7 @@ module Engine
           end
 
           def entities
-            @round.entities.reject {|e| @passed_players.include?(e)}
-          end
-
-          def actions(entity)
-            return [] if finished?
-
-            correct = false
-
-            active_auction do |_company, bids|
-              correct = bids.min_by(&:price).entity == entity
-            end
-
-            correct || entity == current_entity ? ACTIONS : []
+            @round.entities.reject { |e| @declined_players.include?(e) }
           end
 
           def resolve_bids
@@ -67,8 +59,8 @@ module Engine
             @bids.delete(company)
             buy_company(player, company, price)
             if @companies.empty? && entities.one?
-              @passed_players << player
-              @passed_players.each { |p| @game.players << p }
+              @declined_players << player
+              @declined_players.each { |p| @game.players << p }
             else
               @round.next_entity_index!
             end
@@ -82,13 +74,30 @@ module Engine
             else
               @log << "#{entity.name} declines to start auction"
               entity.pass!
-              @passed_players << entity
+              @declined_players << entity
             end
           end
 
           def start_auction(bid)
-            super
-            resolve_bids if entities.one?
+            @auctioning = bid.company
+            @log << "-- #{bid.entity.name} nominates #{@auctioning.name} for auction --"
+            add_bid(bid)
+            starter = bid.entity
+            start_price = bid.price
+
+            bids = @bids[@auctioning]
+
+            entities.rotate(entities.find_index(starter)).each_with_index do |player, idx|
+              next if player == starter
+              next if max_bid(player, @auctioning) <= start_price
+
+              bids << (Engine::Action::Bid.new(player,
+                                               corporation: @auctioning,
+                                               price: idx - entities.size))
+            end
+            # resolve auction immediately after starting if no other player can afford to bid
+            resolve_bids unless entities.reject { |e| e == starter }
+                                .find { |e| max_bid(e, @auctioning) >= start_price + min_increment }
             post_auction if @companies.empty? && entities.one?
           end
 
@@ -110,25 +119,34 @@ module Engine
             # exchange for ordinary share of IC
             case company.meta[:type]
             when :share
-              bundle = ShareBundle.new(ic.shares_of(ic).last)
+              bundle = ShareBundle.new(ic.shares.last)
               @game.share_pool.transfer_shares(bundle, player)
               if @game.ic_in_receivership?
+                @bought_shares << company
                 @game.companies.delete(company)
+                @companies.delete(company)
                 company.close!
-              # if IC now has a president, remove the president's cert proxy from the auction
-              else
+              # if IC now has a president and president's cert still exists,
+              # remove the president's cert proxy from the auction
+              elsif (pres = @game.companies.find { |c| c == @game.company_by_id('ICP') })
                 company.close!
                 @companies << company
-                @companies = @companies.sort_by { |c| c.meta[:type] }
-                pres = @companies.find { |c| c == @game.company_by_id('ICP') }
+                @game.companies << @bought_shares.first
+                @companies << @bought_shares.first
                 @companies.delete(pres)
                 @game.companies.delete(pres)
                 pres.close!
+                @companies = @companies.sort_by(&:sym)
+                @companies = @companies.sort_by { |c| c.meta[:type] }
                 @game.add_ic_operating_ability
+              else
+                company.close!
+                @game.companies.delete(company)
+                @companies.delete(company)
               end
             # exchange for president's share of IC
             when :presidents_share
-              bundle = ShareBundle.new(ic.shares_of(ic).first)
+              bundle = ShareBundle.new(ic.shares.first)
               @game.share_pool.transfer_shares(bundle, player)
               @game.companies.delete(company)
               company.close!

@@ -23,9 +23,9 @@ module Engine
             "Sell or Exchange President's Share"
           end
 
-          # def active?
-          #   !active_entities.empty?
-          # end
+          def active?
+            !active_entities.empty?
+          end
 
           def choice_available?(entity)
             entity == @game.exchange_choice_player

@@ -11,7 +11,7 @@ module Engine
           def actions(entity)
             return [] if @game.last_set_triggered
             return [] unless entity == current_entity
-            return [] if entity == @game.ic && @game.ic_in_receivership?
+            return [] if entity == @game.ic
 
             actions = []
             actions << 'buy_shares' if can_buy_any?(entity) && !@bought
@@ -42,11 +42,10 @@ module Engine
 
           def visible_corporations
             corps = @game.corporations.select do |c|
-              c.ipoed && !c.ipo_shares.empty? && c.share_price.price <= current_entity.cash
+              c.ipoed && !c.ipo_shares.empty? && c != current_entity && c != @game.ic
             end
+            corps << current_entity if !current_entity.ipo_shares.empty? && !@issued && @game.sp_used != @game.share_premium.owner
             corps = [current_entity] if @bought
-            corps = corps.reject { |c| c == current_entity } if @game.sp_used == @game.share_premium.owner
-
             corps
           end
 
@@ -131,6 +130,7 @@ module Engine
             @game.corporate_buy = action.bundle
             @bought = true
             return unless @game.sp_used == @game.share_premium.owner
+
             @issued = true
             @game.share_premium.close!
             @log << "#{@game.share_premium.name} (#{action.entity.name}) closes"

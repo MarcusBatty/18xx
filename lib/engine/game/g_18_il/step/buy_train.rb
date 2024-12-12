@@ -9,6 +9,7 @@ module Engine
         class BuyTrain < Engine::Step::BuyTrain
           def setup
             @ic_bought_train = nil
+            @emr = nil
             super
           end
 
@@ -33,6 +34,7 @@ module Engine
 
           def must_buy_train?(entity)
             return (entity.cash > @game.depot.min_depot_price) if entity == @game.ic
+
             entity.trains.empty?
           end
 
@@ -63,9 +65,9 @@ module Engine
               @game.borrowed_trains[current_entity] = nil
             end
             company = @game.train_subsidy
-            if company.ability_uses.first < 4
+            if company.ability_uses.first < 99
+              @log << "#{company.name} (#{@round.current_operator.name}) closes" if company.closed?
               company.close!
-              @log << "#{company.name} (#{@round.current_operator.name}) closes"
             end
             super
           end
@@ -155,15 +157,18 @@ module Engine
               end
             end
 
+            check_for_cheapest_train(train) if entity == @game.ic
+
             @log << "#{entity.name} buys a #{train.name} train for "\
                     "#{@game.format_currency(price)} from #{train.owner.name}"
 
             @game.buy_train(entity, train, price)
+            train.buyable = false if entity == @game.ic && !train.rusts_on
             @game.phase.buying_train!(entity, train, train.owner)
           end
 
           def check_ic_last_train(train)
-            return if !train.owner == @game.ic || !@game.ic.trains.one?
+            return if train.owner != @game.ic || !@game.ic.trains.one?
 
             raise GameError, "Cannot buy IC's only train"
           end

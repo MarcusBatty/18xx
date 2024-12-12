@@ -30,8 +30,17 @@ module Engine
             @round.converted = nil
           end
 
+          def can_gain?(entity, bundle, exchange: false)
+            return if !bundle || !entity
+            return false if bundle.owner.player? && !@game.can_gain_from_player?(entity, bundle)
+
+            corporation = bundle.corporation
+
+            corporation.holding_ok?(entity, bundle.common_percent)
+          end
+
           def log_pass(entity)
-            @log << "#{entity.name} passes buy/sell shares"
+            @log << "#{entity.name} declines to buy shares"
           end
 
           def visible_corporations
@@ -66,7 +75,7 @@ module Engine
           end
 
           def help
-            ['Select corporation to buy a share or pass:']
+            ['Select the corporation to buy a share or pass:']
           end
 
           def can_buy?(entity, bundle)
