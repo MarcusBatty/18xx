@@ -41,8 +41,8 @@ module Engine
 
           def help
             [
-            'If emergency money raising, corporation must sell reserve shares before issuing.',
-            'Pass if buying a train from another corporation:',
+            'If emergency money raising, corporation must sell reserve shares at half value '\
+            'before issuing. Pass if buying a train from another corporation:',
           ]
           end
 

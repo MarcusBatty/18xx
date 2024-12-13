@@ -72,7 +72,7 @@ module Engine
             if auctioning
               pass_auction(action.entity)
             else
-              @log << "#{entity.name} declines to start auction"
+              @log << "#{entity.name} declines to start auction and is removed from the round"
               entity.pass!
               @declined_players << entity
             end

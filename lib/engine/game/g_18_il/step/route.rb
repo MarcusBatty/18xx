@@ -33,6 +33,14 @@ module Engine
             'Scrap'
           end
 
+          def help
+            return super if current_entity != @game.ic || !@game.ic_in_receivership?
+
+            "#{current_entity.name} is in receivership (it has no president). Most of its "\
+              'actions are automated, but it must have a player manually run its trains. '\
+              "Please enter the best route you see for #{current_entity.name}."
+          end
+
           def process_scrap_train(action)
             raise GameError, 'Can only scrap trains owned by the corporation' if action.entity != action.train.owner
 

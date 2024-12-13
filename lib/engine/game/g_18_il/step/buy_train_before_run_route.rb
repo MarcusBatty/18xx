@@ -13,9 +13,10 @@ module Engine
           def actions(entity)
             actions = []
             return actions if @game.last_set_triggered
+            return actions unless entity == current_entity
 
-            actions << %w[buy_train sell_shares] if must_sell_shares?(entity.corporation)
-            actions << %w[buy_train] if can_buy_train?(entity.corporation)
+            actions << %w[buy_train sell_shares] if must_sell_shares?(entity)
+            actions << %w[buy_train] if can_buy_train?(entity)
             actions << %w[pass] unless @acted
 
             actions.flatten
@@ -31,10 +32,6 @@ module Engine
             return [] unless @game.rush_delivery&.owner == @round.current_operator
 
             [@game.rush_delivery&.owner].compact
-          end
-
-          def can_sell?(_entity, _bundle)
-            true
           end
 
           def process_buy_train(action)

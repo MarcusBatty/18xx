@@ -25,6 +25,8 @@ module Engine
           '546' => 4,
           '611' => 6,
           '619' => 6,
+
+          # YELLOW
           'G1' =>
           {
             'count' => 1,
@@ -176,6 +178,7 @@ module Engine
             'code' => 'city=revenue:30,slots:2;path=a:1,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:0,b:_0;path=a:2,b:_0;label=K',
           },
 
+          # GRAY
           'P4' =>
           {
             'count' => 1,
@@ -198,6 +201,13 @@ module Engine
             'color' => 'gray',
             'code' =>
             'city=revenue:100,slots:4;path=a:1,b:_0;path=a:2,b:_0;path=a:0,b:_0;path=a:4,b:_0;label=Chi',
+          },
+
+          'M1' =>
+          {
+            'count' => 1,
+            'color' => 'gray',
+            'code' => 'town=revenue:10;path=a:0,b:_0;path=a:1,b:_0;path=a:3,b:_0;path=a:4,b:_0',
           },
 
           # BLUE

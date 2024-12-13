@@ -185,7 +185,7 @@ module Engine
             return false if sellable_shares?(corporation.owner)
 
             price = @game.depot.min_depot_price
-            @game.buying_power(corporation) < price
+            (@game.buying_power(corporation) + @game.buying_power(corporation.owner)) < price
           end
 
           def sellable_shares?(player)

@@ -23,7 +23,7 @@ module Engine
                 name: '3',
                 on: '3',
                 train_limit: 4,
-                tiles: %i[yellow green brown gray],
+                tiles: %i[yellow green],
                 operating_rounds: 2,
                 corporation_sizes: [2, 5, 10],
               },

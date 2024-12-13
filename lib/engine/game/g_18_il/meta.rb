@@ -15,7 +15,7 @@ module Engine
         GAME_DESIGNER = 'Scott Ninmer'
         GAME_PUBLISHER = :self_published
         GAME_LOCATION = 'Illinois, USA'
-        GAME_RULES_URL = 'https://www.dropbox.com/scl/fi/yokl67tz84id9ps03quqk/18IL_Rulebook_v0.7.6.pdf?rlkey=qoeqx0optqkghry03r0o42blx&dl=0'
+        GAME_RULES_URL = 'https://www.dropbox.com/scl/fi/lv6fxj4t65d9tedy8w65q/18IL_Rulebook_v0.7.7.pdf?rlkey=9xg8786l8ukqu5a4nl6ow3j5f&dl=0'
         GAME_INFO_URL = ''
         # GAME_INFO_URL = 'https://github.com/tobymao/18xx/wiki/18IL'
         # TODO: make wiki entry once in alpha
@@ -31,7 +31,7 @@ module Engine
           {
             sym: :two_player_share_limit,
             short_name: '(2p only) 70% Corporation Holding Limit',
-            desc: 'When enabled, a player can gain up to 70% of a corporation\'s shares through normal means in a 2p game. '\
+            desc: "When enabled, a player can gain up to 70% of a corporation's shares through normal means in a 2p game. "\
                   'Players can still gain more than 70% through corporation reserve share purchase.',
           },
         ].freeze

@@ -211,7 +211,8 @@ module Engine
             G18IL::Step::DiverseCargoChoice,
             G18IL::Step::MineCompanyChoice,
             Engine::Step::Exchange,
-            Engine::Step::SpecialTrack,
+            G18IL::Step::SpecialTrack,
+            #  Engine::Step::SpecialTrack,
             Engine::Step::SpecialToken,
             Engine::Step::HomeToken,
             G18IL::Step::ExchangeChoiceCorp,
@@ -228,6 +229,7 @@ module Engine
             G18IL::Step::Token,
             G18IL::Step::LincolnChoice,
             G18IL::Step::BorrowTrain,
+            G18IL::Step::CorporateSellSharesBeforeRunRoute,
             G18IL::Step::BuyTrainBeforeRunRoute,
             G18IL::Step::Route,
             G18IL::Step::Dividend,
@@ -254,6 +256,10 @@ module Engine
             }]
           end
           tile_lays
+        end
+
+        def company_closing_after_using_ability(company, silent = false)
+          @log << "#{company.name} (#{company.owner.name}) closes" unless silent
         end
 
         def status_array(corp)
@@ -441,8 +447,11 @@ module Engine
           train = @depot.upcoming[0]
           train.buyable = false
           buy_train(nc, train, :free)
-          nc.max_ownership_percent = 100
-          corporation_by_id('P&BV').max_ownership_percent = 100
+
+          @corporations.select { |corp| corp.type == :two_share }.each { |c| c.max_ownership_percent = 100 }
+
+          share_premium.owner.ipo_shares.last.buyable = false if share_premium.owner.total_shares == 10
+
           @stl_nodes = STL_HEXES.map do |h|
             hex_by_id(h).tile.nodes.find { |n| n.offboard? && n.groups.include?('STL') }
           end
@@ -529,6 +538,8 @@ module Engine
         def tile_valid_for_phase?(tile, hex: nil, phase_color_cache: nil)
           return true if tile.name == 'SPH' || tile.name == 'POM'
 
+          return true if tile.name == 'M1'
+
           super
         end
 
@@ -548,6 +559,9 @@ module Engine
               end
             end
           end
+
+          return true if MINE_HEXES.include?(from.hex.id) && to.name == 'M1' &&
+          selected_company == chicago_virden_coal_company
 
           super
         end
@@ -762,6 +776,7 @@ module Engine
           corporation.max_ownership_percent = (two_player? && @optional_rules&.include?(:two_player_share_limit) ? 70 : 60)
           shares.each { |share| corporation.share_holders[share.owner] += share.percent }
           new_shares.each { |share| add_new_share(share) }
+          corporation.ipo_shares.last.buyable = false if corporation == share_premium.owner && corporation.total_shares == 10
           new_shares
         end
 
@@ -782,7 +797,10 @@ module Engine
                     " #{count} #{count == 1 ? 'token' : 'tokens'} for #{format_currency(total_cost)}"
             token_ability = corporation.all_abilities.find { |a| a.type == :token }
             count.times { token_ability.use! }
-            station_subsidy.close! unless token_ability.count.positive?
+            unless token_ability.count.positive?
+              station_subsidy.close!
+              @log << "#{station_subsidy.name} (#{corporation.name}) closes"
+            end
           else
             unless quiet
               @log << "#{corporation.name} buys #{count} #{count == 1 ? 'token' : 'tokens'} for #{format_currency(total_cost)}"
@@ -834,7 +852,8 @@ module Engine
                 end&.active? &&
             !@round.steps.find do |step|
                step.instance_of?(G18IL::Step::CorporateIssueBuyShares)
-             end&.active?
+             end&.active? &&
+             share_holder.is_a?(Corporation)
             all_bundles.each do |b|
               b.share_price = corporation.share_price.price / 2.0
             end
@@ -1207,11 +1226,11 @@ module Engine
           corporation.loans << Loan.new(corporation, loan_balance - payoff_amount)
           corporation.cash -= payoff_amount
           if payoff_amount == loan_balance
-            @log << "#{corporation.name} pays off their loan of #{format_currency(loan_balance)}"
+            @log << "#{corporation.name} pays off its loan of #{format_currency(loan_balance)}"
             @log << "-- #{corporation.name} is now solvent --"
             @insolvent_corporations.delete(corporation)
           else
-            @log << "#{corporation.name} decreases their loan amount by #{format_currency(payoff_amount)} "\
+            @log << "#{corporation.name} decreases its loan amount by #{format_currency(payoff_amount)} "\
                     "(#{format_currency(corporation.loans.first.amount)} remaining)"
           end
         end

@@ -36,7 +36,8 @@ module Engine
                 # checks for both IC Line connections when laying green
                 raise GameError, 'Tile must complete IC Line' if @game.ic_line_connections(hex) < 2
                 # disallows Engineering Master corp from upgrading two incomplete IC Line hexes
-                if @round.num_laid_track > 1 && @round.laid_hexes.first.tile.color == :green
+                if @round.num_laid_track > 1 && @round.laid_hexes.first.tile.color == :green &&
+                  @game.class::IC_LINE_HEXES.include?(@round.laid_hexes.first)
                   raise GameError, 'Cannot upgrade two incomplete IC Line hexes in one turn'
                 end
 

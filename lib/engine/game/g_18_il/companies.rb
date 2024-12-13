@@ -7,7 +7,7 @@ module Engine
   module Game
     module G18IL
       module Companies
-        MINE_HEXES = %w[D9 D13 D17 E6 E14 E16 F5 F13 F21 G22 H11].freeze
+        MINES = %w[D9 D13 D17 E6 E14 E16 F5 F13 F21 G22 H11].freeze
 
         def game_companies
           [
@@ -104,7 +104,7 @@ module Engine
               sym: 'ES',
               value: 0,
               revenue: 0,
-              desc: 'Receive an additional station marker. Once this ability is used, the private company closes.',
+              desc: 'Receive an additional station marker. Once this ability is used, the company closes.',
               color: nil,
               meta: { type: :private, class: :A },
 
@@ -124,7 +124,7 @@ module Engine
               value: 0,
               revenue: 0,
               desc: 'Place an available station marker in Chicago (H3) in the indicated GTL station slot. The corporation '\
-                    'receives a port marker. Once this ability is used, the private company closes. If this company '\
+                    'receives a port marker. Once this ability is used, the company closes. If this company '\
                     'is still open when Chicago is upgraded with a brown tile, it closes immediately.',
               sym: 'GTL',
               meta: { type: :private, class: :A },
@@ -172,7 +172,7 @@ module Engine
               value: 0,
               revenue: 0,
               desc: 'Receive a 25% discount on non-permanent trains and a 20% discount on permanent trains '\
-                    'during a single train-buying step. Once this ability is used, the private company closes.',
+                    'during a single train-buying step. Once this ability is used, the company closes.',
               sym: 'TS',
               meta: { type: :private, class: :A },
               abilities: [
@@ -233,8 +233,9 @@ module Engine
               value: 0,
               revenue: 0,
               desc: 'When issuing a share during the Issue a Share step, receive double the current share price from '\
-                    'the bank to the corporation treasury.'\
-                    ' Once this ability is used, the private company closes.',
+                    'the bank to the corporation treasury. When this corporation is a 10-share corporation, one of '\
+                    'its treasury shares is reserved. This reservation is removed when the ability is used, '\
+                    'which closes the company.',
               sym: 'SP',
               meta: { type: :private, class: :A },
               abilities: [
@@ -253,7 +254,7 @@ module Engine
               revenue: 0,
               desc: 'When running trains, receive $10 multiplied by the number of cities and offboards each train visits. '\
                     "This amount is paid from the bank to the corporation's treasury. At the beginning of its turn, the "\
-                    'corporation may choose to close this company in exchange for a mine marker.',
+                    'corporation may choose to close this company in exchange for a mine marker. ',
               sym: 'USML',
               meta: { type: :private, class: :A },
             },
@@ -280,7 +281,8 @@ module Engine
               desc: 'During the tile-laying step of the corporation operating turn, place the G tile in Galena for free, '\
                     'ignoring terrain costs. It does not have to be connected to a station marker and does not count as '\
                     'a tile lay. The corporation receives a mine marker. Once this ability is used, the private company '\
-                    'closes.',
+                    'closes. At the beginning of its turn, the corporation may choose to close this company in exchange '\
+                    'for a mine marker.',
               sym: 'FWC',
               meta: { type: :private, class: :B },
               abilities: [
@@ -302,7 +304,7 @@ module Engine
               revenue: 0,
               desc: 'In phase D, upgrade Peoria or Springfield using the matching gray tile. It does not have to be connected '\
                     'to a station marker, does not count as a tile lay, and may be upgraded regardless of the current city '\
-                    'color. The unused tile is removed from the game. Once this ability is used, the private company closes.',
+                    'color. The unused tile is removed from the game. Once this ability is used, the company closes.',
               sym: 'CIB',
               meta: { type: :private, class: :B },
               abilities: [
@@ -313,7 +315,6 @@ module Engine
                   hexes: %w[E8 E12],
                   when: 'track',
                   owner_type: 'corporation',
-                  # on_phase: 'D',
                   count: 1,
                   consume_tile_lay: false,
                   reachable: false,
@@ -326,17 +327,18 @@ module Engine
               name: 'Chicago-Virden Coal Company',
               value: 0,
               revenue: 0,
-              desc: 'During the tile-laying step of the corporation’s operating turn, place a mine tile in a mine hex '\
-                    '(except Galena), paying any terrain costs. It must be connected to one of the corporation’s existing '\
-                    'station markers but does not count as a tile lay. The corporation receives a mine marker. '\
-                    'Once this ability is used, the private company closes.',
+              desc: 'During the tile-laying step of the corporation’s operating turn, lay or upgrade in a mine hex '\
+                    '(except Galena) with the #M1 tile, paying any terrain costs. It must be connected to one of the '\
+                    'corporation’s existing station markers but does not count as a tile lay. The corporation receives '\
+                    'a mine marker. Once this ability is used, the company closes. At the beginning of its turn, the '\
+                    'corporation may choose to close this company in exchange for a mine marker.',
               sym: 'CVCC',
               meta: { type: :private, class: :B },
               abilities: [
                 {
                   type: 'tile_lay',
-                  tiles: ['58'],
-                  hexes: MINE_HEXES,
+                  tiles: %w[58 M1],
+                  hexes: MINES,
                   when: 'track',
                   owner_type: 'corporation',
                   count: 1,
@@ -397,7 +399,7 @@ module Engine
               desc: 'During the “Run Trains” step of the corporation’s operating turn, one of the corporation’s '\
                     'trains earns an additional $20/$30/$40/$50 for each of the following cities in its route during a '\
                     'yellow/green/brown/gray phase, respectively: Chicago (H3), Joliet (G6), Bloomington (F9), and '\
-                    'Springfield (E12). Once this ability is used, the private company closes.',
+                    'Springfield (E12). Once this ability is used, the company closes.',
               sym: 'LFC',
               meta: { type: :private, class: :B },
               abilities: [

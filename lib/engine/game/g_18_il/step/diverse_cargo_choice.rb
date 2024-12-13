@@ -35,9 +35,9 @@ module Engine
 
           def choices
             choices = []
-            choices << ['Mine']
-            choices << ['Port']
-            choices << ['Pass']
+            choices << ['Mine'] unless current_entity.assignments.include?(@game.class::MINE_ICON)
+            choices << ['Port'] unless current_entity.assignments.include?(@game.class::PORT_ICON)
+            choices << ['Pass'] unless choices.empty?
             choices
           end
 
