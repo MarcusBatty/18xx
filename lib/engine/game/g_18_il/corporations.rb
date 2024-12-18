@@ -118,7 +118,6 @@ module Engine
                 text_color: 'white',
               },
               {
-                float_percent: 100,
                 sym: 'IC',
                 name: 'Illinois Central Railroad',
                 logo: '18_il/IC',

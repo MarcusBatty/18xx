@@ -338,6 +338,7 @@ module Engine
                 {
                   type: 'tile_lay',
                   tiles: %w[58 M1],
+                  # tiles: %w[M1], TODO: swap in after pinning
                   hexes: MINES,
                   when: 'track',
                   owner_type: 'corporation',

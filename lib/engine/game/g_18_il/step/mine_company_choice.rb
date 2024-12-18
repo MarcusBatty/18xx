@@ -21,20 +21,11 @@ module Engine
           end
 
           def active_entities
-            case @round.current_operator
-            when @game.chicago_virden_coal_company&.owner
-              @active_company = @game.chicago_virden_coal_company
-
-            when @game.frink_walker_co&.owner
-              @active_company = @game.frink_walker_co
-
-            when @game.us_mail_line&.owner
-              @active_company = @game.us_mail_line
-            else
-              return []
+            @active_company = [@game.chicago_virden_coal_company, @game.frink_walker_co, @game.us_mail_line].find do |company|
+              company&.owner == @round.current_operator
             end
 
-            [@active_company&.owner].compact
+            @active_company ? [@active_company.owner] : []
           end
 
           def log_skip(entity); end
@@ -66,13 +57,12 @@ module Engine
 
           def process_choose(action)
             corp = action.entity
-            case action.choice
-            when 'Mine'
+            if action.choice == 'Mine'
               @log << "#{corp.name} gains a mine marker"
               @active_company.close!
               @log << "#{@active_company.name} (#{corp.name}) closes"
               @game.assign_mine_icon(corp)
-            when 'Pass'
+            else
               @log << "#{corp.name} passes gaining marker"
               @mine_pass = true
               pass!

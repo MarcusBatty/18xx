@@ -50,16 +50,45 @@ module Engine
           def place_token(entity, city, token, connected: true, extra_action: false, special_ability: nil, check_tokenable: true)
             hex = city.hex
 
+            if @game.class::STL_TOKEN_HEXES.include?(hex.id)
+
+              # Check for STL connection
+              stl_token_errors(entity, token)
+
+              # Remove blocker token based on phase restrictions
+              city.tokens.each_with_index do |t, index|
+                next unless t&.corporation&.name == 'GSB'
+
+                replace_token = case index
+                                when 0 then true # Always replace the first token
+                                when 1 then @game.phase.name != '2'
+                                when 2 then !%w[2 3].include?(@game.phase.name)
+                                when 3 then @game.phase.name == 'D'
+                                else false
+                                end
+
+                city.tokens[index] = nil if replace_token
+              end
+
+              # Place the new token if a slot is available
+              if city.tokens.any?(&:nil?)
+                city.place_token(entity, token, free: true, check_tokenable: check_tokenable)
+                @log << "#{entity.name} places a permit token in St. Louis (B15)"
+                @round.tokened = true
+                return
+              end
+            end
+
             # allows corporations to replace other corporation's flipped token
             flipped_token = hex.tile.cities.map { |c| c.tokens.find { |t| t&.status == :flipped } }.first
-            unless flipped_token.nil?
+            if flipped_token && city.tokens.none?(&:nil?)
               # check for STL connection
               stl_token_errors(entity, token) if @game.class::STL_TOKEN_HEXES.include?(hex.id)
               raise GameError, 'Not enough cash to replace flipped token' if entity.cash < TOKEN_REPLACEMENT_COST
 
-              entity.spend(TOKEN_REPLACEMENT_COST, @game.bank)
-              @log << "#{entity.name} spends #{@game.format_currency(TOKEN_REPLACEMENT_COST)} "\
-                      "and replaces #{flipped_token.corporation.name}'s token in #{hex.name}"
+              entity.spend(TOKEN_REPLACEMENT_COST, flipped_token.corporation)
+              @log << "#{entity.name} pays #{@game.format_currency(TOKEN_REPLACEMENT_COST)} to "\
+                      "#{flipped_token.corporation.name} and replaces its token in #{hex.name}"
               # flips the token back to normal and returns it to the corp
               flipped_token.status = nil
               flipped_token.remove!
@@ -69,23 +98,6 @@ module Engine
               return
             end
 
-            if @game.class::STL_TOKEN_HEXES.include?(hex.id)
-              # check for STL connection
-              stl_token_errors(entity, token)
-              # swaps dummy corp token in STL for tokening corp's token if slot available
-              case @game.class::STL_TOKEN_HEXES.include?(hex.id)
-              when city.tokens[0].corporation.name == 'GSB' then city.tokens[0] = nil
-              when @game.phase.name != '2' && city.tokens[1].corporation.name == 'GSB' then city.tokens[1] = nil
-              when (@game.phase.name != '2' or '3') && city.tokens[2].corporation.name == 'GSB' then city.tokens[2] = nil
-              when @game.phase.name == 'D' && city.tokens[3].corporation.name == 'GSB' then city.tokens[3] = nil
-              end
-
-              city.place_token(entity, token, free: true, check_tokenable: check_tokenable)
-              @log << "#{entity.name} places a permit token in St. Louis (B15)"
-
-              @round.tokened = true
-              return
-            end
             super
           end
 

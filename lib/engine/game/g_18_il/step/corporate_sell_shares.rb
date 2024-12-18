@@ -14,6 +14,7 @@ module Engine
 
           def setup
             @game.other_train_pass = nil
+            @acted = nil
             super
           end
 
@@ -26,7 +27,7 @@ module Engine
 
             actions = []
             actions << 'corporate_sell_shares' if entity.cash < @game.depot.min_depot_price && entity.trains.empty?
-            actions << 'pass' unless other_trains(entity).empty?
+            actions << 'pass' if !other_trains(entity).empty? && !@acted && !entity.cash.zero?
 
             actions
           end
@@ -40,10 +41,15 @@ module Engine
           end
 
           def help
-            [
-            'If emergency money raising, corporation must sell reserve shares at half value '\
-            'before issuing. Pass if buying a train from another corporation:',
-          ]
+            str = []
+            if @game.rush_delivery&.owner == @round.current_operator
+              str << "#{@game.rush_delivery&.name} allows the corporation to buy one train from the Depot "\
+                     'prior to running trains.'
+            end
+            str << 'If emergency money raising, corporation must first sell shares that it owns of other corporations'\
+                   ' at half value.'
+            str << 'Pass if buying a train from another corporation:'
+            str
           end
 
           def process_pass(entity)
@@ -52,6 +58,7 @@ module Engine
           end
 
           def process_corporate_sell_shares(action)
+            @game.emr_active = true
             sell_shares(action.entity, action.bundle)
           end
 
@@ -70,6 +77,7 @@ module Engine
           def sell_shares(entity, bundle)
             raise GameError, "Cannot sell shares of #{bundle.corporation.name}" unless can_sell?(entity, bundle)
 
+            @acted = true
             @game.sell_shares_and_change_price(bundle)
           end
 

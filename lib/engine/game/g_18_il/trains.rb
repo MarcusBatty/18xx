@@ -57,6 +57,7 @@ module Engine
              distance: [{ 'nodes' => %w[town halt], 'pay' => 0, 'visit' => 99 },
                         { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }],
              price: 700,
+             # price: 720,
              num: 3,
            },
            {
@@ -64,6 +65,7 @@ module Engine
              distance: [{ 'nodes' => %w[town halt], 'pay' => 0, 'visit' => 99 },
                         { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }],
              price: 600,
+             # price: 640,
              num: 2,
            },
            {

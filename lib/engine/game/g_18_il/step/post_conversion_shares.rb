@@ -12,6 +12,7 @@ module Engine
           def setup
             super
             @game.players.each(&:unpass!)
+            @acted_players = []
           end
 
           def actions(entity)
@@ -57,12 +58,13 @@ module Engine
             player.pass! if !corporation.president?(player.owner) || !can_buy_any?(player)
             return if corporation.president?(player.owner)
 
-            @game.players.insert((@game.players.size - 1), @game.players.delete_at(@game.players.index(player)))
+            @acted_players << player.owner
           end
 
           def process_sell_shares(action)
             @game.sell_shares_and_change_price(action.bundle)
             action.entity.pass!
+            @acted_players << action.entity
           end
 
           def process_pass(action)
@@ -75,7 +77,9 @@ module Engine
           end
 
           def help
-            ['Select the corporation to buy a share or pass:']
+            str = ['Select the corporation to see buy/sell options, or pass:']
+            str << '(Note: buying or selling will change your priority position)' unless corporation.president?(current_entity)
+            str
           end
 
           def can_buy?(entity, bundle)
@@ -111,35 +115,28 @@ module Engine
           def active_entities
             return [] unless corporation
 
-            [@game.players.unshift(@game.players.delete(corporation.owner)).find do |p|
-               p.active? && (can_buy_any?(p) || can_sell?(p, nil))
-             end].compact
+            [@game.players.rotate(@game.players.index(corporation.owner))
+            .find { |p| p.active? && (can_buy_any?(p) || can_sell?(p, nil)) }].compact
           end
 
           def post_convert_pass_step!
             return unless @round.converted
 
+            # add non-president players that acted to the back of the line
+            @acted_players.each { |p| @game.players << @game.players.delete(p) }
+            @log << "New priority order: #{@game.players.map(&:name).join(', ')}" unless @acted_players.empty?
             corp = @round.converted
-            case corp.total_shares
-            when 10
-              min = 3
-              max = 3
-              @log << "#{corp.name} must buy 3 tokens"
-            when 5
-              min = 1
-              max = 1
-              @log << "#{corp.name} must buy 1 token"
-            end
 
-            price = 40
-            @round.buy_tokens << {
-              entity: corp,
-              type: :convert,
-              first_price: price,
-              price: price,
-              min: min,
-              max: max,
+            token_counts = {
+              10 => [3, 3],
+              5 => [1, 1],
             }
+
+            min, max = token_counts[corp.total_shares] || [0, 0]
+
+            @log << "#{corp.name} must buy #{min} token"
+            price = 40
+            @round.buy_tokens << { entity: corp, type: :convert, first_price: price, price: price, min: min, max: max }
           end
         end
       end

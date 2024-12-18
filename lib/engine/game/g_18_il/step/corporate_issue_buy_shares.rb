@@ -50,20 +50,12 @@ module Engine
           end
 
           def help
-            if current_entity.num_ipo_shares.zero? || @issued || @game.sp_used == @game.share_premium.owner
-              return [
-                'Buy a share of another corporation:',
-              ]
-            end
-            if @bought
-              return [
-                "Issue a share of #{current_entity.name}:",
-                 ]
-            end
+            return ['Buy a share of another corporation:'] if current_entity.num_ipo_shares.zero? ||
+            @issued || @game.sp_used == @game.share_premium.owner
 
-            [
-            "Issue a share of #{current_entity.name} and/or buy a share of another corporation:",
-             ]
+            return ["Issue a share of #{current_entity.name}:"] if @bought
+
+            ["Issue a share of #{current_entity.name} and/or buy a share of another corporation:"]
           end
 
           def redeemable_shares(_entity)
@@ -93,7 +85,11 @@ module Engine
           end
 
           def process_sell_shares(action)
+            old_price = action.entity.share_price.price
             @game.sell_shares_and_change_price(action.bundle, allow_president_change: false, swap: nil, movement: :left_share)
+            new_price = action.entity.share_price.price
+            @log << "#{action.entity.name}'s share price moves left from #{@game.format_currency(old_price)} to "\
+                    "#{@game.format_currency(new_price)}"
             @issued = true
           end
 

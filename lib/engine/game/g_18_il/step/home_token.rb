@@ -29,6 +29,7 @@ module Engine
             else
               place_token(token.corporation, action.city, token, connected: false, extra_action: true)
             end
+            action.entity.coordinates ||= action.entity.tokens.first&.hex&.id
             @round.pending_tokens.shift
           end
 

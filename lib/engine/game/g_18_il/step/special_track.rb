@@ -52,6 +52,9 @@ module Engine
 
                   # adds reservation to IC Line hex when new tile is green city
                   tile.add_reservation!(@game.ic, city) if @game.class::IC_LINE_HEXES.include?(hex.id)
+
+                when :brown
+                  tile.remove_reservation!(@game.ic) if @game.class::IC_LINE_HEXES.include?(hex.id)
                 end
               end
 

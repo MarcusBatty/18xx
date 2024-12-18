@@ -21,8 +21,11 @@ module Engine
           end
 
           def dividend_types
-            return %i[withhold] if (current_entity == @game.ic && @game.ic_in_receivership?) || !current_entity.loans.empty?
+            return [:withhold] if (current_entity == @game.ic && @game.ic_in_receivership?) ||
+                                   !current_entity.loans.empty? || @game.train_borrowed
 
+            return [:payout] if @game.last_set_triggered
+            
             DIVIDEND_TYPES
           end
 
@@ -57,6 +60,12 @@ module Engine
             @game.train_borrowed = nil
             @game.lincoln_funeral_car.close! if @game.lincoln_triggered
             @game.lincoln_triggered = nil
+            return unless (borrowed_train = @game.borrowed_trains[current_entity])
+
+            @game.log << "#{current_entity.name} returns a #{borrowed_train.name} train"
+            @game.remove_train(borrowed_train)
+            @game.depot.unshift_train(borrowed_train)
+            @game.borrowed_trains[current_entity] = nil
           end
 
           def dividend_options(entity)

@@ -49,16 +49,12 @@ module Engine
             corp = action.entity
             company = @game.diverse_cargo
             case action.choice
-            when 'Mine'
-              @log << "#{corp.name} gains a mine marker"
+            when 'Mine', 'Port'
+              marker = action.choice.downcase.to_sym
+              @log << "#{corp.name} gains a #{marker} marker"
               company.close!
               @log << "#{company.name} (#{corp.name}) closes"
-              @game.assign_mine_icon(corp)
-            when 'Port'
-              @log << "#{corp.name} gains a port marker"
-              company.close!
-              @log << "#{company.name} (#{corp.name}) closes"
-              @game.assign_port_icon(corp)
+              @game.send("assign_#{marker}_icon", corp)
             when 'Pass'
               @log << "#{corp.name} passes gaining marker"
               @diverse_cargo_pass = true

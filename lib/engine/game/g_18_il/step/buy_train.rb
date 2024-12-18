@@ -9,15 +9,14 @@ module Engine
         class BuyTrain < Engine::Step::BuyTrain
           def setup
             @ic_bought_train = nil
-            @emr = nil
             super
           end
 
           def actions(entity)
             return [] if @game.last_set_triggered
-            return ['sell_shares'] if entity == current_entity&.player
+            return ['sell_shares'] if entity == current_entity&.player && !@game.other_train_pass
             return [] if entity != current_entity
-            return %w[buy_train sell_shares] if must_sell_shares?(entity) && @game.other_train_pass.nil?
+            return %w[buy_train sell_shares] if must_sell_shares?(entity)
             return %w[buy_train] if must_buy_train?(entity)
             return %w[buy_train pass] if can_buy_train?(entity)
 
@@ -25,6 +24,7 @@ module Engine
           end
 
           def must_sell_shares?(corporation)
+            return false if @game.other_train_pass
             return false if corporation.cash > @game.depot.min_depot_price
             return false unless must_buy_train?(corporation)
             return false unless @game.emergency_issuable_cash(corporation) < @game.depot.min_depot_price
@@ -40,14 +40,25 @@ module Engine
 
           def ebuy_president_can_contribute?(corporation)
             return false unless @game.emergency_issuable_cash(corporation) < @game.depot.min_depot_price
+            return false if @game.other_train_pass
 
             !must_issue_before_ebuy?(corporation)
+          end
+
+          def must_issue_before_ebuy?(corporation)
+            return false if @game.other_train_pass
+
+            super
           end
 
           def can_buy_train?(entity)
             return false if @ic_bought_train
 
             super
+          end
+
+          def president_may_contribute?(entity, _shell = nil)
+            must_buy_train?(entity) && ebuy_president_can_contribute?(entity)
           end
 
           def description
@@ -59,14 +70,10 @@ module Engine
           end
 
           def pass!
-            if (borrowed_train = @game.borrowed_trains[current_entity])
-              @game.log << "#{current_entity.name} returns a #{borrowed_train.name} train"
-              @game.depot.reclaim_train(borrowed_train)
-              @game.borrowed_trains[current_entity] = nil
-            end
             company = @game.train_subsidy
             if company.ability_uses.first < 99
-              @log << "#{company.name} (#{@round.current_operator.name}) closes" if company.closed?
+              @log << "#{company.name} (#{@round.current_operator.name}) closes" if !company.closed?
+              
               company.close!
             end
             super
@@ -110,12 +117,14 @@ module Engine
             depot_trains = [@depot.min_depot_train] if entity.cash < @depot.min_depot_price
             depot_trains = [] if @game.other_train_pass
             other_trains = other_trains(entity)
-            other_trains = [] if entity.cash.zero? || @emr || entity == @game.ic
+            other_trains = [] if entity.cash.zero? || @game.emr_active? || entity == @game.ic
             depot_trains + other_trains
           end
 
           def process_sell_shares(action)
-            @emr = true
+            raise GameError, 'Cannot sell shares when buying from another corporation' if @game.other_train_pass
+
+            @game.emr_active = true
             super
           end
 
@@ -135,6 +144,7 @@ module Engine
             train = action.train
             train.variant = action.variant
             price = action.price
+
             raise GameError, 'Must issue shares before the president may contribute' if entity.cash < price &&
              !entity.num_ipo_shares.zero? && must_buy_train?(entity)
 
@@ -165,6 +175,7 @@ module Engine
             @game.buy_train(entity, train, price)
             train.buyable = false if entity == @game.ic && !train.rusts_on
             @game.phase.buying_train!(entity, train, train.owner)
+            @game.emr_active = nil
           end
 
           def check_ic_last_train(train)
@@ -183,6 +194,7 @@ module Engine
 
           def must_take_loan?(corporation)
             return false if sellable_shares?(corporation.owner)
+            return false if @game.other_train_pass
 
             price = @game.depot.min_depot_price
             (@game.buying_power(corporation) + @game.buying_power(corporation.owner)) < price

@@ -80,8 +80,8 @@ module Engine
           end
 
           def visible_corporations
-            started_corps = @game.corporations.select(&:ipoed)
-            potential_corps = @game.corporations.select { |corp| @game.players.find { |player| @game.can_par?(corp, player) } }
+            started_corps = @game.sorted_corporations.select(&:ipoed)
+            potential_corps = @game.sorted_corporations.select { |corp| @game.players.find { |player| @game.can_par?(corp, player) } }
             (started_corps + potential_corps)
           end
 
@@ -239,33 +239,33 @@ module Engine
 
           def post_share_pass_step!
             corp = @round.corp_started
-            if @game.closed_corporations.include?(corp)
-              @game.closed_corporations.delete(corp)
-            else
-              case corp.total_shares
-              when 10
-                min = 2
-                max = 5
-                @log << "#{corp.name} must buy between #{min} and #{max} tokens"
-              when 5
-                min = 1
-                max = 1
-                @log << "#{corp.name} must buy 1 token"
-              when 2
-                @log << "#{corp.name} does not buy tokens"
-                return
-              end
-              price = 40
 
-              @round.buy_tokens << {
-                entity: corp,
-                type: :start,
-                first_price: price,
-                price: price,
-                min: min,
-                max: max,
-              }
+            return if @game.closed_corporations.delete(corp)
+
+            case corp.total_shares
+            when 10
+              min = 2
+              max = 5
+              @log << "#{corp.name} must buy between #{min} and #{max} tokens"
+            when 5
+              min = 1
+              max = 1
+              @log << "#{corp.name} must buy 1 token"
+            when 2
+              @log << "#{corp.name} does not buy tokens"
+              return
             end
+
+            price = 40
+
+            @round.buy_tokens << {
+              entity: corp,
+              type: :start,
+              first_price: price,
+              price: price,
+              min: min,
+              max: max,
+            }
           end
         end
       end

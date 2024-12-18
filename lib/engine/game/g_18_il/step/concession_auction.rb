@@ -12,28 +12,47 @@ module Engine
             @declined_players = []
             @bought_shares = []
             setup_auction
-            if @game.ic_formation_triggered?
-              ic_shares = @game.companies.dup.select { |c| c.meta[:type] == :share }
-              ic_shares = ic_shares.each { |c| c.value = up_to_nearest_5(@game.ic.share_price.price) }
 
-              ic_presidents_share = @game.companies.dup.select { |c| c.meta[:type] == :presidents_share }
-              ic_presidents_share = ic_presidents_share.each { |c| c.value = up_to_nearest_5(@game.ic.share_price.price * 2) }
-
-              @companies = @game.companies.dup.select do |company|
-                company.meta[:type] == :concession
-              end + ic_presidents_share + ic_shares
+            if @game.ic_formation_triggered? && !@game.ic.ipo_shares.empty?
+              prepare_ic_shares
             else
-              @companies = @game.companies.dup.select { |c| c.meta[:type] == :concession }
+              @companies = filter_companies_by_type(:concession)
             end
-            @companies = @companies.sort_by(&:sym)
-            @companies = @companies.sort_by { |c| c.meta[:type] }
+
+            sort_companies!
           end
 
-          def up_to_nearest_5(n)
-            return n if (n % 5).zero?
+          def prepare_ic_shares
+            ic_shares = assign_share_values(:share, @game.ic.share_price.price)
+            ic_presidents_share = assign_share_values(:presidents_share, @game.ic.share_price.price * 2)
 
-            rounded = n.round(-1)
-            rounded > n ? rounded : rounded + 5
+            @companies = filter_companies_by_type(:concession)
+
+            shares_to_add = @game.ic.num_ipo_shares.dup
+            if @game.ic_in_receivership?
+              @companies += ic_presidents_share
+              shares_to_add -= 2
+            end
+
+            @companies += ic_shares.take(shares_to_add)
+          end
+
+          def assign_share_values(type, value)
+            @game.companies.select { |c| c.meta[:type] == type }.each { |c| c.value = up_to_nearest_five(value) }
+          end
+
+          def filter_companies_by_type(type)
+            @game.companies.select { |c| c.meta[:type] == type }
+          end
+
+          def sort_companies!
+            @companies = @companies.sort_by { |c| [c.meta[:type], c.sym] }
+          end
+
+          def up_to_nearest_five(num)
+            return num if (num % 5).zero?
+
+            up_to_nearest_five(num + 1)
           end
 
           def description
@@ -60,7 +79,6 @@ module Engine
             buy_company(player, company, price)
             if @companies.empty? && entities.one?
               @declined_players << player
-              @declined_players.each { |p| @game.players << p }
             else
               @round.next_entity_index!
             end
@@ -89,15 +107,15 @@ module Engine
 
             entities.rotate(entities.find_index(starter)).each_with_index do |player, idx|
               next if player == starter
-              next if max_bid(player, @auctioning) <= start_price
+              next if max_bid(player, @auctioning) < start_price + min_increment
 
               bids << (Engine::Action::Bid.new(player,
                                                corporation: @auctioning,
                                                price: idx - entities.size))
             end
             # resolve auction immediately after starting if no other player can afford to bid
-            resolve_bids unless entities.reject { |e| e == starter }
-                                .find { |e| max_bid(e, @auctioning) >= start_price + min_increment }
+            resolve_bids if entities.reject { |e| e == starter }
+                            .select { |e| max_bid(e, @auctioning) >= start_price + min_increment }.empty?
             post_auction if @companies.empty? && entities.one?
           end
 

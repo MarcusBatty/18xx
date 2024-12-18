@@ -11,10 +11,13 @@ module Engine
           ACTIONS = %w[buy_train pass].freeze
 
           def actions(entity)
-            actions = []
-            return actions if @game.last_set_triggered
-            return actions unless entity == current_entity
+            return [] if @game.last_set_triggered
+            return [] if @game.other_train_pass == true
+            return [] unless entity == current_entity
 
+            #    return [] if entity.cash < @depot.min_depot_price && entity.trains.any? TODO: add in after pinning
+
+            actions = []
             actions << %w[buy_train sell_shares] if must_sell_shares?(entity)
             actions << %w[buy_train] if can_buy_train?(entity)
             actions << %w[pass] unless @acted
@@ -35,12 +38,11 @@ module Engine
           end
 
           def process_buy_train(action)
-            from_depot = action.train.from_depot?
-            raise GameError, 'Premature buys are only allowed from the Depot' unless from_depot
+            raise GameError, 'Premature buys are only allowed from the Depot' unless action.train.from_depot?
 
             buy_train_action(action)
 
-            @round.bought_trains << action.entity if from_depot && @round.respond_to?(:bought_trains)
+            @round.bought_trains << action.entity if @round.respond_to?(:bought_trains)
             @round.premature_trains_bought << action.entity
 
             @log << "#{@game.rush_delivery.name} (#{action.entity.name}) closes"
@@ -66,7 +68,7 @@ module Engine
           end
 
           def help
-            "#{@game.rush_delivery&.name} allows corporation to buy one train from the Depot prior to running trains:"
+            "#{@game.rush_delivery&.name} allows the corporation to buy one train from the Depot prior to running trains:"
           end
 
           def ability(entity)

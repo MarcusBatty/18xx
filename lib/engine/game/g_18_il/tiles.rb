@@ -95,7 +95,7 @@ module Engine
           {
             'count' => 1,
             'color' => 'green',
-            'code' => 'city=revenue:40;path=a:1,b:_0;path=a:3,b:_0;path=a:4,b:_0;label=S',
+            'code' => 'city=revenue:40,slots:2;path=a:1,b:_0;path=a:3,b:_0;path=a:4,b:_0;label=S',
           },
 
           'CHI2' =>
@@ -148,6 +148,7 @@ module Engine
             'count' => 1,
             'color' => 'brown',
             'code' => 'city=revenue:50,slots:2;path=a:1,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:5,b:_0;label=S',
+           # 'code' => 'city=revenue:50,slots:3;path=a:1,b:_0;path=a:3,b:_0;path=a:4,b:_0;path=a:5,b:_0;label=S',
           },
 
           'CHI3' =>

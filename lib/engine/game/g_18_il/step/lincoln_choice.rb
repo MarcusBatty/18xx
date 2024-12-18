@@ -47,14 +47,12 @@ module Engine
 
           def process_choose(action)
             corp = action.entity
-            case action.choice
-            when 'Use'
-              @log << "#{corp.name} chooses to use Lincoln Funeral Car ability"
+            @log << "#{corp.name} #{action.choice == 'Use' ? 'chooses to use' : 'passes using'} Lincoln Funeral Car ability"
+            if action.choice == 'Use'
               @game.lincoln_triggered = true
-            when 'Pass'
-              @log << "#{corp.name} passes using Lincoln Funeral Car ability"
-              @lincoln_pass = true
-              pass!
+            else
+              (@lincoln_pass = true
+               pass!)
             end
           end
         end
