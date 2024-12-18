@@ -14,8 +14,7 @@ module Engine
             return [] if @game.last_set_triggered
             return [] if @game.other_train_pass == true
             return [] unless entity == current_entity
-
-            #    return [] if entity.cash < @depot.min_depot_price && entity.trains.any? TODO: add in after pinning
+            return [] if entity.cash < @depot.min_depot_price && entity.trains.any?
 
             actions = []
             actions << %w[buy_train sell_shares] if must_sell_shares?(entity)

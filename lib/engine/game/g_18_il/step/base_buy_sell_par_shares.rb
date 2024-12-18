@@ -81,7 +81,11 @@ module Engine
 
           def visible_corporations
             started_corps = @game.sorted_corporations.select(&:ipoed)
-            potential_corps = @game.sorted_corporations.select { |corp| @game.players.find { |player| @game.can_par?(corp, player) } }
+            potential_corps = @game.sorted_corporations.select do |corp|
+              @game.players.find do |player|
+                @game.can_par?(corp, player)
+              end
+            end
             (started_corps + potential_corps)
           end
 

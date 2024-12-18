@@ -39,8 +39,7 @@ module Engine
         BANK_CASH = 99_999
         CAPITALIZATION = :incremental
         CERT_LIMIT = { 2 => 24, 3 => 18, 4 => 15, 5 => 13, 6 => 11 }.freeze
-        STARTING_CASH = { 2 => 900, 3 => 720, 4 => 560, 5 => 420, 6 => 360 }.freeze
-        # STARTING_CASH = { 2 => 800, 3 => 640, 4 => 480, 5 => 360, 6 => 300 }.freeze
+        STARTING_CASH = { 2 => 800, 3 => 640, 4 => 480, 5 => 360, 6 => 300 }.freeze
 
         EVENTS_TEXT = Base::EVENTS_TEXT.merge(
           'signal_end_game' => ['Signal End Game', 'Game Ends 3 ORs after purchase/export of first D train']
@@ -468,9 +467,17 @@ module Engine
           @ic_line_completed_hexes = []
 
           # Northern Cross starts with the 'Rogers' train
-          train = @depot.upcoming[0]
+          train = Train.new(
+            name: 'Rogers (1+1)',
+            distance: [
+            { 'nodes' => ['town'], 'pay' => 0, 'visit' => 1 },
+            { 'nodes' => ['city'], 'pay' => 1, 'visit' => 1 },
+              ],
+            price: 0,
+            num: 1,
+          )
           train.buyable = false
-          buy_train(nc, train, :free)
+          nc.trains << train
 
           @corporations.select { |corp| corp.type == :two_share }.each { |c| c.max_ownership_percent = 100 }
 
@@ -974,19 +981,24 @@ module Engine
           return if @depot.upcoming.empty?
 
           # phase 3 starts in OR1.2, which exports all 2-trains and rusts the 'Rogers' train
-          if @depot.upcoming.first.name == '2'
-            depot.export_all!('2')
-            phase.next!
-            nc.trains.shift
-            @log << '-- Event: Rogers (1+1) train rusts --'
-          else
-            depot.export!
-          end
+          return unless @depot.upcoming.first.name == '2'
+
+          depot.export_all!('2')
+          phase.next!
+          nc.trains.shift
+          @log << '-- Event: Rogers (1+1) train rusts --'
+          # TODO: remove if not used
+          # One train is exported at the end of every OR
+          # depot.export! unless phase.name == 'D'
         end
 
         def or_set_finished
           # no one owns IC if in receivership
           ic.owner = nil if ic_in_receivership?
+
+          # TODO: remove if not used
+          # One train is exported at the end of every OR set
+          # depot.export! unless phase.name == 'D'
 
           # convert unstarted corporations at the appropriate time.
           if %w[4 4+2P 5 6 D].include?(@phase.name)
@@ -1001,14 +1013,15 @@ module Engine
 
           # remove unopened corporations and decrement cert limit
           remove_unparred_corporations!
-          
+
           @log << "-- Event: Certificate limit adjusted to #{@cert_limit} --"
 
           @log << '-- Event: All companies close --'
 
           @companies.select { |company| company.meta[:type] == :private }
-          .each do |company| 
+          .each do |company|
             next unless @corporations.include?(company.owner)
+
             company.close!
           end
 
@@ -1317,11 +1330,11 @@ module Engine
             @cert_limit -= 1
           end
 
-          if @blocking_log.empty?
-            @log << '-- Event: Removing unopened corporations --' 
-          else
-            @log << '-- Event: Removing unopened corporations and placing blocking tokens --' 
-          end
+          @log << if @blocking_log.empty?
+                    '-- Event: Removing unopened corporations --'
+                  else
+                    '-- Event: Removing unopened corporations and placing blocking tokens --'
+                  end
 
           @log << "#{@removed_corp_log.join(', ')} removed from the game"
 
@@ -1666,6 +1679,15 @@ module Engine
         def post_ic_formation
           # IC gains station tokens and places additional tokens if fewer than two mergers occur
           ic_reserve_tokens
+
+          if ic.trains.empty?
+            # Northern Cross starts with the 'Rogers' train
+            train = @depot.upcoming[0]
+            train.buyable = false
+            buy_train(ic, train, train.price)
+            @log << "#{ic.name} is trainless"
+            @log << "#{ic.name} buys a #{train.name} train for #{@game.format_currency(price)} from the Depot"
+          end
 
           # calculate IC's new share price - the average of merged corporations' share prices and $80
           price = if @merge_share_prices.one?

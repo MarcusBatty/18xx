@@ -6,16 +6,6 @@ module Engine
       module Trains
         TRAINS = [
            {
-             name: 'Rogers (1+1)',
-             distance: [
-             { 'nodes' => ['town'], 'pay' => 0, 'visit' => 1 },
-             { 'nodes' => ['city'], 'pay' => 1, 'visit' => 1 },
-               ],
-             price: 0,
-             num: 1,
-           },
-
-           {
              name: '2',
              distance: [{ 'nodes' => %w[town halt], 'pay' => 0, 'visit' => 99 },
                         { 'nodes' => %w[city offboard], 'pay' => 2, 'visit' => 2 }],
@@ -29,7 +19,7 @@ module Engine
                         { 'nodes' => %w[city offboard], 'pay' => 3, 'visit' => 3 }],
              price: 160,
              rusts_on: '5+1P',
-             num: 6,
+             num: 7,
            },
            {
              name: '4',
@@ -56,16 +46,14 @@ module Engine
              name: '5+1P',
              distance: [{ 'nodes' => %w[town halt], 'pay' => 0, 'visit' => 99 },
                         { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }],
-             price: 700,
-             # price: 720,
+             price: 720,
              num: 3,
            },
            {
              name: '6',
              distance: [{ 'nodes' => %w[town halt], 'pay' => 0, 'visit' => 99 },
                         { 'nodes' => %w[city offboard], 'pay' => 6, 'visit' => 6 }],
-             price: 600,
-             # price: 640,
+             price: 640,
              num: 2,
            },
            {

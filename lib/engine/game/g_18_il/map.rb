@@ -114,7 +114,8 @@ module Engine
                        'border=edge:4,type:water,cost:20;border=edge:5,type:water,cost:20',
             ['F1'] => 'path=a:1,b:0',
             ['H15'] => 'path=a:1,b:3',
-            ['H21'] => 'city=revenue:30;path=a:2,b:_0;path=a:3,b:_0;border=edge:2,type:water,cost:20',
+            ['H21'] => 'city=revenue:20;path=a:1,b:_0;path=a:2,b:_0;path=a:3,b:_0;border=edge:1,type:water,cost:20;'\
+                       'border=edge:2,type:water,cost:20',
 
           },
 

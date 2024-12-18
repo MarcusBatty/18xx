@@ -178,7 +178,7 @@ module Engine
               abilities: [
                 {
                   type: 'train_discount',
-                  discount: { '2' => 20, '3' => 40, '4' => 60, '3P' => 80, '4+2P' => 160, '5+1P' => 140, '6' => 120, 'D' => 200 },
+                  discount: { '2' => 20, '3' => 40, '4' => 60, '3P' => 80, '4+2P' => 160, '5+1P' => 144, '6' => 128, 'D' => 200 },
                   owner_type: 'corporation',
                   use_across_ors: false,
                   trains: %w[2 3 4 3P 4+2P 5+1P 6 D],
@@ -337,8 +337,7 @@ module Engine
               abilities: [
                 {
                   type: 'tile_lay',
-                  tiles: %w[58 M1],
-                  # tiles: %w[M1], TODO: swap in after pinning
+                  tiles: %w[M1],
                   hexes: MINES,
                   when: 'track',
                   owner_type: 'corporation',

@@ -72,8 +72,8 @@ module Engine
           def pass!
             company = @game.train_subsidy
             if company.ability_uses.first < 99
-              @log << "#{company.name} (#{@round.current_operator.name}) closes" if !company.closed?
-              
+              @log << "#{company.name} (#{@round.current_operator.name}) closes" unless company.closed?
+
               company.close!
             end
             super

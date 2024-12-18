@@ -7,16 +7,9 @@ module Engine
         MARKET_SHARE_LIMIT = 100
         MARKET = [
           %w[0c
+             10
              20
-             22
-             24
-             26
-             28
              30
-             32
-             34
-             36
-             38
              40p
              50
              60p
@@ -91,7 +84,7 @@ module Engine
               ['Dividend ≥ 3X stock price', '3 →'],
               ['Voluntary Issue', 'Full Amount, then 1 ←'],
               ['Emergency Issue', 'Half Amount, then ⤪ for each'],
-              ['Corporation is sold out at end of an SR', '1 ⤨ (5 share) or 1 → (10 share)'],
+              ['Corporation is sold out at end of an SR', '1 ⤨ (5-share) or 1 → (10-share)'],
               ['Corporation has any shares in the Market at end of an SR', '⤪ for each'],
           ]
         end

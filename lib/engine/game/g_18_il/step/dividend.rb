@@ -25,7 +25,7 @@ module Engine
                                    !current_entity.loans.empty? || @game.train_borrowed
 
             return [:payout] if @game.last_set_triggered
-            
+
             DIVIDEND_TYPES
           end
 
