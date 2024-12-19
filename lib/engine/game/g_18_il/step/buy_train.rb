@@ -144,7 +144,15 @@ module Engine
             train = action.train
             train.variant = action.variant
             price = action.price
+            exchange = action.exchange
 
+            # Check if the train is actually buyable in the current situation
+            if !buyable_exchangeable_train_variants(train, entity, exchange).include?(train.variant) ||
+                !(@game.depot.available(entity).include?(train) || buyable_trains(entity).include?(train))
+              raise GameError, "Not a buyable train: #{train.id}"
+            end
+            raise GameError, 'Must pay face value' if must_pay_face_value?(train, entity, price)
+            raise GameError, 'An entity cannot buy a train from itself' if train.owner == entity
             raise GameError, 'Must issue shares before the president may contribute' if entity.cash < price &&
              !entity.num_ipo_shares.zero? && must_buy_train?(entity)
 
@@ -161,7 +169,7 @@ module Engine
                 raise GameError, 'Must sell shares before buying train' if sellable_shares?(player)
 
                 try_take_loan(entity, price)
-              else
+              else              
                 player.spend(remaining, entity)
                 @log << "#{player.name} contributes #{@game.format_currency(remaining)}"
               end
@@ -169,7 +177,14 @@ module Engine
 
             check_for_cheapest_train(train) if entity == @game.ic
 
-            @log << "#{entity.name} buys a #{train.name} train for "\
+            if exchange
+              verb = "exchanges a #{exchange.name} for"
+              @depot.reclaim_train(exchange)
+            else
+              verb = 'buys'
+            end
+
+            @log << "#{entity.name} #{verb} a #{train.name} train for "\
                     "#{@game.format_currency(price)} from #{train.owner.name}"
 
             @game.buy_train(entity, train, price)

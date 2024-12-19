@@ -50,7 +50,7 @@ module Engine
               @log << "#{company.name} (#{corp.name}) closes"
               company.close!
 
-              @game.purchase_tokens!(corp, 1, 0, true)
+              corp.tokens << Engine::Token.new(corp, price: 0)
 
             when 'Pass'
               @log << "#{corp.name} passes gaining extra station"

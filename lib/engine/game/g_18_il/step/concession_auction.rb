@@ -22,6 +22,14 @@ module Engine
             sort_companies!
           end
 
+          def can_increase_bid?(entity)
+            entity.cash >= min_required(entity)
+          end
+
+          def min_required(_entity)
+            highest_bid(@auctioning).price + min_increment
+          end
+
           def prepare_ic_shares
             ic_shares = assign_share_values(:share, @game.ic.share_price.price)
             ic_presidents_share = assign_share_values(:presidents_share, @game.ic.share_price.price * 2)
@@ -107,7 +115,7 @@ module Engine
 
             entities.rotate(entities.find_index(starter)).each_with_index do |player, idx|
               next if player == starter
-              next if max_bid(player, @auctioning) < start_price + min_increment
+              next unless can_increase_bid?(player)
 
               bids << (Engine::Action::Bid.new(player,
                                                corporation: @auctioning,
@@ -115,7 +123,7 @@ module Engine
             end
             # resolve auction immediately after starting if no other player can afford to bid
             resolve_bids if entities.reject { |e| e == starter }
-                            .select { |e| max_bid(e, @auctioning) >= start_price + min_increment }.empty?
+                            .select { |e| can_increase_bid?(e) }.empty?
             post_auction if @companies.empty? && entities.one?
           end
 

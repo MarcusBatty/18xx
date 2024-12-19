@@ -73,6 +73,7 @@ module Engine
               events: [
                 { 'type' => 'signal_end_game' },
                 ],
+              discount: { '4+2P' => 200, '5+1P' => 300, '6' => 400 },
             },
          ].freeze
       end

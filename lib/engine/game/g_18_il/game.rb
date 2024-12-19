@@ -42,7 +42,8 @@ module Engine
         STARTING_CASH = { 2 => 800, 3 => 640, 4 => 480, 5 => 360, 6 => 300 }.freeze
 
         EVENTS_TEXT = Base::EVENTS_TEXT.merge(
-          'signal_end_game' => ['Signal End Game', 'Game Ends 3 ORs after purchase/export of first D train']
+          'signal_end_game' => ['Signal End Game', 'Game Ends 3 ORs after purchase of first D train']
+          # 'signal_end_game' => ['Signal End Game', 'Game Ends 3 ORs after purchase/export of first D train']
         ).freeze
 
         STATUS_TEXT = Base::STATUS_TEXT.merge(
@@ -331,7 +332,7 @@ module Engine
 
           return if !ic_in_receivership? || !ic_formation_triggered?
 
-          ic.owner = priority_deal_player
+          ic.owner = @players.sort_by { rand }.first
           @log << "#{ic.name} is in receivership and will be operated "\
                   "by the player with priority deal (#{priority_deal_player.name})"
         end
@@ -856,7 +857,7 @@ module Engine
           if corporation == station_subsidy.owner
             @log << "#{corporation.name} uses #{station_subsidy.name} and buys"\
                     " #{count} #{count == 1 ? 'token' : 'tokens'} for #{format_currency(total_cost)}"
-            token_ability = corporation.all_abilities.find { |a| a.type == :token }
+            token_ability = corporation.all_abilities.find { |a| a.desc_detail == 'Station Subsidy' }
             count.times { token_ability.use! }
             unless token_ability.count.positive?
               station_subsidy.close!
@@ -1318,7 +1319,8 @@ module Engine
           @final_operating_rounds = 3
           game_end_check
           @operating_rounds = 3 if phase.name == 'D' && round.round_num == 2
-          @log << "-- First D train bought/exported, game ends at the end of OR #{@turn + 1}.#{@final_operating_rounds} --"
+          @log << "-- First D train bought, game ends at the end of OR #{@turn + 1}.#{@final_operating_rounds} --"
+         #  @log << "-- First D train bought/exported, game ends at the end of OR #{@turn + 1}.#{@final_operating_rounds} --"
         end
 
         def remove_unparred_corporations!
@@ -1600,7 +1602,7 @@ module Engine
           end
 
           # Handle IC token replacement
-          ic.tokens << Engine::Token.new(ic, price: 0)
+          ic.tokens << Token.new::(ic, price: 0)
           ic_tokens = ic.tokens.reject(&:city)
           corporation_token = corporation.tokens.find { |token| IC_LINE_HEXES.include?(token&.hex&.id) }
           replace_ic_token(corporation, corporation_token, ic_tokens)
@@ -1639,7 +1641,7 @@ module Engine
           # Place tokens in the city until we have 2
           while count < 2
             # Add new token to the corporation
-            ic.tokens << Engine::Token.new(ic, price: 0)
+            ic.tokens << Token.new(ic, price: 0)
             ic_tokens = ic.tokens.reject(&:city)
 
             # Determine where to place the token
@@ -1653,7 +1655,7 @@ module Engine
             count += 1
           end
 
-          ic.tokens << Engine::Token.new(ic, price: 0) while ic.tokens.count < 7
+          ic.tokens << Token.new(ic, price: 0) while ic.tokens.count < 7
         end
 
         def ic_line_token_location
@@ -1684,13 +1686,13 @@ module Engine
           # IC gains station tokens and places additional tokens if fewer than two mergers occur
           ic_reserve_tokens
 
-          if ic.trains.empty?
-            # Northern Cross starts with the 'Rogers' train
-            train = @depot.upcoming[0]
-            train.buyable = false
+          train = @depot.upcoming[0]
+          if ic.trains.empty? && ic.cash >= @depot.min_depot_price
+            # IC buys a train immediately if it is trainless and has enough cash
             buy_train(ic, train, train.price)
+            @phase.buying_train!(ic, train, train.owner)
             @log << "#{ic.name} is trainless"
-            @log << "#{ic.name} buys a #{train.name} train for #{@game.format_currency(price)} from the Depot"
+            @log << "#{ic.name} buys a #{train.name} train for #{format_currency(train.price)} from the Depot"
           end
 
           # calculate IC's new share price - the average of merged corporations' share prices and $80
@@ -1708,9 +1710,8 @@ module Engine
           add_ic_receivership_ability
           if ic_in_receivership?
             @log << "#{ic.name} enters receivership (it has no president)"
-            @log << "#{ic.name} will be operated by the player with priority deal (#{priority_deal_player.name}) "\
-                    'if still in receivership'
-            ic.owner = priority_deal_player
+            @log << "While in receivership, #{ic.name} will be operated by a random player"
+            ic.owner = @players.sort_by { rand }.first
           else
             add_ic_operating_ability
           end

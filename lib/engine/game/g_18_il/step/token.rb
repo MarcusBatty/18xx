@@ -53,6 +53,7 @@ module Engine
 
           def place_token(entity, city, token, connected: true, extra_action: false, special_ability: nil, check_tokenable: true)
             hex = city.hex
+
             if @game.class::STL_TOKEN_HEX.include?(hex.id)
               # Check for STL connection
               stl_token_errors(entity, token)

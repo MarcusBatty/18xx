@@ -220,7 +220,8 @@ module Engine
               meta: { type: :private, class: :A },
               abilities: [
                 {
-                  type: 'token',
+                  type: 'description',
+                  desc_detail: 'Station Subsidy',
                   hexes: [],
                   owner_type: 'corporation',
                   count: 4,
