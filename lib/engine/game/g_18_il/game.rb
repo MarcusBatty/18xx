@@ -65,10 +65,13 @@ module Engine
         MUST_BUY_TRAIN = :always
         DISCARDED_TRAINS = :remove
 
-        GAME_END_CHECK = { final_phase: :one_more_full_or_set }.freeze
+        GAME_END_CHECK = {
+          final_phase: :one_more_full_or_set,
+          stock_market: :current_or,
+        }.freeze
+
         SELL_AFTER = :operate
         SELL_MOVEMENT = :none
-
         SOLD_OUT_INCREASE = true
         MUST_EMERGENCY_ISSUE_BEFORE_EBUY = true
         CLOSED_CORP_TRAINS_REMOVED = false
@@ -85,7 +88,7 @@ module Engine
         CLASS_B_COMPANIES = %w[].freeze
         PORT_TILES = %w[SPH POM].freeze
         STL_HEXES = %w[B15 B17 C16 C18].freeze
-        STL_TOKEN_HEXES = %w[C18].freeze
+        STL_TOKEN_HEX = ['C18'].freeze
         CHICAGO_HEX = ['H3'].freeze
         SPRINGFIELD_HEX = 'E12'.freeze
         CORPORATION_SIZES = { 2 => :small, 5 => :medium, 10 => :large }.freeze
@@ -119,6 +122,11 @@ module Engine
           'E20' => [4, 0],
           'E22' => [3, 0],
         }.freeze
+
+        BLOCKING_LOGOS = [
+          '/logos/18_il/yellow_blocking.svg', '/logos/18_il/green_blocking.svg',
+          '/logos/18_il/brown_blocking.svg', '/logos/18_il/gray_blocking.svg'
+        ].freeze
 
         IMMOBILE_SHARE_PRICE_ABILITY = Ability::Description.new(
           type: 'description',
@@ -244,14 +252,13 @@ module Engine
           # Base tile lay for Engineering Mastery
           tile_lays = [{ lay: true, upgrade: true, cost: 0, cannot_reuse_same_hex: true }]
 
-          # Add the first upgrade option for $20
-          tile_lays << { lay: true, upgrade: true, cost: 20, cannot_reuse_same_hex: true } unless @round.upgraded_track
-
-          # Add the second upgrade option for $30 (if the first upgrade was used)
+          # Add an upgrade option for $30 (if the first upgrade was used)
           if @round.upgraded_track
             tile_lays << { lay: true, upgrade: true, cost: 20, upgrade_cost: 30, cannot_reuse_same_hex: true }
+          else
+            # Add an upgrade option for $20 (if the first upgrade as not used)
+            tile_lays << { lay: true, upgrade: true, cost: 20, cannot_reuse_same_hex: true } unless @round.upgraded_track
           end
-
           tile_lays
         end
 
@@ -265,7 +272,7 @@ module Engine
           status << "Concession: #{company.owner.name}" if company&.owner&.player?
           status << "Option cubes: #{@option_cubes[corp]}" if (@option_cubes[corp]).positive?
           status << "Loan amount: #{format_currency(corp.loans.first.amount)}" unless corp.loans.empty?
-          status << 'Has not operated' unless corp.operated?
+          status << 'Has not operated' if !corp.operated? && corp.floated?
           if @round.is_a?(G18IL::Round::Stock)
             reserve_players = @players.reject { |p| @round.reserve_bought[p][corp].empty? }.map(&:name)
             status << "#{reserve_players.join(', ')} may not sell shares" unless reserve_players.empty?
@@ -315,7 +322,7 @@ module Engine
             player = c.owner
             player.companies.delete(c)
             c.owner = nil
-            @log << "#{c.name} (#{c.sym}) has not been used by #{player.name} and is returned to the bank"
+            @log << "#{c.name} (#{c.sym}) has not been used by #{player.name} and is returned to the concession row"
           end
         end
 
@@ -381,8 +388,12 @@ module Engine
           @ic_formation_triggered
         end
 
-        def gsbc
-          @game_start_blocking_corp
+        def stlbc
+          @stl_blocking_corp
+        end
+
+        def find_company_by_name(name)
+          @companies.find { |c| c&.name == name }
         end
 
         def setup_preround
@@ -397,25 +408,20 @@ module Engine
 
         # Create the corporation that places blocking tokens in St. Louis
         def create_blocking_corp
-          blocking_logos = [
-            '/logos/18_il/yellow_blocking.svg', '/logos/18_il/green_blocking.svg',
-            '/logos/18_il/brown_blocking.svg', '/logos/18_il/gray_blocking.svg'
-          ]
-
           # Initialize the blocking corporation with its logos and tokens
-          @game_start_blocking_corp = Corporation.new(
-            sym: 'GSB', name: 'game_start_blocking_corp', logo: blocking_logos[0],
-            simple_logo: blocking_logos[0], tokens: [0]
+          @stl_blocking_corp = Corporation.new(
+            sym: 'STLBC', name: 'stl_blocking_corp', logo: BLOCKING_LOGOS[0],
+            simple_logo: BLOCKING_LOGOS[0], tokens: [0]
           )
-          @game_start_blocking_corp.owner = @bank
+          @stl_blocking_corp.owner = @bank
 
           # Find the city where the blocking tokens will be placed
           city = @hexes.find { |hex| hex.id == 'C18' }.tile.cities.first
 
           # Place blocking tokens in the city for each color
-          blocking_logos.each do |logo|
-            token = Token.new(@game_start_blocking_corp, price: 0, logo: logo, simple_logo: logo, type: :blocking)
-            city.place_token(@game_start_blocking_corp, token, check_tokenable: false)
+          BLOCKING_LOGOS.each do |logo|
+            token = Token.new(@stl_blocking_corp, price: 0, logo: logo, simple_logo: logo, type: :blocking)
+            city.place_token(@stl_blocking_corp, token, check_tokenable: false)
           end
         end
 
@@ -447,6 +453,13 @@ module Engine
         end
 
         def setup
+          @companies.each do |c|
+            if c.meta[:type] == :private
+              method_name = c.name.downcase.gsub(/[^a-z0-9]+/, '_').gsub(/^_|_$/, '')
+              self.class.send(:define_method, method_name) { c }
+            end
+          end
+
           ic.add_ability(self.class::FORMATION_ABILITY)
           ic.owner = nil
           @corporation_debts = Hash.new { |h, k| h[k] = 0 }
@@ -467,17 +480,9 @@ module Engine
           @ic_line_completed_hexes = []
 
           # Northern Cross starts with the 'Rogers' train
-          train = Train.new(
-            name: 'Rogers (1+1)',
-            distance: [
-            { 'nodes' => ['town'], 'pay' => 0, 'visit' => 1 },
-            { 'nodes' => ['city'], 'pay' => 1, 'visit' => 1 },
-              ],
-            price: 0,
-            num: 1,
-          )
+          train = @depot.upcoming[0]
           train.buyable = false
-          nc.trains << train
+          buy_train(nc, train, :free)
 
           @corporations.select { |corp| corp.type == :two_share }.each { |c| c.max_ownership_percent = 100 }
 
@@ -605,7 +610,7 @@ module Engine
         end
 
         def eligible_tokens?(corporation)
-          corporation.tokens.find { |t| t.used && !STL_TOKEN_HEXES.include?(t.hex.id) }
+          corporation.tokens.find { |t| t.used && !STL_TOKEN_HEX.include?(t.hex.id) }
         end
 
         def place_home_token(corporation)
@@ -628,11 +633,11 @@ module Engine
           # if reopened corp has no flipped tokens on map, it can place token in any available city slot except in CHI or STL
           if eligible_tokens?(corporation)
             # if reopened corp has flipped token(s) on map, it can flip one of these tokens (except for STL)
-            hexes.select { |hex| hex.tile.cities.find { |c| c.tokened_by?(corporation) && !STL_TOKEN_HEXES.include?(hex.id) } }
+            hexes.select { |hex| hex.tile.cities.find { |c| c.tokened_by?(corporation) && !STL_TOKEN_HEX.include?(hex.id) } }
           else
             hexes.select do |hex|
               hex.tile.cities.any? && hex.tile.cities.select { |c| c.reservations.any? }.empty? &&
-              !STL_TOKEN_HEXES.include?(hex.id) && !CHICAGO_HEX.include?(hex.id)
+              !STL_TOKEN_HEX.include?(hex.id) && !CHICAGO_HEX.include?(hex.id)
             end
           end
         end
@@ -848,8 +853,6 @@ module Engine
         def purchase_tokens!(corporation, count, total_cost, quiet = false)
           count.times { corporation.tokens << Token.new(corporation, price: 0) }
           auto_emr(corporation, total_cost) if corporation.cash < total_cost
-          corporation.spend(total_cost, @bank) unless total_cost.zero?
-
           if corporation == station_subsidy.owner
             @log << "#{corporation.name} uses #{station_subsidy.name} and buys"\
                     " #{count} #{count == 1 ? 'token' : 'tokens'} for #{format_currency(total_cost)}"
@@ -860,6 +863,7 @@ module Engine
               @log << "#{station_subsidy.name} (#{corporation.name}) closes"
             end
           else
+            corporation.spend(total_cost, @bank)
             unless quiet
               @log << "#{corporation.name} buys #{count} #{count == 1 ? 'token' : 'tokens'} for #{format_currency(total_cost)}"
             end
@@ -1118,7 +1122,7 @@ module Engine
         end
 
         def subsidy_for(route, _stops)
-          return 0 unless route.corporation == us_mail_line.owner
+          return 0 unless route.corporation == u_s_mail_line.owner
 
           (route.visited_stops & regular_stops).count * 10
         end
@@ -1197,7 +1201,7 @@ module Engine
         end
 
         def stl_permit?(entity)
-          STL_TOKEN_HEXES.any? { |h| hex_by_id(h).tile.cities.any? { |c| c.tokened_by?(entity) } }
+          STL_TOKEN_HEX.any? { |h| hex_by_id(h).tile.cities.any? { |c| c.tokened_by?(entity) } }
         end
 
         def stl_hex?(stop)
@@ -1768,74 +1772,6 @@ module Engine
 
         def ic_in_receivership?
           ic.presidents_share.owner == ic
-        end
-
-        def find_company_by_name(name)
-          @companies.find { |c| c&.name == name }
-        end
-
-        def extra_station
-          @extra_station ||= find_company_by_name('Extra Station')
-        end
-
-        def goodrich_transit_line
-          @goodrich_transit_line ||= find_company_by_name('Goodrich Transit Line')
-        end
-
-        def rush_delivery
-          @rush_delivery ||= find_company_by_name('Rush Delivery')
-        end
-
-        def station_subsidy
-          @station_subsidy ||= find_company_by_name('Station Subsidy')
-        end
-
-        def share_premium
-          @share_premium ||= find_company_by_name('Share Premium')
-        end
-
-        def steamboat
-          @steamboat ||= find_company_by_name('Steamboat')
-        end
-
-        def train_subsidy
-          @train_subsidy ||= find_company_by_name('Train Subsidy')
-        end
-
-        def us_mail_line
-          @us_mail_line ||= find_company_by_name('U.S. Mail Line')
-        end
-
-        def advanced_track
-          @advanced_track ||= find_company_by_name('Advanced Track')
-        end
-
-        def central_illinois_boom
-          @central_illinois_boom ||= find_company_by_name('Central Illinois Boom')
-        end
-
-        def chicago_virden_coal_company
-          @chicago_virden_coal_company ||= find_company_by_name('Chicago-Virden Coal Company')
-        end
-
-        def diverse_cargo
-          @diverse_cargo ||= find_company_by_name('Diverse Cargo')
-        end
-
-        def engineering_mastery
-          @engineering_mastery ||= find_company_by_name('Engineering Mastery')
-        end
-
-        def frink_walker_co
-          @frink_walker_co ||= find_company_by_name('Frink, Walker, & Co.')
-        end
-
-        def illinois_steel_bridge_company
-          @illinois_steel_bridge_company ||= find_company_by_name('Illinois Steel Bridge Company')
-        end
-
-        def lincoln_funeral_car
-          @lincoln_funeral_car ||= find_company_by_name('Lincoln Funeral Car')
         end
       end
     end

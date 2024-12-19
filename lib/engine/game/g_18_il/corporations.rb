@@ -4,7 +4,7 @@ module Engine
   module Game
     module G18IL
       module Corporations
-        def game_corporations
+        CORPORATIONS =
           [
               {
                 float_percent: 100,
@@ -131,8 +131,7 @@ module Engine
                 always_market_price: true,
                 floatable: false,
               },
-          ]
-        end
+            ].freeze
       end
     end
   end

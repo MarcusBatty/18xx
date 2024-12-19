@@ -21,7 +21,7 @@ module Engine
           end
 
           def active_entities
-            @active_company = [@game.chicago_virden_coal_company, @game.frink_walker_co, @game.us_mail_line].find do |company|
+            @active_company = [@game.chicago_virden_coal_company, @game.frink_walker_co, @game.u_s_mail_line].find do |company|
               company&.owner == @round.current_operator
             end
 

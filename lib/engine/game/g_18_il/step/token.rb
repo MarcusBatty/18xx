@@ -27,7 +27,7 @@ module Engine
 
           def available_hex(entity, hex)
             @game.graph.reachable_hexes(entity)[hex] ||
-              (can_token_stl?(entity) && @game.class::STL_TOKEN_HEXES.include?(hex.id))
+              (can_token_stl?(entity) && @game.class::STL_TOKEN_HEX.include?(hex.id))
           end
 
           def can_place_token?(entity)
@@ -47,28 +47,38 @@ module Engine
             end
           end
 
+          def phase_colors
+            @game.phase.current[:tiles]
+          end
+
           def place_token(entity, city, token, connected: true, extra_action: false, special_ability: nil, check_tokenable: true)
             hex = city.hex
-
-            if @game.class::STL_TOKEN_HEXES.include?(hex.id)
-
+            if @game.class::STL_TOKEN_HEX.include?(hex.id)
               # Check for STL connection
               stl_token_errors(entity, token)
 
               # Remove blocker token based on phase restrictions
+              found_replaceable_token = false
+
               city.tokens.each_with_index do |t, index|
-                next unless t&.corporation&.name == 'GSB'
+                next unless t&.corporation&.name == 'STLBC'
 
                 replace_token = case index
-                                when 0 then true # Always replace the first token
-                                when 1 then @game.phase.name != '2'
-                                when 2 then !%w[2 3].include?(@game.phase.name)
-                                when 3 then @game.phase.name == 'D'
+                                when 0 then phase_colors.include?('yellow')
+                                when 1 then phase_colors.include?('green')
+                                when 2 then phase_colors.include?('brown')
+                                when 3 then phase_colors.include?('gray')
                                 else false
                                 end
 
-                city.tokens[index] = nil if replace_token
+                next unless replace_token
+
+                city.tokens[index] = nil
+                found_replaceable_token = true
+                break
               end
+
+              raise GameError, 'No permit token slot available until phase color change' unless found_replaceable_token
 
               # Place the new token if a slot is available
               if city.tokens.any?(&:nil?)
@@ -83,7 +93,7 @@ module Engine
             flipped_token = hex.tile.cities.map { |c| c.tokens.find { |t| t&.status == :flipped } }.first
             if flipped_token && city.tokens.none?(&:nil?)
               # check for STL connection
-              stl_token_errors(entity, token) if @game.class::STL_TOKEN_HEXES.include?(hex.id)
+              stl_token_errors(entity, token) if @game.class::STL_TOKEN_HEX.include?(hex.id)
               raise GameError, 'Not enough cash to replace flipped token' if entity.cash < TOKEN_REPLACEMENT_COST
 
               entity.spend(TOKEN_REPLACEMENT_COST, flipped_token.corporation)

@@ -93,7 +93,7 @@ module Engine
                        'icon=image:18_il/ic_cube,sticky:1,loc:1.5',
             ['G20'] => 'border=edge:5,type:water,cost:20',
             ['G22'] => 'town=revenue:0,groups:mine;icon=image:18_il/mine,sticky:1;'\
-                       'border=edge:0,type:water,cost:20;border=edge:1,type:water,cost:20',
+                       'border=edge:0,type:water,cost:20;border=edge:1,type:water,cost:20;border=edge:4,type:water,cost:20',
             ['H7'] => 'label=K;city=revenue:0;path=a:1,b:_0,track:future;path=a:3,b:_0,track:future;'\
                       'icon=image:18_il/ic_cube,sticky:1,loc:1.5',
             ['H17'] => 'border=edge:5,type:water,cost:20',
@@ -114,7 +114,7 @@ module Engine
                        'border=edge:4,type:water,cost:20;border=edge:5,type:water,cost:20',
             ['F1'] => 'path=a:1,b:0',
             ['H15'] => 'path=a:1,b:3',
-            ['H21'] => 'city=revenue:20;path=a:1,b:_0;path=a:2,b:_0;path=a:3,b:_0;border=edge:1,type:water,cost:20;'\
+            ['H21'] => 'city=revenue:30;path=a:1,b:_0;path=a:2,b:_0;path=a:3,b:_0;border=edge:1,type:water,cost:20;'\
                        'border=edge:2,type:water,cost:20',
 
           },

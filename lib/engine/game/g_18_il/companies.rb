@@ -9,7 +9,7 @@ module Engine
       module Companies
         MINES = %w[D9 D13 D17 E6 E14 E16 F5 F13 F21 G22 H11].freeze
 
-        def game_companies
+        COMPANIES =
           [
             {
               name: 'Peoria and Bureau Valley Railroad',
@@ -457,8 +457,7 @@ module Engine
               text_color: 'white',
               meta: { type: :share },
             },
-          ]
-        end
+          ].freeze
       end
     end
   end

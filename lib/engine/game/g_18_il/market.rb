@@ -60,18 +60,20 @@ module Engine
              440
              460
              480
-             500],
+             500e],
           ].freeze
 
         STOCKMARKET_COLORS = {
           par: :yellow,
           close: :black,
+          endgame: :blue,
         }.freeze
 
-        MARKET_TEXT = {
-          par: 'Par values',
-          close: 'Corporation closes',
-        }.freeze
+        # MARKET_TEXT = {
+        #   par: 'Par value',
+        #   close: 'Corporation closes',
+        #   endgame: 'End game trigger',
+        # }.freeze
 
         def price_movement_chart
           [
