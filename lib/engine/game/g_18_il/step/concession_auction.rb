@@ -109,7 +109,6 @@ module Engine
             @log << "-- #{bid.entity.name} nominates #{@auctioning.name} for auction --"
             add_bid(bid)
             starter = bid.entity
-            start_price = bid.price
 
             bids = @bids[@auctioning]
 

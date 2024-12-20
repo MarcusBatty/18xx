@@ -216,6 +216,31 @@ module Engine
         end
 
         def operating_round(round_num)
+          # if @optional_rules.include?(:intro_game)
+          #   Engine::Round::Operating.new(self, [
+          #     Engine::Step::Exchange,
+          #     G18IL::Step::SpecialTrack,
+          #     Engine::Step::SpecialToken,
+          #     Engine::Step::HomeToken,
+          #     G18IL::Step::ExchangeChoiceCorp,
+          #     G18IL::Step::ExchangeChoicePlayer,
+          #     G18IL::Step::Merge,
+          #     Engine::Step::DiscardTrain,
+          #     G18IL::Step::Conversion,
+          #     G18IL::Step::PostConversionShares,
+          #     G18IL::Step::BuyNewTokens,
+          #     G18IL::Step::CorporateIssueBuyShares,
+          #     G18IL::Step::Track,
+          #     G18IL::Step::Token,
+          #     G18IL::Step::BorrowTrain,
+          #     G18IL::Step::CorporateSellShares,
+          #     G18IL::Step::Route,
+          #     G18IL::Step::Dividend,
+          #     G18IL::Step::SpecialBuyTrain,
+          #     G18IL::Step::BuyTrain,
+          #     [G18IL::Step::BuyCompany, { blocks: true }],
+          #   ], round_num: round_num)
+          # else
           Engine::Round::Operating.new(self, [
             G18IL::Step::DiverseCargoChoice,
             G18IL::Step::MineCompanyChoice,
@@ -245,6 +270,7 @@ module Engine
             G18IL::Step::BuyTrain,
             [G18IL::Step::BuyCompany, { blocks: true }],
           ], round_num: round_num)
+          # end
         end
 
         def tile_lays(entity)
@@ -332,7 +358,7 @@ module Engine
 
           return if !ic_in_receivership? || !ic_formation_triggered?
 
-          ic.owner = @players.sort_by { rand }.first
+          ic.owner = @players.min_by { rand }
           @log << "#{ic.name} is in receivership and will be operated "\
                   "by the player with priority deal (#{priority_deal_player.name})"
         end
@@ -342,21 +368,27 @@ module Engine
         end
 
         def company_status_str(company)
-          return if company.owner || @optional_rules&.include?(:intro_game)
+          return if company.owner
 
-          case company.meta[:type]
-          when :private
-            company.meta[:class] == :A ? 'Class A' : 'Class B'
-          when :concession
-            corp = @corporations.find { |c| c.name == company.sym }
-            return unless corp
+          if @optional_rules&.include?(:intro_game)
+            corporation = corporation_by_id(company.sym)
+            return 'Starts with mine marker' if mine_corporation?(corporation)
+            return 'Starts with port marker' if port_corporation?(corporation)
+          else
+            case company.meta[:type]
+            when :private
+              company.meta[:class] == :A ? 'Class A' : 'Class B'
+            when :concession
+              corp = @corporations.find { |c| c.name == company.sym }
+              return unless corp
 
-            a = corp.companies[0]
-            b = corp.companies[1]
-            [].tap do |status|
-              status << "A: #{a.name}" if a
-              status << "B: #{b.name}" if b
-            end.join(' ')
+              a = corp.companies[0]
+              b = corp.companies[1]
+              [].tap do |status|
+                status << "A: #{a.name}" if a
+                status << "B: #{b.name}" if b
+              end.join(' ')
+            end
           end
         end
 
@@ -487,7 +519,9 @@ module Engine
 
           @corporations.select { |corp| corp.type == :two_share }.each { |c| c.max_ownership_percent = 100 }
 
-          share_premium.owner.ipo_shares.last.buyable = false if share_premium&.owner&.total_shares == 10
+          if !@optional_rules&.include?(:intro_game) && (share_premium&.owner&.total_shares == 10)
+            share_premium&.owner&.ipo_shares&.last&.buyable = false
+          end
 
           @stl_nodes = STL_HEXES.map do |h|
             hex_by_id(h).tile.nodes.find { |n| n.offboard? && n.groups.include?('STL') }
@@ -1320,7 +1354,7 @@ module Engine
           game_end_check
           @operating_rounds = 3 if phase.name == 'D' && round.round_num == 2
           @log << "-- First D train bought, game ends at the end of OR #{@turn + 1}.#{@final_operating_rounds} --"
-         #  @log << "-- First D train bought/exported, game ends at the end of OR #{@turn + 1}.#{@final_operating_rounds} --"
+          #  @log << "-- First D train bought/exported, game ends at the end of OR #{@turn + 1}.#{@final_operating_rounds} --"
         end
 
         def remove_unparred_corporations!
@@ -1392,6 +1426,8 @@ module Engine
           corp = action.entity.owner if action.entity.company?
 
           super
+
+          return if @optional_rules.include?(:intro_game)
 
           if action.entity == central_illinois_boom
             tile = action.hex.tile
@@ -1602,7 +1638,7 @@ module Engine
           end
 
           # Handle IC token replacement
-          ic.tokens << Token.new::(ic, price: 0)
+          ic.tokens << Token.new(ic, price: 0)
           ic_tokens = ic.tokens.reject(&:city)
           corporation_token = corporation.tokens.find { |token| IC_LINE_HEXES.include?(token&.hex&.id) }
           replace_ic_token(corporation, corporation_token, ic_tokens)
@@ -1711,7 +1747,7 @@ module Engine
           if ic_in_receivership?
             @log << "#{ic.name} enters receivership (it has no president)"
             @log << "While in receivership, #{ic.name} will be operated by a random player"
-            ic.owner = @players.sort_by { rand }.first
+            ic.owner = @players.min_by { rand }
           else
             add_ic_operating_ability
           end

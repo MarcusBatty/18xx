@@ -169,7 +169,7 @@ module Engine
                 raise GameError, 'Must sell shares before buying train' if sellable_shares?(player)
 
                 try_take_loan(entity, price)
-              else              
+              else
                 player.spend(remaining, entity)
                 @log << "#{player.name} contributes #{@game.format_currency(remaining)}"
               end
