@@ -29,6 +29,12 @@ module Engine
                   'One random port tile is placed on the map; the other is removed from the game.',
           },
           {
+            sym: :fixed_setup,
+            short_name: 'Fixed Setup',
+            desc: 'Private companies are assigned to corporations deterministically (see Variants section in the '\
+            'back of the rulebook).'
+          },
+          {
             sym: :two_player_share_limit,
             short_name: '(2p only) 70% Corporation Holding Limit',
             desc: "When enabled, a player can gain up to 70% of a corporation's shares through normal means in a 2p game. "\

@@ -488,9 +488,11 @@ module Engine
           class_a = @companies.select { |c| c.meta[:class] == :A }
           class_b = @companies.select { |c| c.meta[:class] == :B }
 
-          class_a = class_a.sort_by { rand }
-          class_b = class_b.sort_by { rand }
-
+          unless @optional_rules&.include?(:fixed_setup)
+            class_a = class_a.sort_by { rand }
+            class_b = class_b.sort_by { rand }
+          end
+          
           @log << '-- Auction Lot Formation --'
 
           @corporations.select(&:floatable).each_with_index do |corp, index|
