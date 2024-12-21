@@ -28,7 +28,7 @@ module Engine
             ic_line_tile(action, hex, tile, city) if @game.ic_line_hex?(action.hex)
 
             # Closes GTL if Chicago is upgraded to brown
-            if tile.name == 'CHI3' && !@game.goodrich_transit_line.closed?
+            if !@game.optional_rules&.include?(:intro_game) && tile.name == 'CHI3' && !@game.goodrich_transit_line.closed?
               company = @game.goodrich_transit_line
               @log << "#{company.name} (#{company.owner.name}) closes"
               company.close!
@@ -59,7 +59,8 @@ module Engine
               end
 
               # Adds reservation to IC Line hex when new tile is green city
-              tile.add_reservation!(@game.ic, city) if @game.class::IC_LINE_HEXES.include?(hex.id)
+              tile.add_reservation!(@game.ic, city) if @game.class::IC_LINE_HEXES.include?(hex.id) &&
+                                                      !@game.ic.tokens.find { |t| t.hex == hex }
 
             when :brown
               # Removes reservation from IC Line hex when new tile is brown city

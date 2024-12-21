@@ -22,14 +22,6 @@ module Engine
             sort_companies!
           end
 
-          def can_increase_bid?(entity)
-            entity.cash >= min_required(entity)
-          end
-
-          def min_required(_entity)
-            highest_bid(@auctioning).price + min_increment
-          end
-
           def prepare_ic_shares
             ic_shares = assign_share_values(:share, @game.ic.share_price.price)
             ic_presidents_share = assign_share_values(:presidents_share, @game.ic.share_price.price * 2)
@@ -109,12 +101,13 @@ module Engine
             @log << "-- #{bid.entity.name} nominates #{@auctioning.name} for auction --"
             add_bid(bid)
             starter = bid.entity
+            start_price = bid.price
 
             bids = @bids[@auctioning]
 
             entities.rotate(entities.find_index(starter)).each_with_index do |player, idx|
               next if player == starter
-              next unless can_increase_bid?(player)
+              next if max_bid(player, @auctioning) <= start_price
 
               bids << (Engine::Action::Bid.new(player,
                                                corporation: @auctioning,
@@ -122,7 +115,7 @@ module Engine
             end
             # resolve auction immediately after starting if no other player can afford to bid
             resolve_bids if entities.reject { |e| e == starter }
-                            .select { |e| can_increase_bid?(e) }.empty?
+                            .select { |e| max_bid(e, @auctioning) >= min_bid(@auctioning) }.empty?
             post_auction if @companies.empty? && entities.one?
           end
 
@@ -146,14 +139,9 @@ module Engine
             when :share
               bundle = ShareBundle.new(ic.shares.last)
               @game.share_pool.transfer_shares(bundle, player)
-              if @game.ic_in_receivership?
-                @bought_shares << company
-                @game.companies.delete(company)
-                @companies.delete(company)
-                company.close!
               # if IC now has a president and president's cert still exists,
               # remove the president's cert proxy from the auction
-              elsif (pres = @game.companies.find { |c| c == @game.company_by_id('ICP') })
+              if (pres = @game.companies.find { |c| c == @game.company_by_id('ICP') })
                 company.close!
                 @companies << company
                 @game.companies << @bought_shares.first
@@ -165,9 +153,10 @@ module Engine
                 @companies = @companies.sort_by { |c| c.meta[:type] }
                 @game.add_ic_operating_ability
               else
-                company.close!
+                @bought_shares << company
                 @game.companies.delete(company)
                 @companies.delete(company)
+                company.close!
               end
             # exchange for president's share of IC
             when :presidents_share

@@ -154,8 +154,8 @@ module Engine
         OPERATING_ABILITY = Ability::Description.new(
           type: 'description',
           description: 'Modified operating turn',
-          desc_detail: 'IC only performs the "lay track", "place token", "run trains", and "buy trains" '\
-                       'steps during its operating turns.'
+          desc_detail: 'IC only performs the "lay track", "place token", "scrap trains", "run trains", '\
+                       ' and "buy trains" steps during its operating turns.'
         )
         TRAIN_BUY_ABILITY = Ability::Description.new(
           type: 'description',
@@ -163,6 +163,12 @@ module Engine
           desc_detail: 'IC can only buy trains from the bank and can only buy one train per round. '\
                        'IC is not required to own a train, but must buy a train if possible. '\
                        'Corporations may not purchase permanent trains from IC.'
+        )
+        TRAIN_LIMIT_ABILITY = Ability::TrainLimit.new(
+          type: 'train_limit',
+          increase: 1,
+          description: 'Train limit + 1',
+          desc_detail: "IC's train limit is one higher than the current limit"
         )
         STOCK_PURCHASE_ABILITY = Ability::Description.new(
           type: 'description',
@@ -216,65 +222,65 @@ module Engine
         end
 
         def operating_round(round_num)
-          # if @optional_rules.include?(:intro_game)
-          #   Engine::Round::Operating.new(self, [
-          #     Engine::Step::Exchange,
-          #     G18IL::Step::SpecialTrack,
-          #     Engine::Step::SpecialToken,
-          #     Engine::Step::HomeToken,
-          #     G18IL::Step::ExchangeChoiceCorp,
-          #     G18IL::Step::ExchangeChoicePlayer,
-          #     G18IL::Step::Merge,
-          #     Engine::Step::DiscardTrain,
-          #     G18IL::Step::Conversion,
-          #     G18IL::Step::PostConversionShares,
-          #     G18IL::Step::BuyNewTokens,
-          #     G18IL::Step::CorporateIssueBuyShares,
-          #     G18IL::Step::Track,
-          #     G18IL::Step::Token,
-          #     G18IL::Step::BorrowTrain,
-          #     G18IL::Step::CorporateSellShares,
-          #     G18IL::Step::Route,
-          #     G18IL::Step::Dividend,
-          #     G18IL::Step::SpecialBuyTrain,
-          #     G18IL::Step::BuyTrain,
-          #     [G18IL::Step::BuyCompany, { blocks: true }],
-          #   ], round_num: round_num)
-          # else
-          Engine::Round::Operating.new(self, [
-            G18IL::Step::DiverseCargoChoice,
-            G18IL::Step::MineCompanyChoice,
-            Engine::Step::Exchange,
-            G18IL::Step::SpecialTrack,
-            Engine::Step::SpecialToken,
-            Engine::Step::HomeToken,
-            G18IL::Step::ExchangeChoiceCorp,
-            G18IL::Step::ExchangeChoicePlayer,
-            G18IL::Step::Merge,
-            Engine::Step::DiscardTrain,
-            G18IL::Step::Conversion,
-            G18IL::Step::PostConversionShares,
-            G18IL::Step::BuyNewTokens,
-            G18IL::Step::SpecialIssueShares,
-            G18IL::Step::CorporateIssueBuyShares,
-            G18IL::Step::Track,
-            G18IL::Step::ExtraStationChoice,
-            G18IL::Step::Token,
-            G18IL::Step::LincolnChoice,
-            G18IL::Step::BorrowTrain,
-            G18IL::Step::CorporateSellShares,
-            G18IL::Step::BuyTrainBeforeRunRoute,
-            G18IL::Step::Route,
-            G18IL::Step::Dividend,
-            G18IL::Step::SpecialBuyTrain,
-            G18IL::Step::BuyTrain,
-            [G18IL::Step::BuyCompany, { blocks: true }],
-          ], round_num: round_num)
-          # end
+          if @optional_rules.include?(:intro_game)
+            Engine::Round::Operating.new(self, [
+              Engine::Step::Exchange,
+              G18IL::Step::SpecialTrack,
+              Engine::Step::SpecialToken,
+              Engine::Step::HomeToken,
+              G18IL::Step::ExchangeChoiceCorp,
+              G18IL::Step::ExchangeChoicePlayer,
+              G18IL::Step::Merge,
+              Engine::Step::DiscardTrain,
+              G18IL::Step::Conversion,
+              G18IL::Step::PostConversionShares,
+              G18IL::Step::BuyNewTokens,
+              G18IL::Step::CorporateIssueBuyShares,
+              G18IL::Step::Track,
+              G18IL::Step::Token,
+              G18IL::Step::BorrowTrain,
+              G18IL::Step::CorporateSellShares,
+              G18IL::Step::Route,
+              G18IL::Step::Dividend,
+              G18IL::Step::SpecialBuyTrain,
+              G18IL::Step::BuyTrain,
+              [G18IL::Step::BuyCompany, { blocks: true }],
+            ], round_num: round_num)
+          else
+            Engine::Round::Operating.new(self, [
+              G18IL::Step::DiverseCargoChoice,
+              G18IL::Step::MineCompanyChoice,
+              Engine::Step::Exchange,
+              G18IL::Step::SpecialTrack,
+              Engine::Step::SpecialToken,
+              Engine::Step::HomeToken,
+              G18IL::Step::ExchangeChoiceCorp,
+              G18IL::Step::ExchangeChoicePlayer,
+              G18IL::Step::Merge,
+              Engine::Step::DiscardTrain,
+              G18IL::Step::Conversion,
+              G18IL::Step::PostConversionShares,
+              G18IL::Step::BuyNewTokens,
+              G18IL::Step::SpecialIssueShares,
+              G18IL::Step::CorporateIssueBuyShares,
+              G18IL::Step::Track,
+              G18IL::Step::ExtraStationChoice,
+              G18IL::Step::Token,
+              G18IL::Step::LincolnChoice,
+              G18IL::Step::BorrowTrain,
+              G18IL::Step::CorporateSellShares,
+              G18IL::Step::BuyTrainBeforeRunRoute,
+              G18IL::Step::Route,
+              G18IL::Step::Dividend,
+              G18IL::Step::SpecialBuyTrain,
+              G18IL::Step::BuyTrain,
+              [G18IL::Step::BuyCompany, { blocks: true }],
+            ], round_num: round_num)
+          end
         end
 
         def tile_lays(entity)
-          return super unless engineering_mastery&.owner == entity
+          return super if @optional_rules.include?(:intro_game) || engineering_mastery&.owner != entity
 
           # Base tile lay for Engineering Mastery
           tile_lays = [{ lay: true, upgrade: true, cost: 0, cannot_reuse_same_hex: true }]
@@ -368,7 +374,7 @@ module Engine
         end
 
         def company_status_str(company)
-          return if company.owner
+          return if company.owner || company.meta[:type] != :private
 
           if @optional_rules&.include?(:intro_game)
             corporation = corporation_by_id(company.sym)
@@ -427,6 +433,18 @@ module Engine
 
         def find_company_by_name(name)
           @companies.find { |c| c&.name == name }
+        end
+
+        def optional_hexes
+          return game_hexes unless @optional_rules.include?(:intro_game)
+
+          hexes = game_hexes
+
+          hexes[:white].delete(['C2'])
+          hexes[:yellow][['C2']] = 'town=revenue:30;path=a:1,b:_0;path=a:2,b:_0;path=a:4,b:_0;path=a:5,b:_0;label=G'
+          hexes[:red][['B3']] = 'label=W;offboard=revenue:yellow_30|brown_40,groups:West;path=a:4,b:_0;path=a:0,b:_0;'\
+                                'border=edge:0;border=edge:5'
+          hexes
         end
 
         def setup_preround
@@ -529,28 +547,23 @@ module Engine
 
           return unless @optional_rules&.include?(:intro_game)
 
-          # assigns port and mine markers to corporations
+          # Assigns port and mine markers to corporations
           assign_port_markers(port_corporations)
           assign_mine_markers(mine_corporations)
 
-          # place random port tile on map
+          # Place random port tile on map
           selected_port = PORT_TILE_HEXES.keys.min_by { rand }
           selected_hex = hexes.find { |h| h.name == selected_port }
           lay_starting_port_tile(selected_hex)
 
-          # removes other port tile and M1 tile
-          remove_port_tiles
-          @all_tiles.find { |tile| tile.name == 'M1' }.hide
+          # Removes other port tile, M1 tile, and G1 tile
+          @all_tiles.each { |tile| tile.hide if tile.color == :blue || tile.name == 'G1' || tile.name == 'M1' }
         end
 
         def lay_starting_port_tile(hex)
           tile_name, rotation = PORT_TILE_HEXES[hex.name]
           hex.lay(@all_tiles.find { |t| t.name == tile_name }.rotate!(rotation))
           @log << "Port tile ##{tile_name} with rotation #{rotation} is laid on #{hex.id}"
-        end
-
-        def remove_port_tiles
-          @all_tiles.each { |tile| tile.hide if tile.color == :blue }
         end
 
         def assign_port_markers(_entity)
@@ -625,7 +638,7 @@ module Engine
           return true if PORT_TILE_HEXES.include?(from.hex.id) && (from.color == :blue && to.color == :blue)
 
           # P4 and S4 are available in intro game, but only available to Central Illinois Boom in normal game
-          if BOOM_HEXES.include?(from.hex.id) && !@optional_rules&.include?(:intro_game)
+          if !@optional_rules&.include?(:intro_game) && BOOM_HEXES.include?(from.hex.id)
             if selected_company != central_illinois_boom || phase.name != 'D'
               return false if to.name == 'P4' || to.name == 'S4'
             else
@@ -638,8 +651,8 @@ module Engine
             end
           end
 
-          return true if MINE_HEXES.include?(from.hex.id) && to.name == 'M1' &&
-          selected_company == chicago_virden_coal_company
+          return true if !@optional_rules.include?(:intro_game) && MINE_HEXES.include?(from.hex.id) &&
+          to.name == 'M1' && selected_company == chicago_virden_coal_company
 
           super
         end
@@ -873,7 +886,9 @@ module Engine
           corporation.max_ownership_percent = (two_player? && @optional_rules&.include?(:two_player_share_limit) ? 70 : 60)
           shares.each { |share| corporation.share_holders[share.owner] += share.percent }
           new_shares.each { |share| add_new_share(share) }
-          corporation.ipo_shares.last.buyable = false if corporation == share_premium.owner && corporation.total_shares == 10
+          if !@optional_rules&.include?(:intro_game) && corporation == share_premium.owner && corporation.total_shares == 10
+            corporation.ipo_shares.last.buyable = false
+          end
           new_shares
         end
 
@@ -888,7 +903,7 @@ module Engine
         def purchase_tokens!(corporation, count, total_cost, quiet = false)
           count.times { corporation.tokens << Token.new(corporation, price: 0) }
           auto_emr(corporation, total_cost) if corporation.cash < total_cost
-          if corporation == station_subsidy.owner
+          if !@optional_rules.include?(:intro_game) && corporation == station_subsidy.owner
             @log << "#{corporation.name} uses #{station_subsidy.name} and buys"\
                     " #{count} #{count == 1 ? 'token' : 'tokens'} for #{format_currency(total_cost)}"
             token_ability = corporation.all_abilities.find { |a| a.desc_detail == 'Station Subsidy' }
@@ -935,7 +950,7 @@ module Engine
             percent += share.percent
             bundles << Engine::ShareBundle.new(bundle, percent)
           end
-          if corporation == share_premium.owner &&
+          if !@optional_rules.include?(:intro_game) && corporation == share_premium.owner &&
             @round.steps.find do |step|
               step.instance_of?(G18IL::Step::SpecialIssueShares)
             end&.active?
@@ -1157,7 +1172,7 @@ module Engine
         end
 
         def subsidy_for(route, _stops)
-          return 0 unless route.corporation == u_s_mail_line.owner
+          return 0 if @optional_rules&.include?(:intro_game) || route.corporation != u_s_mail_line.owner
 
           (route.visited_stops & regular_stops).count * 10
         end
@@ -1165,6 +1180,7 @@ module Engine
         def revenue_for(route, stops)
           revenue = super
           revenue += ew_ns_bonus(stops)[:revenue] + p_bonus(route, stops)
+          return revenue if @optional_rules&.include?(:intro_game)
 
           if (ability = abilities(route.corporation, :hex_bonus)) && @lincoln_triggered
             stops.each do |stop|
@@ -1193,6 +1209,8 @@ module Engine
           str = super
           bonus = ew_ns_bonus(route.stops)[:description]
           str += " + #{bonus}" if bonus
+
+          return str if @optional_rules&.include?(:intro_game)
 
           # LFC bonus logic
           if (ability = abilities(route.corporation, :hex_bonus))
@@ -1478,6 +1496,7 @@ module Engine
         def ic_setup
           ic.add_ability(self.class::STOCK_PURCHASE_ABILITY)
           ic.add_ability(self.class::TRAIN_BUY_ABILITY)
+          ic.add_ability(self.class::TRAIN_LIMIT_ABILITY)
           ic.remove_ability(self.class::FORMATION_ABILITY)
 
           bundle = ShareBundle.new(ic.shares.last(5))
@@ -1725,10 +1744,10 @@ module Engine
           train = @depot.upcoming[0]
           if ic.trains.empty? && ic.cash >= @depot.min_depot_price
             # IC buys a train immediately if it is trainless and has enough cash
-            buy_train(ic, train, train.price)
-            @phase.buying_train!(ic, train, train.owner)
             @log << "#{ic.name} is trainless"
             @log << "#{ic.name} buys a #{train.name} train for #{format_currency(train.price)} from the Depot"
+            buy_train(ic, train, train.price)
+            @phase.buying_train!(ic, train, train.owner)
           end
 
           # calculate IC's new share price - the average of merged corporations' share prices and $80

@@ -169,9 +169,9 @@ module Engine
             return false if reserve_bundle?(corporation, bundle.owner) && bundle.owner.owner != entity
             return false if bundle.owner == @game.ic
             return false if @game.insolvent_corporations.include?(corporation)
-            return true if reserve_bundle?(corporation,
-                                           bundle.owner) && @game.num_certs(entity) < @game.cert_limit(entity) &&
-                                           !@round.players_sold[entity][corporation]
+            return true if reserve_bundle?(corporation, bundle.owner) &&
+                                            @game.num_certs(entity) < @game.cert_limit(entity) &&
+                                           !@round.players_sold[entity][corporation] && entity.cash >= bundle.price
 
             if entity.corporation?
               entity.cash >= bundle.price && redeemable_shares(entity).include?(bundle)

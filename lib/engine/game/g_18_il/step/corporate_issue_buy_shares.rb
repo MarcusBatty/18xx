@@ -15,7 +15,7 @@ module Engine
 
             actions = []
             actions << 'buy_shares' if can_buy_any?(entity) && !@bought
-            actions << 'sell_shares' if !issuable_shares(entity).empty? && !@issued && @game.sp_used != @game.share_premium.owner
+            actions << 'sell_shares' if issuable_share_available(entity)
             actions << 'pass' unless actions.empty?
             actions
           end
@@ -32,7 +32,7 @@ module Engine
           end
 
           def log_skip(entity)
-            if @game.sp_used == @game.share_premium.owner
+            if !@game.optional_rules&.include?(:intro_game) && @game.sp_used == @game.share_premium.owner
               @game.share_premium.close!
               @log << "#{@game.share_premium.name} (#{entity.name}) closes"
             else
@@ -44,14 +44,22 @@ module Engine
             corps = @game.corporations.select do |c|
               c.ipoed && !c.ipo_shares.empty? && c != current_entity && c != @game.ic
             end
-            corps << current_entity if !current_entity.ipo_shares.empty? && !@issued && @game.sp_used != @game.share_premium.owner
+            corps << current_entity if issuable_share_available(current_entity)
             corps = [current_entity] if @bought
             corps
           end
 
+          def issuable_share_available(entity)
+            return false if issuable_shares(entity).empty?
+            return false if @issued
+            return true if @game.optional_rules.include?(:intro_game)
+            return false if @game.sp_used == @game.share_premium.owner
+
+            true
+          end
+
           def help
-            return ['Buy a share of another corporation:'] if current_entity.num_ipo_shares.zero? ||
-            @issued || @game.sp_used == @game.share_premium.owner
+            return ['Buy a share of another corporation:'] unless issuable_share_available(current_entity)
 
             return ["Issue a share of #{current_entity.name}:"] if @bought
 
@@ -63,7 +71,7 @@ module Engine
           end
 
           def pass_description
-            if current_entity.num_ipo_shares.zero? || @issued || @game.sp_used == @game.share_premium.owner
+            unless issuable_share_available(current_entity)
               return [
                 'Pass (Buy)',
               ]
@@ -73,7 +81,6 @@ module Engine
                 'Pass (Issue)',
                  ]
             end
-
             [
             'Pass (Issue/Buy)',
              ]
@@ -114,7 +121,7 @@ module Engine
 
           def process_pass(action)
             log_pass(action.entity)
-            if @game.sp_used == @game.share_premium.owner
+            if !@game.optional_rules&.include?(:intro_game) && @game.sp_used == @game.share_premium.owner
               @game.share_premium.close!
               @log << "#{@game.share_premium.name} (#{action.entity.name}) closes"
             end
@@ -125,7 +132,7 @@ module Engine
             buy_shares(action.entity, action.bundle)
             @game.corporate_buy = action.bundle
             @bought = true
-            return unless @game.sp_used == @game.share_premium.owner
+            return if @game.optional_rules&.include?(:intro_game) || @game.sp_used != @game.share_premium.owner
 
             @issued = true
             @game.share_premium.close!

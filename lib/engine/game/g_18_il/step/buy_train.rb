@@ -70,13 +70,14 @@ module Engine
           end
 
           def pass!
-            company = @game.train_subsidy
-            if company.ability_uses.first < 99
-              @log << "#{company.name} (#{@round.current_operator.name}) closes" unless company.closed?
-
-              company.close!
-            end
             super
+            return if @game.optional_rules.include?(:intro_game)
+
+            company = @game.train_subsidy
+            return if company.ability_uses.first == 99
+
+            @log << "#{company.name} (#{@round.current_operator.name}) closes" unless company.closed?
+            company.close!
           end
 
           def scrap_info(_train)
@@ -125,7 +126,13 @@ module Engine
             raise GameError, 'Cannot sell shares when buying from another corporation' if @game.other_train_pass
 
             @game.emr_active = true
-            super
+            return super unless action.entity.is_a?(Corporation)
+
+            old_price = action.entity.share_price.price
+            @game.sell_shares_and_change_price(action.bundle, movement: :down_share)
+            new_price = action.entity.share_price.price
+            @log << "#{action.entity.name}'s share price moves down from "\
+                    "#{@game.format_currency(old_price)} to #{@game.format_currency(new_price)}"
           end
 
           def process_buy_train(action)

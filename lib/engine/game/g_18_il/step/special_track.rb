@@ -59,7 +59,7 @@ module Engine
               end
 
               # closes GTL if Chicago is upgraded to brown
-              if tile.name == 'CHI3' && !@game.goodrich_transit_line.closed?
+              if !@game.optional_rules&.include?(:intro_game) && tile.name == 'CHI3' && !@game.goodrich_transit_line.closed?
                 company = @game.goodrich_transit_line
                 @log << "#{company.name} (#{company.owner.name}) closes"
                 company.close!

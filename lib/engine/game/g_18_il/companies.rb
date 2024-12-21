@@ -115,7 +115,7 @@ module Engine
               sym: 'IC1',
               value: 0,
               revenue: 0,
-              desc: 'Ordinary Share of IC 1',
+              desc: 'Ordinary Share of IC',
               corporation: 'IC',
               color: '#006A14',
               text_color: 'white',
@@ -126,7 +126,7 @@ module Engine
               sym: 'IC2',
               value: 0,
               revenue: 0,
-              desc: 'Ordinary Share of IC 2',
+              desc: 'Ordinary Share of IC',
               corporation: 'IC',
               color: '#006A14',
               text_color: 'white',
@@ -137,7 +137,7 @@ module Engine
               sym: 'IC3',
               value: 0,
               revenue: 0,
-              desc: 'Ordinary Share of IC 3',
+              desc: 'Ordinary Share of IC',
               corporation: 'IC',
               color: '#006A14',
               text_color: 'white',
@@ -147,15 +147,15 @@ module Engine
           return companies if @optional_rules&.include?(:intro_game)
 
           companies.concat([{
-                              name: 'Extra Station',
-                              sym: 'ES',
-                              value: 0,
-                              revenue: 0,
-                              desc: 'Receive an additional station marker. Once this ability is used, '\
-                                    'the company closes.',
-                              color: nil,
-                              meta: { type: :private, class: :A },
-                              abilities: [
+                             name: 'Extra Station',
+                             sym: 'ES',
+                             value: 0,
+                             revenue: 0,
+                             desc: 'Receive an additional station marker. Once this ability is used, '\
+                                   'the company closes.',
+                             color: nil,
+                             meta: { type: :private, class: :A },
+                             abilities: [
                                 {
                                   type: 'additional_token',
                                   count: 1,
@@ -165,7 +165,7 @@ module Engine
                                   extra_slot: true,
                                 },
                               ],
-                            },
+                           },
                             {
                               name: 'Goodrich Transit Line',
                               value: 0,
