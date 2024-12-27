@@ -70,6 +70,7 @@ module Engine
               distance: 999,
               price: 1000,
               num: 99,
+              available_on: '6',
               events: [
                 { 'type' => 'signal_end_game' },
                 ],

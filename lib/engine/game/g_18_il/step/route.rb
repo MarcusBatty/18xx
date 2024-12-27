@@ -17,7 +17,7 @@ module Engine
             return [] if entity.receivership?
 
             actions << 'run_routes'
-            actions << 'scrap_train' unless scrappable_trains(entity).count < 2
+            actions << 'scrap_train' if scrappable_trains(entity).count > 1 && !@game.last_set_triggered
             actions
           end
 

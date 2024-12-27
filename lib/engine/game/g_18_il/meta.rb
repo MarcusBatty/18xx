@@ -15,7 +15,7 @@ module Engine
         GAME_DESIGNER = 'Scott Ninmer'
         GAME_PUBLISHER = :self_published
         GAME_LOCATION = 'Illinois, USA'
-        GAME_RULES_URL = 'https://www.dropbox.com/scl/fi/rosk6sdbmuke6tlu8k2lr/18IL_Rulebook_v0.7.8.pdf?rlkey=pfiow0am80avkg6d7vdil86fq&dl=0'
+        GAME_RULES_URL = 'https://www.dropbox.com/scl/fi/nduh9e6gxgqhth0drv56d/18IL_Rulebook_v0.7.10.pdf?rlkey=zimwg0585iqp4mcd9y1kvcrtg&dl=0'
         GAME_INFO_URL = ''
         # GAME_INFO_URL = 'https://github.com/tobymao/18xx/wiki/18IL'
         # TODO: make wiki entry once in alpha
@@ -32,7 +32,7 @@ module Engine
             sym: :fixed_setup,
             short_name: 'Fixed Setup',
             desc: 'Private companies are assigned to corporations deterministically (see Variants section in the '\
-            'back of the rulebook).'
+                  'back of the rulebook).',
           },
           {
             sym: :two_player_share_limit,

@@ -13,22 +13,43 @@ module Engine
             @bought_shares = []
             setup_auction
 
-            if @game.ic_formation_triggered? && !@game.ic.ipo_shares.empty?
-              prepare_ic_shares
-            else
-              @companies = filter_companies_by_type(:concession)
-            end
+            @companies = @game.companies.select { |c| c.meta[:type] == :concession }.sort_by { |c| [c.meta[:share_count], c.sym] }
+            @companies.each { |c| change_private_description(c) }
 
-            sort_companies!
+            prepare_ic_shares if @game.ic_formation_triggered? && !@game.ic.ipo_shares.empty?
+
+            @companies = @companies.sort_by { |c| c.meta[:type] }
+          end
+
+          def help
+            str = []
+            if !@game.optional_rules.include?(:intro_game) &&
+              @companies.any? do |c|
+                c.meta[:type] == :concession && @game.corporations.find do |corp|
+                  corp.name == c.sym
+                end.companies.any?
+              end
+              str << [
+                "The private companies attached to each concession are shown at the bottom of the concession's card. ",
+                'Select the Entities tab to view their descriptions.',
+              ]
+            end
+            unless @auctioning
+              str << '—' unless str.empty?
+              str << 'Start an auction or decline. Declining removes the player from the concession round:'
+            end
+            str
+          end
+
+          def change_private_description(company)
+            company.desc = "Can start #{company.sym} as a #{company.meta[:share_count]}-share corporation in the next Stock Round."
           end
 
           def prepare_ic_shares
             ic_shares = assign_share_values(:share, @game.ic.share_price.price)
             ic_presidents_share = assign_share_values(:presidents_share, @game.ic.share_price.price * 2)
-
-            @companies = filter_companies_by_type(:concession)
-
             shares_to_add = @game.ic.num_ipo_shares.dup
+
             if @game.ic_in_receivership?
               @companies += ic_presidents_share
               shares_to_add -= 2
@@ -39,14 +60,6 @@ module Engine
 
           def assign_share_values(type, value)
             @game.companies.select { |c| c.meta[:type] == type }.each { |c| c.value = up_to_nearest_five(value) }
-          end
-
-          def filter_companies_by_type(type)
-            @game.companies.select { |c| c.meta[:type] == type }
-          end
-
-          def sort_companies!
-            @companies = @companies.sort_by { |c| [c.meta[:type], c.sym] }
           end
 
           def up_to_nearest_five(num)
@@ -82,6 +95,12 @@ module Engine
             else
               @round.next_entity_index!
             end
+          end
+
+          def pass_description
+            return 'Decline' unless @auctioning
+
+            super
           end
 
           def process_pass(action)

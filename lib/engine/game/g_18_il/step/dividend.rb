@@ -20,6 +20,12 @@ module Engine
             super
           end
 
+          def actions(entity)
+            return [] if @game.last_set_triggered
+
+            super
+          end
+
           def dividend_types
             return [:withhold] if (current_entity == @game.ic && @game.ic_in_receivership?) ||
                                    !current_entity.loans.empty? || @game.train_borrowed
@@ -104,7 +110,13 @@ module Engine
           end
 
           def skip!
-            super
+            return super unless @game.last_set_triggered
+
+            revenue = @game.routes_revenue(routes)
+            process_dividend(Action::Dividend.new(
+              current_entity,
+              kind: revenue.positive? ? 'payout' : 'withhold',
+            ))
 
             return unless current_entity.receivership?
             return if current_entity.trains.any?

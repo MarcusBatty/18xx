@@ -374,26 +374,25 @@ module Engine
         end
 
         def company_status_str(company)
-          return if company.owner || company.meta[:type] != :private
+          return if company.owner
+          return unless company.meta[:type] == :concession
+          return if @companies.none? { |c| c.meta[:type] == :private }
 
           if @optional_rules&.include?(:intro_game)
             corporation = corporation_by_id(company.sym)
             return 'Starts with mine marker' if mine_corporation?(corporation)
             return 'Starts with port marker' if port_corporation?(corporation)
-          else
-            case company.meta[:type]
-            when :private
-              company.meta[:class] == :A ? 'Class A' : 'Class B'
-            when :concession
-              corp = @corporations.find { |c| c.name == company.sym }
-              return unless corp
+          elsif company.meta[:type] == :concession
+            corp = @corporations.find { |c| c.name == company.sym }
+            return if corp.nil? || corp.companies.none?
 
-              a = corp.companies[0]
-              b = corp.companies[1]
-              [].tap do |status|
-                status << "A: #{a.name}" if a
-                status << "B: #{b.name}" if b
-              end.join(' ')
+            a = corp.companies[0]
+            b = corp.companies[1]
+
+            [].tap do |status|
+              status << a.name.to_s if a
+              status << ', ' if a && b
+              status << b.name.to_s if b
             end
           end
         end
@@ -455,6 +454,8 @@ module Engine
 
           # Set up corporations for intro game or regular game setup
           @optional_rules&.include?(:intro_game) ? intro_game_setup : initial_auction_lot
+
+          @log << "Northern Cross Railroad starts with the 'Rogers' (1+1) train"
         end
 
         # Create the corporation that places blocking tokens in St. Louis
@@ -492,7 +493,7 @@ module Engine
             class_a = class_a.sort_by { rand }
             class_b = class_b.sort_by { rand }
           end
-          
+
           @log << '-- Auction Lot Formation --'
 
           @corporations.select(&:floatable).each_with_index do |corp, index|
@@ -506,6 +507,7 @@ module Engine
         end
 
         def setup
+          # Dynamically creates methods for each private company (i.e., station_subsidy)
           @companies.each do |c|
             if c.meta[:type] == :private
               method_name = c.name.downcase.gsub(/[^a-z0-9]+/, '_').gsub(/^_|_$/, '')
@@ -1033,35 +1035,40 @@ module Engine
           @depot.reclaim_train(train)
         end
 
+        def city_tokened_by?(city, entity)
+          city.tokened_by?(entity) &&
+          city.tokens.any? { |t| t&.corporation == entity && t&.status != :flipped }
+        end
+
         def or_round_finished
           return if @depot.upcoming.empty?
 
-          # phase 3 starts in OR1.2, which exports all 2-trains and rusts the 'Rogers' train
-          return unless @depot.upcoming.first.name == '2'
-
-          depot.export_all!('2')
-          phase.next!
-          nc.trains.shift
-          @log << '-- Event: Rogers (1+1) train rusts --'
-          # TODO: remove if not used
-          # One train is exported at the end of every OR
-          # depot.export! unless phase.name == 'D'
+          # Phase 3 starts in OR1.2, which exports all 2-trains and rusts the 'Rogers' train.
+          if @depot.upcoming.first.name == '2'
+            depot.export_all!('2')
+            phase.next!
+            nc.trains.shift
+            @log << '-- Event: Rogers (1+1) train rusts --'
+        #  elsif @round.bought_trains.empty?
+            # If no train was bought during the OR, export a train.
+            # @log << 'No trains were bought this operating round'
+            # depot.export!
+          end
         end
 
         def or_set_finished
           # no one owns IC if in receivership
           ic.owner = nil if ic_in_receivership?
 
-          # TODO: remove if not used
-          # One train is exported at the end of every OR set
-          # depot.export! unless phase.name == 'D'
-
-          # convert unstarted corporations at the appropriate time.
+          # Convert unstarted corporations at the appropriate time.
           if %w[4 4+2P 5 6 D].include?(@phase.name)
             @corporations.reject { |c| c.floated? || @closed_corporations.include?(c) }.each do |c|
               convert(c) if c.total_shares == 2
 
               convert(c) if c.total_shares == 5 && @phase.name != '4'
+
+              company = @companies.find { |comp| c.name == comp.sym }
+              company.meta[:share_count] = c.total_shares if company
             end
           end
 
@@ -1256,7 +1263,7 @@ module Engine
         end
 
         def stl_permit?(entity)
-          STL_TOKEN_HEX.any? { |h| hex_by_id(h).tile.cities.any? { |c| c.tokened_by?(entity) } }
+          STL_TOKEN_HEX.any? { |h| hex_by_id(h).tile.cities.any? { |c| city_tokened_by?(c, entity) } }
         end
 
         def stl_hex?(stop)

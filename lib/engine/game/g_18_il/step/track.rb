@@ -37,6 +37,10 @@ module Engine
             pass! unless can_lay_tile?(action.entity)
           end
 
+          def pass_description
+            'Pass (Track)'
+          end
+
           def ic_line_tile(action, hex, tile, city)
             @game.ic_line_improvement(action)
 

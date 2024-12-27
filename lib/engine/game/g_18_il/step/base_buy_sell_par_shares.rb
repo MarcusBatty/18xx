@@ -40,6 +40,7 @@ module Engine
           def corporate_actions(entity)
             return [] if @corporate_action && @corporate_action.entity != entity
             return [] if entity == @game.ic
+            return [] if must_sell?(entity.owner)
 
             actions = []
             actions << 'buy_shares' if @round.current_actions.none? && !@game.redeemable_shares(entity).empty?

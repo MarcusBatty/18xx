@@ -12,6 +12,10 @@ module Engine
             super
           end
 
+          def round_state
+            { bought_trains: [] }
+          end
+
           def actions(entity)
             return [] if @game.last_set_triggered
             return ['sell_shares'] if entity == current_entity&.player && !@game.other_train_pass
@@ -182,7 +186,7 @@ module Engine
               end
             end
 
-            check_for_cheapest_train(train) if entity == @game.ic
+            check_for_cheapest_train(train) if entity == @game.ic && !exchange
 
             if exchange
               verb = "exchanges a #{exchange.name} for"
