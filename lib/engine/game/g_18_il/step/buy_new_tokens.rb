@@ -83,9 +83,6 @@ module Engine
             return 0 if num.zero?
 
             price = pending_first_price + ((num - 1) * pending_price)
-            # discount on 4th and 5th token
-            # price -= 10 if num == 4
-            # price -= 20 if num == 5
             if !@game.optional_rules.include?(:intro_game) && pending_entity == @game.station_subsidy.owner
               (price = num < 5 ? 0 : 40)
             end

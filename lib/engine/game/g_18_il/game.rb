@@ -682,13 +682,13 @@ module Engine
         end
 
         def home_token_locations(corporation)
-          # if reopened corp has no flipped tokens on map, it can place token in any available city slot except in CHI or STL
+          # if reopened corp has flipped token(s) on map, it can flip one of these tokens (except for STL)
           if eligible_tokens?(corporation)
-            # if reopened corp has flipped token(s) on map, it can flip one of these tokens (except for STL)
             hexes.select { |hex| hex.tile.cities.find { |c| c.tokened_by?(corporation) && !STL_TOKEN_HEX.include?(hex.id) } }
           else
+          # otherwise, it can place token in any available city slot except in CHI or STL
             hexes.select do |hex|
-              hex.tile.cities.any? && hex.tile.cities.select { |c| c.reservations.any? }.empty? &&
+              hex.tile.cities.any? { |c| c.tokenable?(corporation) } &&
               !STL_TOKEN_HEX.include?(hex.id) && !CHICAGO_HEX.include?(hex.id)
             end
           end
