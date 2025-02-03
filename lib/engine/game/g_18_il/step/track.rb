@@ -47,7 +47,7 @@ module Engine
             case tile.color
             when :yellow
               # Checks for one IC Line connection when laying yellow
-              raise GameError, 'Tile must overlay at least one dashed path' if @game.ic_line_connections(hex) < 1
+              raise GameError, 'Tile must overlay at least one section of the dashed path' if @game.ic_line_connections(hex) < 1
 
               @log << "#{action.entity.name} receives a #{@game.format_currency(20)} subsidy for IC Line improvement"
               action.entity.cash += 20

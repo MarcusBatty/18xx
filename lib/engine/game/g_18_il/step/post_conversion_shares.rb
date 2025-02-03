@@ -13,6 +13,8 @@ module Engine
             super
             @game.players.each(&:unpass!)
             @acted_players = []
+            @conversion_order = nil
+            @old_order = @game.totem_order.dup
           end
 
           def actions(entity)
@@ -64,7 +66,6 @@ module Engine
           def process_sell_shares(action)
             @game.sell_shares_and_change_price(action.bundle)
             action.entity.pass!
-            @acted_players << action.entity
           end
 
           def process_pass(action)
@@ -77,9 +78,7 @@ module Engine
           end
 
           def help
-            str = ['Select the corporation to see buy/sell options, or pass:']
-            str << '(Note: buying or selling will change your priority position)' unless corporation.president?(current_entity)
-            str
+            ['Select the corporation to see buy/sell options, or pass:']
           end
 
           def can_buy?(entity, bundle)
@@ -115,16 +114,18 @@ module Engine
           def active_entities
             return [] unless corporation
 
-            [@game.players.rotate(@game.players.index(corporation.owner))
-            .find { |p| p.active? && (can_buy_any?(p) || can_sell?(p, nil)) }].compact
+            @conversion_order ||= [corporation.owner, *@game.totem_order.reject { |p| p == corporation.owner }]
+            [@conversion_order.find { |p| p.active? && (can_buy_any?(p) || can_sell?(p, nil)) }].compact
           end
 
           def post_convert_pass_step!
             return unless @round.converted
 
-            # add non-president players that acted to the back of the line
-            @acted_players.each { |p| @game.players << @game.players.delete(p) }
-            @log << "New priority order: #{@game.players.map(&:name).join(', ')}" unless @acted_players.empty?
+            # add non-president players that acted to the back of the totem line
+            @acted_players.each { |p| @game.totem_order << @game.totem_order.delete(p) }
+            unless @old_order == @game.totem_order
+              @log << "New conversion priority order: #{@game.totem_order.map(&:name).join(', ')}"
+            end
             corp = @round.converted
 
             token_counts = {
@@ -134,7 +135,7 @@ module Engine
 
             min, max = token_counts[corp.total_shares] || [0, 0]
 
-            @log << "#{corp.name} must buy #{min} token"
+            @log << "#{corp.name} must buy #{min} token#{min == 1 ? '' : 's'}"
             price = 40
             @round.buy_tokens << { entity: corp, type: :convert, first_price: price, price: price, min: min, max: max }
           end

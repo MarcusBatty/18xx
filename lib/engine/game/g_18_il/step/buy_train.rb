@@ -122,6 +122,7 @@ module Engine
             depot_trains = [@depot.min_depot_train] if entity.cash < @depot.min_depot_price
             depot_trains = [] if @game.other_train_pass
             other_trains = other_trains(entity)
+            other_trains.reject! { |t| t.owner == @game.ic } if @game.ic_in_receivership?
             other_trains = [] if entity.cash.zero? || @game.emr_active? || entity == @game.ic
             depot_trains + other_trains
           end
@@ -202,6 +203,7 @@ module Engine
             train.buyable = false if entity == @game.ic && !train.rusts_on
             @game.phase.buying_train!(entity, train, train.owner)
             @game.emr_active = nil
+            @game.train_bought_this_or = true
           end
 
           def check_ic_last_train(train)

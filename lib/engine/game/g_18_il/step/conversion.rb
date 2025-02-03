@@ -42,10 +42,16 @@ module Engine
           def process_convert(action)
             corporation = action.entity
             before = corporation.total_shares
+
             @game.convert(corporation)
             after = corporation.total_shares
             @log << "#{corporation.name} converts from a #{before}-share to a #{after}-share corporation"
 
+            priority_order = @game.totem_order.map do |player|
+              player == corporation.owner ? "(#{player.name})" : player.name
+            end.join(', ')
+
+            @log << "Conversion priority order: #{priority_order}"
             @round.converts << corporation
             @round.converted = corporation
           end

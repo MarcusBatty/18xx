@@ -317,7 +317,7 @@ module Engine
               ],
             },
             {
-              name: 'Chicago-Virden Coal Company',
+              name: 'Chicago-Virden Coal Co.',
               value: 0,
               revenue: 0,
               desc: 'During the tile-laying step of the corporation’s operating turn, lay or upgrade '\
@@ -352,7 +352,7 @@ module Engine
               meta: { type: :private, class: :B },
             },
             {
-              name: 'Central Illinois Boom',
+              name: 'Central IL Boom',
               value: 0,
               revenue: 0,
               desc: 'In phase D, upgrade Peoria or Springfield using the matching gray tile. '\
@@ -416,8 +416,9 @@ module Engine
               name: 'Advanced Track',
               value: 0,
               revenue: 0,
-              desc: 'At any time during the tile-laying step of the corporation’s operating turn, '\
-                    'it may lay or upgrade one additional tile for free, except for any terrain costs. '\
+              desc: 'During the tile-laying step of its operating turn, the owning corporation may lay or upgrade an '\
+                    'additional tile to which it has a route for free (paying terrain costs as normal). This ability may be '\
+                    'used to lay or upgrade a tile already acted upon during the same turn. '\
                     'Once this ability has been used twice, the private company closes.',
               sym: 'AT',
               meta: { type: :private, class: :B },
@@ -442,8 +443,8 @@ module Engine
               value: 0,
               revenue: 0,
               desc: 'During the “Run Trains” step of the corporation’s operating turn, one of the corporation’s '\
-                    'trains earns an additional $20/$30/$40/$50 for each of the following cities in its route '\
-                    'during a yellow/green/brown/gray phase, respectively: Chicago (H3), Joliet (G6), '\
+                    'trains earns an additional $20/$40/$60 for each of the following cities in its route '\
+                    'during a green/brown/gray phase, respectively: Chicago (H3), Joliet (G6), '\
                     'Bloomington (F9), and Springfield (E12). Once this ability is used, the company closes.',
               sym: 'LFC',
               meta: { type: :private, class: :B },
@@ -459,7 +460,7 @@ module Engine
                 ],
             },
             {
-              name: 'Illinois Steel Bridge Company',
+              name: 'Illinois Steel Bridge Co.',
               value: 0,
               revenue: 0,
               desc: 'Receive a $20 discount when laying a tile in a hex containing a river or a lake.',

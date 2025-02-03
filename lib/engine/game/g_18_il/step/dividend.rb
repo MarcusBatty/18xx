@@ -37,7 +37,7 @@ module Engine
 
           def share_price_change(entity, revenue = 0)
             price = entity.share_price.price
-            return { share_direction: :down, share_times: 1 } if revenue.zero? && price == 20
+            return { share_direction: :down, share_times: 1 } if revenue.zero? && price == @game.lowest_stock_price
             return { share_direction: :left, share_times: 1 } if revenue.zero?
             return { share_direction: :down, share_times: 1 } if revenue < price / 2
             return { share_direction: :up, share_times: 1 } if revenue < price
@@ -64,8 +64,6 @@ module Engine
             end
             @log << "#{entity.name} earns #{@game.subsidy_name} of #{@game.format_currency(subsidy)}" if subsidy.positive?
             @game.train_borrowed = nil
-            @game.lincoln_funeral_car.close! if @game.lincoln_triggered
-            @game.lincoln_triggered = nil
             return unless (borrowed_train = @game.borrowed_trains[current_entity])
 
             @game.log << "#{current_entity.name} returns a #{borrowed_train.name} train"

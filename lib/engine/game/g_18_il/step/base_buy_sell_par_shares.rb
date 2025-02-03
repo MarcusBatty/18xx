@@ -205,8 +205,9 @@ module Engine
               @game.add_ic_operating_ability if corporation == @game.ic && !@game.ic_in_receivership?
 
               if reserve_bundle?(corporation, bundle.owner)
+                #TODO: fix (remove 'false')
                 track_action(action, corporation, false)
-                bundle.shares.each { |s| @round.reserve_bought[entity][corporation] << s }
+                @round.reserve_bought[entity][corporation].concat(bundle.shares)
               else
                 track_action(action, corporation)
               end
@@ -219,12 +220,6 @@ module Engine
               track_action(action, corporation, false)
               @corporate_action = action
             end
-          end
-
-          def track_action(action, corporation, player_action = true)
-            @round.last_to_act = action.entity.player
-            @round.current_actions << action if player_action
-            @round.players_history[action.entity.player][corporation] << action
           end
 
           def redeemable_shares(entity)

@@ -69,8 +69,6 @@ module Engine
             @game.decline_merge(mergee)
           end
 
-          private
-
           def merge_ongoing?
             @game.mergeable_candidates.any?
           end

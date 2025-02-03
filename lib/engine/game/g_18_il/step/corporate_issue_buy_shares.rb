@@ -42,7 +42,7 @@ module Engine
 
           def visible_corporations
             corps = @game.corporations.select do |c|
-              c.ipoed && !c.ipo_shares.empty? && c != current_entity && c != @game.ic
+              c.ipoed && !(c.ipo_shares - c.reserved_shares).empty? && c != current_entity && c != @game.ic # TODO: && c.operated?
             end
             corps << current_entity if issuable_share_available(current_entity)
             corps = [current_entity] if @bought

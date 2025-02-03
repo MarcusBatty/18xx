@@ -10,8 +10,6 @@ module Engine
           ACTIONS = %w[sell_shares].freeze
 
           def description
-            return '' if @game.optional_rules&.include?(:intro_game)
-
             "Use #{@game.share_premium&.name} ability"
           end
 
@@ -32,7 +30,6 @@ module Engine
           end
 
           def active_entities
-            return [] if @game.optional_rules&.include?(:intro_game)
             return [] unless @game.share_premium&.owner == @round.current_operator
 
             [@game.share_premium&.owner].compact

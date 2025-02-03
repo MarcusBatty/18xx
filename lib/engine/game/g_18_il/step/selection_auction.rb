@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
-require_relative '../../../step/concession_auction'
+require_relative '../../../step/selection_auction'
 
 module Engine
   module Game
     module G18IL
       module Step
-        class ConcessionAuction < Engine::Step::ConcessionAuction
+        class SelectionAuction < Engine::Step::SelectionAuction
           def setup
             @game.players.each(&:unpass!)
-            @declined_players = []
+            #@declined_players = []
             @bought_shares = []
             setup_auction
             company_setup
@@ -66,7 +66,7 @@ module Engine
             end
             unless @auctioning
               str << '—' unless str.empty?
-              str << 'Start an auction or decline. Declining removes the player from the concession round:'
+              str << 'Start an auction or decline:'
             end
             str
           end
@@ -79,32 +79,6 @@ module Engine
             end
           end
 
-          def entities
-            @round.entities.reject { |e| @declined_players.include?(e) }
-          end
-
-          def resolve_bids
-            return unless @bids[@auctioning].one?
-
-            bid = @bids[@auctioning].first
-            @auctioning = nil
-            price = bid.price
-            company = bid.company
-            player = bid.entity
-            @bids.delete(company)
-            buy_company(player, company, price)
-            if @companies.empty? && entities.one?
-              @declined_players << player
-            else
-              next_entity_index! unless entities.one?
-            end
-          end
-
-          def next_entity_index!
-            @game.next_turn!
-            @round.entity_index = (@round.entity_index + 1) % entities.size
-          end
-
           def pass_description
             return 'Decline' unless @auctioning
 
@@ -113,47 +87,6 @@ module Engine
             else
               "Pass (on #{@auctioning.name})"
             end
-          end
-
-          def finished?
-            @companies.empty? || entities.empty?
-          end
-
-          def process_pass(action)
-            entity = action.entity
-
-            if auctioning
-              pass_auction(action.entity)
-            else
-              @log << "#{entity.name} declines to start auction and is removed from the round"
-              entity.pass!
-              @declined_players << entity
-              @round.entity_index = @round.entity_index % entities.size if entities.size > 0
-              @round.reset_entity_index! if entities.one?
-            end
-          end
-
-          def start_auction(bid)
-            @auctioning = bid.company
-            @log << "-- #{bid.entity.name} nominates #{@auctioning.name} for auction --"
-            add_bid(bid)
-            starter = bid.entity
-            start_price = bid.price
-
-            bids = @bids[@auctioning]
-
-            entities.rotate(entities.find_index(starter)).each_with_index do |player, idx|
-              next if player == starter
-              next if max_bid(player, @auctioning) <= start_price
-
-              bids << (Engine::Action::Bid.new(player,
-                                               corporation: @auctioning,
-                                               price: idx - entities.size))
-            end
-            # resolve auction immediately after starting if no other player can afford to bid
-            resolve_bids if entities.reject { |e| e == starter }
-                            .select { |e| max_bid(e, @auctioning) >= min_bid(@auctioning) }.empty?
-            post_auction if @companies.empty? && entities.one?
           end
 
           def buy_company(player, company, price)
@@ -207,10 +140,6 @@ module Engine
               company.close!
               @game.add_ic_operating_ability
             end
-
-            # moves auction winner to the back of the line and starts again from the front of the line.
-            #  @game.players.insert((@game.players.size - 1), @game.players.delete_at(@game.players.index(player)))
-            #  @round.entity_index = @game.players.index(player)
           end
         end
       end
