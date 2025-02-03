@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../../../step/selection_auction'
+require_relative '../../../step/passable_auction'
 
 module Engine
   module Game
@@ -9,7 +9,6 @@ module Engine
         class SelectionAuction < Engine::Step::SelectionAuction
           def setup
             @game.players.each(&:unpass!)
-            #@declined_players = []
             @bought_shares = []
             setup_auction
             company_setup
@@ -49,21 +48,31 @@ module Engine
             up_to_nearest_five(num + 1)
           end
 
+          def may_bid?
+            true
+          end
+
+          def actions(entity)
+            return [] if entities.all?(&:passed?)
+
+            entity == current_entity ? ACTIONS : []
+          end
+
           def help
             str = []
-            return str if @auctioning&.meta&.[](:type) != :concession
+            return str if @auctioning && @auctioning.meta[:type] != :concession
 
             if !@game.optional_rules.include?(:intro_game) &&
               @companies.any? do |c|
-                c.meta[:type] == :concession && @game.corporations.find do |corp|
-                  corp.name == c.sym
-                end.companies.any?
+                c.meta[:type] == :concession &&
+                @game.corporations.find { |corp| corp.name == c.sym }.companies.any?
               end
               str << [
                 "The private companies attached to each concession are shown at the bottom of the concession's card. ",
                 'Select the Entities tab to view their descriptions.',
               ]
             end
+
             unless @auctioning
               str << '—' unless str.empty?
               str << 'Start an auction or decline:'
@@ -72,11 +81,10 @@ module Engine
           end
 
           def description
-            if @auctioning
-              'Bid on Selected Concession'
-            else
-              'Bid on Concession'
-            end
+            return 'Bid on Selected Concession' if @auctioning&.meta&.[](:type) == :concession
+            return 'Bid on Selected Share' if @auctioning
+
+            @companies&.any? { |c| c.meta&.[](:type) != :concession } ? 'Bid on Concession or Share' : 'Bid on Concession'
           end
 
           def pass_description
@@ -89,19 +97,28 @@ module Engine
             end
           end
 
-          def buy_company(player, company, price)
-            if (available = max_bid(player, company)) < price
-              raise GameError,
-                    "#{player.name} has #{@game.format_currency(available)} available '\
-                    'and cannot spend #{@game.format_currency(price)}"
-            end
+          def process_pass(action)
+            entity = action.entity
 
-            company.owner = player
-            player.companies << company
-            player.spend(price, @game.bank) if price.positive?
-            # removes company from the auction
-            @companies.delete(company)
-            @log << "#{player.name} wins the auction for #{company.name} with a bid of #{@game.format_currency(price)}"
+            if auctioning
+              pass_auction(entity)
+              resolve_bids
+            else
+              @log << "#{entity.name} declines to start an auction"
+              @active_bidders.delete(entity)
+              entity.pass!
+            end
+            next_entity!
+          end
+
+          def next_entity!
+            @round.next_entity_index!
+          end
+
+          def post_win_bid(player, company)
+            @round.goto_entity!(@auction_triggerer)
+            entities.each(&:unpass!)
+            @auction_triggerer = current_entity
 
             ic = @game.ic
             # exchange for ordinary share of IC

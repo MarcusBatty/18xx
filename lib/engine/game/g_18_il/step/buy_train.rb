@@ -123,7 +123,7 @@ module Engine
             depot_trains = [] if @game.other_train_pass
             other_trains = other_trains(entity)
             other_trains.reject! { |t| t.owner == @game.ic } if @game.ic_in_receivership?
-            other_trains = [] if entity.cash.zero? || @game.emr_active? || entity == @game.ic
+            other_trains = [] if entity.cash.zero? || @game.emr_active? || entity == @game.ic || @game.phase.name == '2'
             depot_trains + other_trains
           end
 

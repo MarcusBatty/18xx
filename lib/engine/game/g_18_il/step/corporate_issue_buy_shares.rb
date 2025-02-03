@@ -14,7 +14,7 @@ module Engine
             return [] if entity == @game.ic
 
             actions = []
-            actions << 'buy_shares' if can_buy_any?(entity) && !@bought
+            actions << 'buy_shares' if can_buy_any?(entity) && !@bought && @game.phase.name != '2'
             actions << 'sell_shares' if issuable_share_available(entity)
             actions << 'pass' unless actions.empty?
             actions
@@ -42,7 +42,8 @@ module Engine
 
           def visible_corporations
             corps = @game.corporations.select do |c|
-              c.ipoed && !(c.ipo_shares - c.reserved_shares).empty? && c != current_entity && c != @game.ic # TODO: && c.operated?
+              c.ipoed && !(c.ipo_shares - c.reserved_shares).empty? &&
+              c != current_entity && c != @game.ic && @game.phase.name != '2'
             end
             corps << current_entity if issuable_share_available(current_entity)
             corps = [current_entity] if @bought

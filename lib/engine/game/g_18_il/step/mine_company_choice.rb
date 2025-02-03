@@ -21,7 +21,7 @@ module Engine
           end
 
           def active_entities
-            @active_company = [@game.chicago_virden_coal_co, @game.frink_walker_co, @game.u_s_mail_line].find do |company|
+            @active_company = [@game.frink_walker_co, @game.u_s_mail_line].find do |company|
               company&.owner == @round.current_operator
             end
 
@@ -62,10 +62,6 @@ module Engine
               @active_company.close!
               @log << "#{@active_company.name} (#{corp.name}) closes"
               @game.assign_mine_icon(corp)
-              if @active_company == @game.chicago_virden_coal_co
-                @log << 'Tile #M1 is removed from the game'
-                @game.all_tiles.each { |tile| tile.hide if tile.name == 'M1' }
-              end
             else
               @log << "#{corp.name} passes gaining marker"
               @mine_pass = true

@@ -39,7 +39,7 @@ module Engine
         BANK_CASH = 99_999
         CAPITALIZATION = :incremental
         CERT_LIMIT = { 2 => 24, 3 => 18, 4 => 15, 5 => 13, 6 => 11 }.freeze
-        STARTING_CASH = { 2 => 800, 3 => 640, 4 => 480, 5 => 360, 6 => 300 }.freeze
+        STARTING_CASH = { 2 => 720, 3 => 560, 4 => 420, 5 => 300, 6 => 200 }.freeze
 
         EVENTS_TEXT = Base::EVENTS_TEXT.merge(
           'signal_end_game' => ['Signal End Game', 'Game Ends 3 ORs after purchase of first D train']
@@ -208,8 +208,7 @@ module Engine
 
         def concession_round
           G18IL::Round::Auction.new(self, [
-            G18IL::Step::ConcessionAuction,
-            # G18IL::Step::SelectionAuction,
+             G18IL::Step::SelectionAuction,
           ])
         end
 
@@ -219,36 +218,6 @@ module Engine
             G18IL::Step::BuyNewTokens,
             G18IL::Step::BaseBuySellParShares,
           ])
-        end
-
-        def reorder_players(order = nil, log_player_order: false, silent: false)
-          order ||= next_sr_player_order
-          case order
-          when :after_last_to_act
-            player = @players.reject(&:bankrupt)[@round.entity_index]
-            @players.rotate!(@players.index(player))
-          when :first_to_pass
-            @players = @round.pass_order unless @round.pass_order.empty?
-            @players[1], @players[2] = @players[2], @players[1] if @turn == 3 #TODO remove entire method
-          when :most_cash
-            current_order = @players.dup.reverse
-            @players.sort_by! { |p| [p.cash, current_order.index(p)] }.reverse!
-          when :least_cash
-            current_order = @players.dup
-            @players.sort_by! { |p| [p.cash, current_order.index(p)] }
-          when :next_clockwise
-            @players.rotate!
-          when :most_cash_keep_order
-            player_with_most_cash = @players.max_by(&:cash)
-            @players.rotate!(@players.index(player_with_most_cash))
-          end
-          return if silent
-  
-          @log << if log_player_order
-                    "Priority order: #{@players.reject(&:bankrupt).map(&:name).join(', ')}"
-                  else
-                    "#{@players.first.name} has priority deal"
-                  end
         end
 
         def operating_round(round_num)
@@ -393,11 +362,13 @@ module Engine
 
           return if !ic_in_receivership? || !ic_formation_triggered?
 
-          index_corp = @round.entities.sort.find { |c| c.share_price.price < ic.share_price.price }
-          ic.owner = index_corp.owner
-          # ic.owner = @players.min_by { rand }
+          floated_corps = @corporations.select(&:floated)
+
+          index_corp = floated_corps.sort.find { |c| c.share_price.price < ic.share_price.price } if floated_corps.size > 1
+
+          ic.owner = index_corp ? index_corp.owner : @players.min_by { rand }
           @log << "#{ic.name} is in receivership and will be operated "\
-                  "by the player with priority deal (#{priority_deal_player.name})"
+                  "by a random player (#{ic.owner.name})"
         end
 
         def initial_auction_companies
@@ -1093,7 +1064,7 @@ module Engine
             nc.trains.shift
             @log << '-- Event: Rogers (1+1) train rusts --'
           else
-           # depot.export! unless @train_bought_this_or TODO
+            depot.export! unless @train_bought_this_or
           end
           @train_bought_this_or = false
           return unless phase.name == 'D'
@@ -1659,12 +1630,12 @@ module Engine
           # Calculate total refund for non-president shares
           (@players + @corporations).each do |entity|
             entity.shares_of(corporation).dup.each do |share|
-              next if !share || corporation == entity
+              next if !share || corporation == entity || share.president
 
-              @total_refund += (refund * (share.president ? 0.5 : 1.0)) unless share.president
+              multiplier = entity == corporation.president ? 0.5 : 1.0
+              @total_refund += refund * multiplier
             end
           end
-
           # Check for exchange option for president's share
           (@players + @corporations).each do |entity|
             entity.shares_of(corporation).dup.each do |share|
@@ -1695,7 +1666,7 @@ module Engine
 
           refund = corporation.share_price.price
           # Handle share compensation for players and corporations
-          (@players + @corporations).each do |entity|
+          (@players + @corporations).reject { |entity| entity == corporation }.each do |entity|
             refund_amount = entity.shares_of(corporation).dup.reject(&:president).sum { refund }
             next unless refund_amount.positive?
 
@@ -1799,7 +1770,6 @@ module Engine
           order < idx if order && idx
         end
 
-        # TODO: logic needed in case every open corp has merged
         def post_ic_formation
           # IC gains station tokens and places additional tokens if fewer than two mergers occur
           ic_reserve_tokens
@@ -1829,11 +1799,10 @@ module Engine
           add_ic_receivership_ability
           if ic_in_receivership?
             @log << "#{ic.name} enters receivership (it has no president)"
-            @log << "While in receivership, #{ic.name} will be operated by a random player"
             index_corp = @round.entities.sort.find { |c| c.share_price.price < ic.share_price.price }
             index_corp ||= @round.entities.min_by { |c| c.share_price.price }
-            ic.owner = index_corp.owner
-            # ic.owner = @players.min_by { rand }
+            ic.owner = index_corp ? index_corp.owner : @players.min_by { rand }
+            @log << "While in receivership, #{ic.name} will be operated by a random player (#{ic.owner.name})"
           else
             add_ic_operating_ability
           end
@@ -1841,9 +1810,9 @@ module Engine
           earliest_index = @merged_corps.empty? ? 99 : @merged_corps.map { |n| @round.entities.index(n) }.min
           current_corp_index = @round.entities.index(@ic_trigger_entity)
           # if no corps merged or none of the merged corps ran yet, IC runs next
+          # if the triggering corp operated before any merged corps, IC will operate this round
+          if current_corp_index < earliest_index || @round.entities.empty?
 
-          if current_corp_index < earliest_index # if the triggering corp operated before any merged corps,
-            # IC will operate this round
             @log << if @merged_corps.empty?
                       'IC will operate for the first time in this operating round (no corporations merged)'
                     else
@@ -1873,12 +1842,15 @@ module Engine
 
           @merged_corps.each do |c|
             close_corporation(c)
-            # moves the index back by one for each merged corp if the merged corp had already operated
-            entity_index -= 1 if operated_this_round?(c) && entity_index > 0
           end
 
           @ic_formation_pending = false
           @log << '-- Event: Illinois Central Formation complete --'
+
+          return unless @round.entities.empty?
+
+          @round.entities << ic
+          next_round!
         end
 
         def add_ic_operating_ability
