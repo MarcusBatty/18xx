@@ -324,8 +324,7 @@ module Engine
                     'in a mine hex (except Galena) with the #M1 tile, paying any terrain costs. It must be '\
                     'connected to one of the corporation’s existing station markers but does not count as a '\
                     'tile lay. The corporation receives a mine marker. Once this ability is used, the '\
-                    'company closes. At the beginning of its turn, the corporation may choose to close '\
-                    'this company in exchange for a mine marker.',
+                    'company closes.',
               sym: 'CVCC',
               meta: { type: :private, class: :B },
               abilities: [

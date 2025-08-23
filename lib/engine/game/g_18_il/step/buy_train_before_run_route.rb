@@ -24,6 +24,10 @@ module Engine
             actions.flatten
           end
 
+          def must_buy_train?
+            false
+          end
+
           def round_state
             {
               premature_trains_bought: [],
