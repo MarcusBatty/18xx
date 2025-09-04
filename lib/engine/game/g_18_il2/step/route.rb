@@ -16,6 +16,7 @@ module Engine
 
             actions << 'run_routes'
             actions << 'scrap_train' if scrappable_trains(entity).count > 1 && !@game.last_set
+            actions << 'buy_port_marker' unless @game.has_port_marker?(entity)
             actions
           end
 
@@ -30,6 +31,12 @@ module Engine
           def process_run_routes(action)
             super
             @game.pay_fwc_bonus!(@round.routes) unless @game.intro_game?
+          end
+
+          def process_buy_port_marker(action)
+              @log << "#{corp.name} gains a port token"
+              corp.cash -= 40
+              @game.assign_port_icon(corp)
           end
 
           def scrap_button_text(_train)

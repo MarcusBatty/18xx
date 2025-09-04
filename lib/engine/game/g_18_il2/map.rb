@@ -48,9 +48,8 @@ module Engine
         def game_hexes
           {
             blue: {
-              # ['B1'] => 'halt=revenue:0,symbol:0;icon=image:18_il2/port,sticky:1,blocks_lay:1;path=a:5,b:_0',
-              # ['D23'] => 'halt=revenue:0,symbol:0;icon=image:18_il2/port,sticky:1,blocks_lay:1;path=a:3,b:_0;path=a:5,b:_0',
-              ['H1'] => 'town=revenue:40;path=a:1,b:_0;path=a:5,b:_0;border=edge:5',
+              ['H1'] => 'town=revenue:20,symbol:40,groups:port;path=a:1,b:_0;path=a:5,b:_0;border=edge:5;'\
+                        'icon=image:18_il/port,sticky:1',
               ['I2'] => 'offboard=revenue:0;path=a:1,b:2;border=edge:0;border=edge:2',
               ['I4'] => 'offboard=revenue:0;border=edge:3',
             },
@@ -134,7 +133,7 @@ module Engine
                          'path=a:4,b:_0;border=edge:2;border=edge:3;border=edge:4',
               ['G2'] => 'label=N;offboard=revenue:yellow_20|brown_40,groups:North;path=a:1,b:_0;path=a:4,b:_0;path=a:5,b:_0',
               ['G24'] => 'path=a:3,b:1;border=edge:1;border=edge:2;border=edge:3,type:water,cost:20',
-              ['I6'] => 'city=revenue:yellow_30|brown_40,groups:East;path=a:1,b:_0,terminal:1;border=edge:0;'\
+              ['I6'] => 'label=E;city=revenue:yellow_30|brown_40,groups:East;path=a:1,b:_0,terminal:1;border=edge:0;'\
                         'path=a:2,b:_0,terminal:1;border=edge:0;path=a:0,b:_0,terminal:1,lanes:2',
               ['I8'] => 'path=a:3,b:1,a_lane:2.0;path=a:3,b:2,a_lane:2.1;border=edge:3',
               ['I12'] => 'label=E;offboard=revenue:yellow_30|brown_40,groups:East;path=a:1,b:_0;path=a:2,b:_0',

@@ -95,7 +95,7 @@ module Engine
               company.remove_ability(ability)
             else
               @round.teleported = company
-              @round.teleport_tokener = tokener
+              @round.teleport_markerer = tokener
             end
           end
         end

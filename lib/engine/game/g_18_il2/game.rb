@@ -82,6 +82,7 @@ module Engine
         CLOSED_CORP_RESERVATIONS_REMOVED = false
         OBSOLETE_TRAINS_COUNT_FOR_LIMIT = false
 
+        PORT_HEXES = %w[H1].freeze
         TOWN_HEXES = %w[C2 D9 D13 D17 E6 E14 E16 F5 F13 F21 G22 H11].freeze
         CLASS_A_COMPANIES = %w[].freeze
         CLASS_B_COMPANIES = %w[].freeze
@@ -94,6 +95,12 @@ module Engine
         IC_LINE_HEXES = %w[H7 G10 F17 E22].freeze
         BOOM_HEXES = %w[E8 E12].freeze
         GALENA_HEX = %w[C2].freeze
+        PORT_ICON = 'port'.freeze
+        PORT_MARKER_COST = 40
+
+        ASSIGNMENT_TOKENS = {
+          'port' => '/icons/18_il/port.svg',
+        }.freeze
 
         IC_LINE_COUNT = 10
         IC_LINE_ORIENTATION = {
@@ -227,6 +234,7 @@ module Engine
               G18IL2::Step::PostConversionShares,
               G18IL2::Step::BuyNewTokens,
               G18IL2::Step::IssueShares,
+              G18IL2::Step::SpecialBuy,
               G18IL2::Step::Track,
               G18IL2::Step::Token,
               G18IL2::Step::BorrowTrain,
@@ -253,6 +261,7 @@ module Engine
               G18IL2::Step::BuyNewTokens,
               G18IL2::Step::SpecialIssueShares,
               G18IL2::Step::IssueShares,
+              G18IL2::Step::SpecialBuy,
               G18IL2::Step::Track,
               G18IL2::Step::Token,
               G18IL2::Step::BorrowTrain,
@@ -636,6 +645,16 @@ module Engine
 
         def emr_active?
           @emr_active
+        end
+
+        def has_port_marker?(corporation)
+          return true if corporation.assignments.include?(PORT_ICON)
+
+          false
+        end
+
+        def assign_port_icon(corp)
+          corp.assign!(PORT_ICON)
         end
 
         def rust_trains!(train, entity)
@@ -1271,6 +1290,12 @@ module Engine
           raise GameError, "'Rogers' train can only run between Springfield and Jacksonville"
         end
 
+        def check_port(route, visits)
+          return if visits.none? { |v| PORT_HEXES.find { |h| v.hex == hex_by_id(h) } } || has_port_marker?(route.corporation)
+
+          raise GameError, 'Corporation must own a port marker to visit a port'
+        end
+
         def check_distance(route, visits)
           # checks STL for permit token
           check_stl(visits)
@@ -1280,6 +1305,9 @@ module Engine
 
           # disallows Rogers train from running outside of Springfield/Jacksonville
           check_rogers(route, visits)
+
+          # disallows corporations without a port token from running to a port
+          check_port(route, visits)
 
           super
         end
@@ -1435,9 +1463,16 @@ module Engine
         end
 
         def process_single_action(action)
+          corp = action.entity.owner if action.entity.company?
           super
 
           return if intro_game?
+          
+          if action.entity == goodrich_transit_line
+            assign_port_icon(corp)
+            log << "#{corp.name} receives a port marker"
+          end
+
           return unless action.entity == central_il_boom
 
           tile = action.hex.tile
@@ -1481,6 +1516,7 @@ module Engine
           ic.add_ability(self.class::TRAIN_BUY_ABILITY)
           ic.add_ability(self.class::TRAIN_LIMIT_ABILITY)
           ic.remove_ability(self.class::FORMATION_ABILITY)
+          assign_port_icon(ic)
 
           bundle = ShareBundle.new(ic.shares.last(5))
           @share_pool.transfer_shares(bundle, @share_pool)
