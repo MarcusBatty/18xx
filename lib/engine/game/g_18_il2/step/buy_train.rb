@@ -11,21 +11,22 @@ module Engine
             { bought_trains: [] }
           end
 
-def actions(entity)
-  return [] if @game.last_set
-  # IC in receivership: once it has bought, it's done
-  if entity == @game.ic && @game.ic_in_receivership? &&
-     @round.respond_to?(:bought_trains) && @round.bought_trains.include?(entity)
-    return []
-  end
+          def actions(entity)
+            return [] if @game.last_set
+            # IC in receivership: once it has bought, it's done
+            if entity == @game.ic && @game.ic_in_receivership? &&
+               @round.respond_to?(:bought_trains) && @round.bought_trains.include?(entity)
+              return []
+            end
 
-  return ['sell_shares'] if entity == current_entity&.player && !@game.other_train_pass
-  return [] if entity != current_entity
-  return %w[buy_train sell_shares] if must_sell_shares?(entity)
-  return %w[buy_train] if must_buy_train?(entity)
-  return %w[buy_train pass] if can_buy_train?(entity)
-  []
-end
+            return ['sell_shares'] if entity == current_entity&.player && !@game.other_train_pass
+            return [] if entity != current_entity
+            return %w[buy_train sell_shares] if must_sell_shares?(entity)
+            return %w[buy_train] if must_buy_train?(entity)
+            return %w[buy_train pass] if can_buy_train?(entity)
+
+            []
+          end
 
           def must_sell_shares?(corporation)
             return false if @game.other_train_pass
@@ -108,27 +109,26 @@ end
           end
 
           def train_variant_helper(train, entity)
-            return train.variants.values unless entity == @game.ic && @game.ic_in_receivership?
-  [train.variants.values.min_by { |v| v[:price] || train.price }]
-end
+            return train.variants.values if entity != @game.ic || !@game.ic_in_receivership?
 
-def buyable_trains(entity)
-  if entity == @game.ic && @game.ic_in_receivership?
-    return [@depot.min_depot_train].compact
-  end
+            [train.variants.values.min_by { |v| v[:price] || train.price }]
+          end
 
-  depot_trains = @depot.depot_trains
-  depot_trains = [@depot.min_depot_train] if entity.cash < @depot.min_depot_price
-  depot_trains = [] if @game.other_train_pass
+          def buyable_trains(entity)
+            return [@depot.min_depot_train].compact if entity == @game.ic && @game.ic_in_receivership?
 
-  other_trains = other_trains(entity)
-  other_trains.reject! { |t| t.owner == @game.ic } if @game.ic_in_receivership?
-  other_trains = [] if entity.cash.zero? || @game.emr_active?
+            depot_trains = @depot.depot_trains
+            depot_trains = [@depot.min_depot_train] if entity.cash < @depot.min_depot_price
+            depot_trains = [] if @game.other_train_pass
 
-  return depot_trains if @game.last_set_pending
-  depot_trains + other_trains
-end
+            other_trains = other_trains(entity)
+            other_trains.reject! { |t| t.owner == @game.ic } if @game.ic_in_receivership?
+            other_trains = [] if entity.cash.zero? || @game.emr_active?
 
+            return depot_trains if @game.last_set_pending
+
+            depot_trains + other_trains
+          end
 
           def process_sell_shares(action)
             raise GameError, 'Cannot sell shares when buying from another corporation' if @game.other_train_pass
@@ -143,20 +143,19 @@ end
                     "#{@game.format_currency(old_price)} to #{@game.format_currency(new_price)}"
           end
 
-def process_buy_train(action)
-  check_spend(action)
-  buy_train_action(action)
-  @round.bought_trains << action.entity if @round.respond_to?(:bought_trains)
-  @game.ic_owns_train! if action.entity == @game.ic
+          def process_buy_train(action)
+            check_spend(action)
+            buy_train_action(action)
+            @round.bought_trains << action.entity if @round.respond_to?(:bought_trains)
+            @game.ic_owns_train! if action.entity == @game.ic
 
-  if action.entity == @game.ic && @game.ic_in_receivership?
-    pass!
-    return
-  end
+            if action.entity == @game.ic && @game.ic_in_receivership?
+              pass!
+              return
+            end
 
-  pass! unless can_buy_train?(action.entity)
-end
-
+            pass! unless can_buy_train?(action.entity)
+          end
 
           def buy_train_action(action, entity = nil, borrow_from: nil)
             entity ||= action.entity

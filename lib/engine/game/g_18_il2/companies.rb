@@ -272,15 +272,27 @@ module Engine
             ],
           },
           {
-            name: 'Chicago Board of Trade',
+            name: 'Union Stock Yards',
             value: 0,
             revenue: 0,
-            desc: 'The corporation’s shares do not count toward the certificate limit.',
-            sym: 'CBOT',
+            desc: 'During the token-laying step of its operating turn, the owning corporation may place a token in any hex '\
+                  'that has a city slot (open or not) except St. Louis or Chicago to which it is connected by route. This '\
+                  'token is non-blocking: it creates an additional token slot in the city in which it is placed. Once this '\
+                  'ability is used, the company closes.',
+            sym: 'USY',
             meta: { type: :private, class: :A },
             abilities: [
               {
-                type: 'description',
+                type: 'token',
+                when: 'token',
+                owner_type: 'corporation',
+                connected: true,
+                from_owner: true,
+                extra_slot: true,
+                special_only: true,
+                closed_when_used_up: true,
+                price: 0,
+                hexes: %w[B11 C6 C8 D15 E2 E8 E12 F3 F9 F11 G4 G6 G16 H21 I6],
               },
             ],
           },
@@ -387,6 +399,20 @@ module Engine
             ],
           },
           {
+            name: 'Efficient Engineering',
+            value: 0,
+            revenue: 0,
+            desc: 'During a corporation’s operating turn, if it performs two tile lays (or a lay and '\
+                  'an upgrade), the second one costs only $10 (instead of $20), plus any terrain costs.',
+            sym: 'EE',
+            meta: { type: :private, class: :B },
+            abilities: [
+              {
+                type: 'description',
+              },
+  ],
+          },
+          {
             name: 'Engineering Mastery',
             value: 0,
             revenue: 0,
@@ -423,31 +449,7 @@ module Engine
               },
             ],
           },
-          {
-            name: 'Union Stock Yards',
-            value: 0,
-            revenue: 0,
-            desc: 'During the token-laying step of its operating turn, the owning corporation may place a token in any hex '\
-                  'that has a city slot (open or not) except St. Louis or Chicago to which it is connected by route. This '\
-                  'token is non-blocking: it creates an additional token slot in the city in which it is placed. Once this '\
-                  'ability is used, the company closes.',
-            sym: 'USY',
-            meta: { type: :private, class: :B },
-            abilities: [
-              {
-                type: 'token',
-                when: 'token',
-                owner_type: 'corporation',
-                connected: true,
-                from_owner: true,
-                extra_slot: true,
-                special_only: true,
-                closed_when_used_up: true,
-                price: 0,
-                hexes: %w[B11 C6 C8 D15 E2 E8 E12 F3 F9 F11 G4 G6 G16 H21 I6],
-              },
-            ],
-          },
+
           {
             name: 'Illinois Steel Bridge Co.',
             value: 0,

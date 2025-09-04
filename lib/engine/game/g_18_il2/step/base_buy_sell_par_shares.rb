@@ -155,7 +155,6 @@ module Engine
           def check_legal_buy(entity, shares, exchange: nil, swap: nil, allow_president_change: true); end
 
           def can_gain?(entity, bundle, exchange: false)
-            # debug_market_buys(entity, bundle.corporation)
             return false if !entity || !bundle
             return false unless bundle.buyable
 
@@ -179,15 +178,18 @@ module Engine
             can_hold = corporation.holding_ok?(entity, bundle.common_percent)
             at_limit = @game.num_certs(entity) >= @game.cert_limit(entity)
 
-            if @game.intro_game?
-              !at_limit && can_hold
-            else
-              cbot_corp = @game.chicago_board_of_trade&.owner
-              cbot_treasury = cbot_corp&.shares_of(cbot_corp)&.any? { |s| s.owner == cbot_corp }
-              cbot_market   = cbot_corp && @game.share_pool.shares_of(cbot_corp).any?
-              cbot_exception = (corporation == cbot_corp) && (cbot_treasury || cbot_market)
-              (!at_limit || cbot_exception) && can_hold
-            end
+            return true if reserve_bundle?(corporation, bundle.owner) && bundle.corporation == @game.ic && !at_limit
+
+            !at_limit && can_hold
+            # if @game.intro_game?
+            #   !at_limit && can_hold
+            # else
+            #   cbot_corp = @game.chicago_board_of_trade&.owner
+            #   cbot_treasury = cbot_corp&.shares_of(cbot_corp)&.any? { |s| s.owner == cbot_corp }
+            #   cbot_market   = cbot_corp && @game.share_pool.shares_of(cbot_corp).any?
+            #   cbot_exception = (corporation == cbot_corp) && (cbot_treasury || cbot_market)
+            #   (!at_limit || cbot_exception) && can_hold
+            # end
           end
 
           def must_sell?(entity)
@@ -262,23 +264,21 @@ module Engine
 
             return if @game.closed_corporations.delete(corp)
 
-            ss_owner =
-              (@game.station_subsidy&.owner if @game.respond_to?(:station_subsidy))
             case corp.total_shares
             when 10
               min = 2
-              max = ss_owner == corp ? 4 : 5
+              max = 4
               @log << "#{corp.name} must buy between #{min} and #{max} tokens"
             when 5
               min = 1
               max = 1
-              @log << "#{corp.name} must buy 1 token"
+              @log << "#{corp.name} must buy #{min} token"
             when 2
               @log << "#{corp.name} does not buy tokens"
               return
             end
 
-            price = 40
+            price = @game.class::TOKEN_COST
 
             @round.buy_tokens << {
               entity: corp,

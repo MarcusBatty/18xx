@@ -40,7 +40,9 @@ module Engine
         BANK_CASH = 99_999
         CAPITALIZATION = :incremental
         CERT_LIMIT = { 2 => 24, 3 => 18, 4 => 15, 5 => 13, 6 => 11 }.freeze
-        STARTING_CASH = { 2 => 720, 3 => 560, 4 => 420, 5 => 300, 6 => 200 }.freeze
+        # STARTING_CASH = { 2 => 720, 3 => 560, 4 => 420, 5 => 300, 6 => 200 }.freeze old version
+        STARTING_CASH = { 2 => 800, 3 => 640, 4 => 520, 5 => 400, 6 => 320 }.freeze
+        TOKEN_COST = 40
 
         EVENTS_TEXT = Base::EVENTS_TEXT.merge(
           'signal_end_game' => ['Signal End Game', 'Game Ends 3 ORs after purchase of first D train']
@@ -266,19 +268,26 @@ module Engine
         end
 
         def tile_lays(entity)
-          return super if intro_game? || engineering_mastery&.owner != entity
+          return super if intro_game?
 
-          # Base tile lay for Engineering Mastery
-          tile_lays = [{ lay: true, upgrade: true, cost: 0, cannot_reuse_same_hex: true }]
+          if engineering_mastery&.owner == entity
+            lays = [{ lay: true, upgrade: true, cost: 0, cannot_reuse_same_hex: true }]
 
-          # Add an upgrade option for $30 (if the first upgrade was used)
-          if @round.upgraded_track
-            tile_lays << { lay: true, upgrade: true, cost: 20, upgrade_cost: 30, cannot_reuse_same_hex: true }
+            lays << if @round.upgraded_track
+                      { lay: true, upgrade: true, cost: 20, upgrade_cost: 30, cannot_reuse_same_hex: true }
+                    else
+                      { lay: true, upgrade: true, cost: 20, cannot_reuse_same_hex: true }
+                    end
+
+            lays
+          elsif efficient_engineering&.owner == entity
+            [
+              { lay: true, upgrade: true, cost: 0 },
+              { lay: true, upgrade: :not_if_upgraded, cost: 10, cannot_reuse_same_hex: true },
+            ]
           else
-            # Add an upgrade option for $20 (if the first upgrade as not used)
-            tile_lays << { lay: true, upgrade: true, cost: 20, cannot_reuse_same_hex: true } unless @round.upgraded_track
+            super
           end
-          tile_lays
         end
 
         def company_closing_after_using_ability(company, silent = false)
@@ -549,6 +558,11 @@ module Engine
           "#{array[0..-2].join(', ')}, and #{array[-1]}"
         end
 
+        def train_help(_entity, runnable_trains, _routes)
+          return [] unless runnable_trains.any? { |t| t.name == 'Rogers (1+1)' }
+          ["The 'Rogers' train may only run a route from Springfield to Jacksonville."]
+        end
+
         def setup
           # Dynamically creates methods for each private company (i.e., station_subsidy)
           @companies.each do |c|
@@ -605,7 +619,7 @@ module Engine
             tiles.delete_if { |tile| tile.name == 'P4' || tile.name == 'S4' }
           end
 
-          apply_cbot_for!(chicago_board_of_trade&.owner) unless intro_game?
+          #   apply_cbot_for!(chicago_board_of_trade&.owner) unless intro_game?
         end
 
         def ipo_name(_entity = nil)
@@ -732,25 +746,16 @@ module Engine
 
           @closed_corporations << corporation
           @log << "#{corporation.name} closes"
-# If the closing corp is the one whose turn it is, advance the round to the next corp.
-was_current = (@round&.current_entity == corporation)
-@round.force_next_entity! if was_current
+          # If the closing corp is the one whose turn it is, advance the round to the next corp.
+          was_current = (@round&.current_entity == corporation)
+          @round.force_next_entity! if was_current
 
-if @round&.operating? && @round.entities&.include?(corporation)
-  idx_before = @round.entities.index(corporation)
-  @round.entities.delete_at(idx_before)
+          if @round&.operating? && @round.entities&.include?(corporation)
+            idx_before = @round.entities.index(corporation)
+            @round.entities.delete_at(idx_before)
 
-  # If we advanced first (was_current), the current index now points to the "next" corp;
-  # since we removed an element before that index, pull the index back by one so we
-  # still point at the same "next" corp.
-  if was_current && idx_before < @round.entity_index
-    @round.entity_index -= 1
-  # Also handle the general case: removing anything before the current index requires
-  # pulling the index back by one.
-  elsif !was_current && idx_before < @round.entity_index
-    @round.entity_index -= 1
-  end
-end
+            @round.entity_index -= 1 if idx_before < @round.entity_index
+          end
 
           # un-IPO the corporation
           corporation.share_price&.corporations&.delete(corporation)
@@ -904,11 +909,11 @@ end
           two_player_share_limit? ? { max_ownership_percent: 70 } : {}
         end
 
-        def apply_cbot_for!(corp)
-          return unless chicago_board_of_trade&.owner == corp
+        # def apply_cbot_for!(corp)
+        #   return unless chicago_board_of_trade&.owner == corp
 
-          corp.shares.each { |s| s.counts_for_limit = false }
-        end
+        #   corp.shares.each { |s| s.counts_for_limit = false }
+        # end
 
         def convert(corporation)
           shares = @_shares.values.select { |share| share.corporation == corporation }
@@ -932,7 +937,7 @@ end
           shares.each { |share| corporation.share_holders[share.owner] += share.percent }
           new_shares.each { |share| add_new_share(share) }
 
-          apply_cbot_for!(corporation) unless intro_game?
+        #  apply_cbot_for!(corporation) unless intro_game?
 
           if !intro_game? && corporation == share_premium.owner && corporation.total_shares == 10
             @reserved_share = share_premium&.owner&.ipo_shares&.last
@@ -1710,7 +1715,7 @@ end
             count += 1
           end
 
-          ic.tokens << Token.new(ic, price: 0) while ic.tokens.count < 7
+          ic.tokens << Token.new(ic, price: 0) while ic.tokens.count < 6
         end
 
         def ic_line_token_location
@@ -1745,84 +1750,84 @@ end
           order < idx if order && idx
         end
 
-def post_ic_formation
-  ic_reserve_tokens
+        def post_ic_formation
+          ic_reserve_tokens
 
-  train = @depot.upcoming[0]
-  if ic.trains.empty? && ic.cash >= @depot.min_depot_price
-    @log << "#{ic.name} is trainless"
-    ic_needs_train!
-    train_type = train.name.length == 1 ? "#{train.name}-train" : "#{train.name} train"
-    @log << "#{ic.name} buys a #{train_type} for #{format_currency(train.price)} from the Depot"
-    ic_owns_train!
-    buy_train(ic, train, train.price)
-    @phase.buying_train!(ic, train, train.owner)
-  end
+          train = @depot.upcoming[0]
+          if ic.trains.empty? && ic.cash >= @depot.min_depot_price
+            @log << "#{ic.name} is trainless"
+            ic_needs_train!
+            train_type = train.name.length == 1 ? "#{train.name}-train" : "#{train.name} train"
+            @log << "#{ic.name} buys a #{train_type} for #{format_currency(train.price)} from the Depot"
+            ic_owns_train!
+            buy_train(ic, train, train.price)
+            @phase.buying_train!(ic, train, train.owner)
+          end
 
-  if @merge_share_prices.size > 1
-    price = @merge_share_prices.sum / @merge_share_prices.count
-    ic_new_share_price = @stock_market.market.first.max_by { |p| p.price <= price ? p.price : 0 }
-    @log << "#{ic.name}'s new share price is #{format_currency(ic_new_share_price.price)}"
-    ic.share_price.corporations.delete(ic)
-    stock_market.set_par(ic, ic_new_share_price)
-  end
+          if @merge_share_prices.size > 1
+            price = @merge_share_prices.sum / @merge_share_prices.count
+            ic_new_share_price = @stock_market.market.first.max_by { |p| p.price <= price ? p.price : 0 }
+            @log << "#{ic.name}'s new share price is #{format_currency(ic_new_share_price.price)}"
+            ic.share_price.corporations.delete(ic)
+            stock_market.set_par(ic, ic_new_share_price)
+          end
 
-  add_ic_receivership_ability
-  if ic_in_receivership?
-    @log << "#{ic.name} enters receivership (it has no president)"
-    ic_price = ic.share_price&.price
-    live = @round.entities.select { |c| c.corporation? && c.share_price && !c.closed? }
-    index_corp = live.sort.find { |c| c.share_price.price < ic_price } || live.min_by { |c| c.share_price.price }
-    ic.owner = index_corp ? index_corp.owner : @players.min_by { rand }
-    @log << "While in receivership, #{ic.name} will be operated by a random player (#{ic.owner.name})"
-  else
-    add_ic_operating_ability
-  end
+          add_ic_receivership_ability
+          if ic_in_receivership?
+            @log << "#{ic.name} enters receivership (it has no president)"
+            ic_price = ic.share_price&.price
+            live = @round.entities.select { |c| c.corporation? && c.share_price && !c.closed? }
+            index_corp = live.sort.find { |c| c.share_price.price < ic_price } || live.min_by { |c| c.share_price.price }
+            ic.owner = index_corp ? index_corp.owner : @players.min_by { rand }
+            @log << "While in receivership, #{ic.name} will be operated by a random player (#{ic.owner.name})"
+          else
+            add_ic_operating_ability
+          end
 
-  earliest_index = @merged_corps.empty? ? 99 : @merged_corps.map { |n| @round.entities.index(n) }.min
-  current_corp_index = @round.entities.index(@ic_trigger_entity)
+          earliest_index = @merged_corps.empty? ? 99 : @merged_corps.map { |n| @round.entities.index(n) }.min
+          current_corp_index = @round.entities.index(@ic_trigger_entity)
 
-  if current_corp_index < earliest_index || @round.entities.empty?
-    @log << if @merged_corps.empty?
-              'IC will operate for the first time in this operating round (no corporations merged)'
+          if current_corp_index < earliest_index || @round.entities.empty?
+            @log << if @merged_corps.empty?
+                      'IC will operate for the first time in this operating round (no corporations merged)'
+                    else
+                      'IC will operate for the first time in this operating round (no merged corporations '\
+                        'have operated in this round)'
+                    end
+            ic_price = ic.share_price&.price
+            live = @round.entities.select { |c| c.corporation? && c.share_price && !c.closed? }
+            index_corp = live.sort.find { |c| c.share_price.price < ic_price }
+            index = @round.entities.find_index(index_corp)
+            if index.nil?
+              @round.entities << ic
             else
-              'IC will operate for the first time in this operating round (no merged corporations have operated in this round)'
+              trigger_price = @ic_trigger_entity.share_price&.price || 0
+              if ic.share_price.price > trigger_price
+                @round.entities.insert(current_corp_index + 1, ic)
+              else
+                @round.entities.insert(index, ic)
+              end
             end
-    ic_price = ic.share_price&.price
-    live = @round.entities.select { |c| c.corporation? && c.share_price && !c.closed? }
-    index_corp = live.sort.find { |c| c.share_price.price < ic_price }
-    index = @round.entities.find_index(index_corp)
-    if index.nil?
-      @round.entities << ic
-    else
-      trigger_price = @ic_trigger_entity.share_price&.price || 0
-      if ic.share_price.price > trigger_price
-        @round.entities.insert(current_corp_index + 1, ic)
-      else
-        @round.entities.insert(index, ic)
-      end
-    end
-  else
-    @log << 'IC will operate for the first time in the next operating round (a merged corporation has already operated)'
-  end
+          else
+            @log << 'IC will operate for the first time in the next operating round (a merged corporation has already operated)'
+          end
 
-  ic.floatable = true
-  ic.floated = true
-  ic.ipoed = true
+          ic.floatable = true
+          ic.floated = true
+          ic.ipoed = true
 
-  @merged_corps.each do |c|
-    close_corporation(c)
-  end
+          @merged_corps.each do |c|
+            close_corporation(c)
+          end
 
-  @ic_formation_pending = false
-  @log << '-- Event: Illinois Central Formation complete --'
+          @ic_formation_pending = false
+          @log << '-- Event: Illinois Central Formation complete --'
 
-  return unless @round.entities.empty?
+          return unless @round.entities.empty?
 
-  @round.entities << ic
-  next_round!
-end
-
+          @round.entities << ic
+          next_round!
+        end
 
         def add_ic_operating_ability
           return if @ic_president == true

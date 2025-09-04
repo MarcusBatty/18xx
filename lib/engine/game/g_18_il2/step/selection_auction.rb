@@ -43,37 +43,33 @@ module Engine
             end
           end
 
-def change_private_description(company)
-  corp = @game.corporations.find { |c| c.name == company.sym }
-  share_count = company&.meta&.[](:share_count) || corp&.total_shares || 10
+          def change_private_description(company)
+            corp = @game.corporations.find { |c| c.name == company.sym }
+            share_count = company&.meta&.[](:share_count) || corp&.total_shares || 10
 
-  base = "Can start #{company.sym} as a #{share_count}-share corporation."
-  holdings = nil
+            base = "Can start #{company.sym} as a #{share_count}-share corporation."
+            holdings = nil
 
-  if corp && (corp.cash.positive? || corp.trains.any?)
-    cash_part = corp.cash.positive? ? @game.format_currency(corp.cash) : nil
+            if corp && (corp.cash.positive? || corp.trains.any?)
+              cash_part = corp.cash.positive? ? @game.format_currency(corp.cash) : nil
 
-    if corp.trains.any?
-      items = corp.trains.map { |t| t.name.match?(/^\d$/) ? "#{t.name}-" : t.name }
-      if items.size == 1
-        name = items.first
-        trains_part = name.end_with?('-') ? "#{name}train" : "#{name} train"
-      else
-        list = cash_part ? items.join(', ') : @game.list_with_and(items)
-        trains_part = "#{list} train"
-      end
-    end
+              if corp.trains.any?
+                items = corp.trains.map { |t| t.name.match?(/^\d$/) ? "#{t.name}-" : t.name }
+                if items.size == 1
+                  name = items.first
+                  trains_part = name.end_with?('-') ? "#{name}train" : "#{name} train"
+                else
+                  list = cash_part ? items.join(', ') : @game.list_with_and(items)
+                  trains_part = "#{list} train"
+                end
+              end
 
-    parts = [cash_part, trains_part].compact
-    holdings = "\nCorporation holdings: #{parts.join(' and ')}" unless parts.empty?
-  end
+              parts = [cash_part, trains_part].compact
+              holdings = "\nCorporation holdings: #{parts.join(' and ')}" unless parts.empty?
+            end
 
-  company.desc = "#{base}#{holdings}"
-end
-
-
-
-
+            company.desc = "#{base}#{holdings}"
+          end
 
           def prepare_ic_shares
             ic_shares = assign_share_values(:share, @game.ic.share_price.price)
@@ -166,37 +162,37 @@ end
             end
           end
 
-def process_pass(action, reason = nil)
-  entity = action.entity
+          def process_pass(action, reason = nil)
+            entity = action.entity
 
-  if auctioning
-    pass_auction(entity)
-    resolve_bids
-  else
-    msg = "#{entity.name} declines to start an auction"
-    msg += " (#{reason})" if reason
-    @log << msg
-    entity.pass!
-    return pass! if entities.all?(&:passed?) || @companies.empty?
-    next_entity!
-  end
+            if auctioning
+              pass_auction(entity)
+              resolve_bids
+            else
+              msg = "#{entity.name} declines to start an auction"
+              msg += " (#{reason})" if reason
+              @log << msg
+              entity.pass!
+              return pass! if entities.all?(&:passed?) || @companies.empty?
 
-  return pass! if @companies.none?
-end
+              next_entity!
+            end
 
-def next_entity!
-  @round.next_entity_index!
-  entity = entities[entity_index]
-  entity.pass! if @auctioning && entity && max_bid(entity, @auctioning) < min_bid(@auctioning)
+            return pass! if @companies.none?
+          end
 
-  while !@auctioning && @companies.any? && entity&.player? && !entity.passed? &&
-        entity.cash < starting_bid(min_company)
-    return process_pass(Engine::Action::Pass.new(entity), 'insufficient cash')
-  end
+          def next_entity!
+            @round.next_entity_index!
+            entity = entities[entity_index]
+            entity.pass! if @auctioning && entity && max_bid(entity, @auctioning) < min_bid(@auctioning)
 
-  next_entity! if entity&.passed?
-end
+            if !@auctioning && @companies.any? && entity&.player? && !entity.passed? &&
+                  entity.cash < starting_bid(min_company)
+              return process_pass(Engine::Action::Pass.new(entity), 'insufficient cash')
+            end
 
+            next_entity! if entity&.passed?
+          end
 
           def add_bid(bid)
             company = bid_target(bid)
@@ -248,7 +244,6 @@ end
             @round.goto_entity!(@auction_triggerer)
             next_entity!
           end
-
 
           def resolve_big_lot!(winner_player, lot_idx)
             other_player = (@game.players - [winner_player]).first

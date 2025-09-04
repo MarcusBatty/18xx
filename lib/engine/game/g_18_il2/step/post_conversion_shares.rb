@@ -35,6 +35,7 @@ module Engine
           def can_gain?(entity, bundle, exchange: false)
             return if !bundle || !entity
             return false if bundle.owner.player? && !@game.can_gain_from_player?(entity, bundle)
+            return false if corporation.shares.all? { |s| !s.buyable }
 
             corporation = bundle.corporation
 
@@ -42,10 +43,14 @@ module Engine
           end
 
           def log_pass(entity)
-            @log << if can_sell?(entity, nil)
+            @log << if can_sell?(entity, nil) && can_buy_any?(entity)
                       "#{entity.name} declines to buy/sell shares"
-                    else
+                    elsif can_sell?(entity, nil)
+                      "#{entity.name} declines to sell shares"
+                    elsif can_buy_any?(entity)
                       "#{entity.name} declines to buy shares"
+                    else
+                      "#{entity.name} has no valid actions and passes"
                     end
           end
 
@@ -117,28 +122,9 @@ module Engine
           def active_entities
             return [] unless corporation
 
-            # Rotate order so we start with the corp’s president
             players_in_order = @game.players.rotate(@game.players.index(corporation.owner))
-
-            # Pick the first eligible player who can actually act
-            eligible_player = players_in_order.find { |p| p.active? && (can_buy_any?(p) || can_sell?(p, nil)) }
-
-            # Log each player skipped
-            unless @logged_skips&.include?(corporation)
-              to_check = eligible_player ? players_in_order.take_while { |p| p != eligible_player } : players_in_order
-
-              to_check.each do |player|
-                next unless player.active?
-                next if can_buy_any?(player) || can_sell?(player, nil)
-
-                @log << "#{player.name} has no valid actions and passes"
-              end
-
-              @logged_skips ||= {}
-              @logged_skips[corporation] = true
-            end
-
-            [eligible_player].compact
+            eligible = players_in_order.find { |p| p.active? && (can_buy_any?(p) || can_sell?(p, nil)) }
+            eligible ? [eligible] : []
           end
 
           def post_convert_pass_step!
@@ -147,14 +133,14 @@ module Engine
             corp = @round.converted
 
             token_counts = {
-              10 => [3, 3],
+              10 => [2, 2],
               5 => [1, 1],
             }
 
             min, max = token_counts[corp.total_shares] || [0, 0]
 
             @log << "#{corp.name} must buy #{min} token#{min == 1 ? '' : 's'}"
-            price = 40
+            price = @game.class::TOKEN_COST
             @round.buy_tokens << { entity: corp, type: :convert, first_price: price, price: price, min: min, max: max }
           end
         end

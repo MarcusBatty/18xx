@@ -17,7 +17,7 @@ module Engine
             cash = entity.cash
 
             # can't convert if corp would not have enough money to purchase tokens after issuing all shares
-            return [] if (shares == 2 && (price * 1.5) + cash < 40) || (shares == 5 && (price * 2.5) + cash < 120)
+            return [] if (shares == 2 && (price * 1.5) + cash < 40) || (shares == 5 && (price * 2.5) + cash < 80)
 
             actions = []
             actions << 'convert' if [2, 5].include?(shares)
