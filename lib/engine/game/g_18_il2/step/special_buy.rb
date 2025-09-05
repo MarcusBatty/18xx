@@ -11,6 +11,7 @@ module Engine
 
           def buyable_items(entity)
             return [] if entity != current_entity
+            return [] if entity.cash < 40
             return [@port_marker] if @game.loading || !@game.has_port_marker?(entity)
 
             []

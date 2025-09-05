@@ -121,7 +121,7 @@ module Engine
             return str if @auctioning && @auctioning.meta[:type] != :concession
 
             if big_lots_first_turn? && !@auctioning
-              str << 'Choose one Big Lot to start an auction. The winner receives all four concessions in that lot; '\
+              str << 'Choose one Lot to start an auction. The winner receives all four concessions in that lot; '\
                      'the other player receives the remaining lot for free.'
               return str
             end
@@ -145,7 +145,7 @@ module Engine
           end
 
           def description
-            return (@auctioning ? 'Bid on Selected Big Lot' : 'Bid on Big Lot') if big_lots_first_turn?
+            return (@auctioning ? 'Bid on Selected Lot' : 'Bid on Lot') if big_lots_first_turn?
             return 'Bid on Selected Concession' if @auctioning&.meta&.[](:type) == :concession
             return 'Bid on Selected Share' if @auctioning
 
@@ -258,8 +258,8 @@ module Engine
               end
             end
 
-            @log << "#{winner_player.name} wins Big Lot #{lot_idx + 1} and receives #{@game.list_with_and(lot_won.map(&:name))}"
-            @log << "#{other_player.name} wins Big Lot #{2 - lot_idx} and receives #{@game.list_with_and(lot_free.map(&:name))}"
+            @log << "#{winner_player.name} wins Lot #{lot_idx + 1} and receives #{@game.list_with_and(lot_won.map(&:name))}"
+            @log << "#{other_player.name} wins Lot #{2 - lot_idx} and receives #{@game.list_with_and(lot_free.map(&:name))}"
 
             @game.big_lot_proxies.each do |c|
               c.close!

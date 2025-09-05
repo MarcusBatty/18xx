@@ -39,7 +39,7 @@ module Engine
           },
           {
             sym: :big_lots_variant,
-            short_name: '(2p only) Big Lots Variant',
+            short_name: '(2p only) Lots Variant',
             desc: 'Two lots consisting of one 10-share, two 5-share, and one 2-share concessions are formed '\
                   'for the first concession round.',
           },

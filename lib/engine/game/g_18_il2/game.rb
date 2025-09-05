@@ -522,7 +522,7 @@ module Engine
         end
 
         def setup_big_lots
-          @log << '-- Big Lots Formation --'
+          @log << '-- Lots Formation --'
 
           bucket = @corporations.select(&:floatable).group_by(&:total_shares)
 
@@ -537,7 +537,7 @@ module Engine
 
           @big_lots.each_with_index do |lot, idx|
             names = list_with_and(lot.map(&:name))
-            @log << "#{names} concessions are assigned to Big Lot #{idx + 1}"
+            @log << "#{names} concessions are assigned to Lot #{idx + 1}"
           end
           @big_lot_proxies = [make_big_lot_company(0), make_big_lot_company(1)]
           @companies |= @big_lot_proxies
@@ -548,7 +548,7 @@ module Engine
 
           Engine::Company.new(
             sym: "BL#{idx + 1}",
-            name: "Big Lot #{idx + 1}",
+            name: "Lot #{idx + 1}",
             value: 10,
             revenue: 0,
             desc: "Contains #{names}",
@@ -567,9 +567,29 @@ module Engine
           "#{array[0..-2].join(', ')}, and #{array[-1]}"
         end
 
-        def train_help(_entity, runnable_trains, _routes)
-          return [] unless runnable_trains.any? { |t| t.name == 'Rogers (1+1)' }
-          ["The 'Rogers' train may only run a route from Springfield to Jacksonville."]
+        def train_help(entity, runnable_trains, _routes)
+          help = []
+
+          # Check for Rogers train
+          if Array(runnable_trains).any? { |t| t&.name == 'Rogers (1+1)' }
+            help << "The 'Rogers' train may only run a route from Springfield to Jacksonville."
+          end
+
+          # Check for token in any STL hex (currently just C18)
+          STL_TOKEN_HEX.each do |hex_id|
+            hex = @hexes.find { |h| h.id == hex_id }
+            next unless hex
+
+            has_token = hex.tile.cities.any? do |city|
+              city.tokens.any? { |t| t&.corporation == entity }
+            end
+
+            if has_token
+              help << "Only one train may visit St. Louis (#{hex_id})"
+            end
+          end
+
+          help
         end
 
         def setup
